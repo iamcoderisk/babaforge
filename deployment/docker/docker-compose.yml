@@ -1,0 +1,193 @@
+version: '3.8'
+
+services:
+  # Redis for queues and caching
+  redis:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 16gb --maxmemory-policy allkeys-lru --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 16G
+    networks:
+      - emailer_network
+
+  # PostgreSQL with TimescaleDB for time-series data
+  postgres:
+    image: timescale/timescaledb:latest-pg15
+    environment:
+      POSTGRES_DB: email_system
+      POSTGRES_USER: emailer
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_MAX_CONNECTIONS: 500
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init.sql
+    deploy:
+      resources:
+        limits:
+          cpus: '8'
+          memory: 32G
+    networks:
+      - emailer_network
+
+  # API Server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m app.api.server
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=postgres
+      - WORKER_COUNT=0
+    depends_on:
+      - redis
+      - postgres
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+    networks:
+      - emailer_network
+
+  # Email Workers (scaled dynamically)
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m app.workers.email_worker
+    environment:
+      - ENVIRONMENT=docker
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=postgres
+      - WORKER_CONCURRENCY=100
+    depends_on:
+      - redis
+      - postgres
+    deploy:
+      replicas: 50
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+    networks:
+      - emailer_network
+
+  # AutoScaler
+  autoscaler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m app.scaling.autoscaler
+    environment:
+      - ENVIRONMENT=docker
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=postgres
+    depends_on:
+      - redis
+      - worker
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    networks:
+      - emailer_network
+
+  # Delayed Job Processor
+  delayed_processor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m app.workers.delayed_processor
+    environment:
+      - ENVIRONMENT=docker
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+    deploy:
+      replicas: 2
+    networks:
+      - emailer_network
+
+  # Metrics Collector
+  metrics:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m app.monitoring.metrics_collector
+    environment:
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=postgres
+    depends_on:
+      - redis
+      - postgres
+    deploy:
+      replicas: 1
+    networks:
+      - emailer_network
+
+  # Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - emailer_network
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_INSTALL_PLUGINS=redis-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - emailer_network
+
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - api
+    networks:
+      - emailer_network
+
+volumes:
+  redis_data:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  emailer_network:
+    driver: bridge

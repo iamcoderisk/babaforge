@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 text-center mb-5">
+        <h1 class="display-4">
+            <i class="fas fa-envelope-open-text"></i>
+            Enterprise Email System
+        </h1>
+        <p class="lead">sendbaba.com - 2B+ emails per day capacity</p>
+        <span class="live-indicator"></span> <small class="text-muted">System Online</small>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card metric-card shadow">
+            <div class="card-body text-center">
+                <i class="fas fa-paper-plane fa-3x text-primary mb-3"></i>
+                <h3>Send Emails</h3>
+                <p class="text-muted">Send single or bulk emails via API</p>
+                <button class="btn btn-primary" onclick="showApiDocs()">
+                    <i class="fas fa-book"></i> API Docs
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card metric-card shadow">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                <h3>Live Dashboard</h3>
+                <p class="text-muted">Real-time metrics and monitoring</p>
+                <a href="/dashboard" class="btn btn-success">
+                    <i class="fas fa-tachometer-alt"></i> View Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card metric-card shadow">
+            <div class="card-body text-center">
+                <i class="fas fa-cogs fa-3x text-warning mb-3"></i>
+                <h3>DNS Setup</h3>
+                <p class="text-muted">Configure DKIM, SPF, and DMARC</p>
+                <a href="/dns/setup" class="btn btn-warning">
+                    <i class="fas fa-wrench"></i> Setup Wizard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5><i class="fas fa-rocket"></i> Quick Start</h5>
+            </div>
+            <div class="card-body">
+                <h6>1. Setup DNS Records</h6>
+                <p>Go to <a href="/dns/setup">DNS Setup Wizard</a> to generate DKIM keys and get DNS records for sendbaba.com.</p>
+                
+                <h6>2. Send Test Email</h6>
+                <pre class="bg-light p-3"><code>curl -X POST http://localhost:5000/api/v1/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "recipient@example.com",
+    "from": "hello@sendbaba.com",
+    "subject": "Test Email",
+    "text_body": "Hello from sendbaba.com!"
+  }'</code></pre>
+                
+                <h6>3. Monitor Performance</h6>
+                <p>View <a href="/dashboard">Live Dashboard</a> to track sending rates, bounce rates, and system health.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="apiModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">API Documentation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Send Single Email</h6>
+                <pre class="bg-light p-3"><code>POST /api/v1/send
+Content-Type: application/json
+
+{
+  "to": "recipient@example.com",
+  "from": "sender@sendbaba.com",
+  "subject": "Subject",
+  "text_body": "Text content",
+  "html_body": "&lt;h1&gt;HTML content&lt;/h1&gt;",
+  "priority": 5
+}</code></pre>
+
+                <h6>Send Bulk Emails</h6>
+                <pre class="bg-light p-3"><code>POST /api/v1/send/bulk
+Content-Type: application/json
+
+{
+  "emails": [
+    {...},
+    {...}
+  ]
+}</code></pre>
+
+                <h6>Check Status</h6>
+                <pre class="bg-light p-3"><code>GET /api/v1/status/{email_id}</code></pre>
+
+                <h6>Get Metrics</h6>
+                <pre class="bg-light p-3"><code>GET /api/v1/metrics</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showApiDocs() {
+    new bootstrap.Modal(document.getElementById('apiModal')).show();
+}
+</script>
+{% endblock %}

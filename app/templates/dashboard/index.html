@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Live Dashboard - sendbaba.com{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-chart-line"></i> Live Dashboard</h2>
+        <p><span class="live-indicator"></span> Real-time metrics updating</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4" id="metric-cards">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6>Current Send Rate</h6>
+                <h2 id="send-rate">0</h2>
+                <small>emails/second</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6>Total Sent</h6>
+                <h2 id="total-sent">0</h2>
+                <small>emails</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h6>Queue Depth</h6>
+                <h2 id="queue-depth">0</h2>
+                <small>pending</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6>Failed</h6>
+                <h2 id="failed-count">0</h2>
+                <small>errors</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>System Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> System is running and ready to send emails
+                </div>
+                <p><strong>Next Steps:</strong></p>
+                <ol>
+                    <li>Configure DNS records: <a href="/dns/setup">DNS Setup Wizard</a></li>
+                    <li>Send a test email using the API</li>
+                    <li>Start email workers to process the queue</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateMetrics() {
+    $.get('/dashboard/live-stats', function(data) {
+        if (data.success) {
+            $('#send-rate').text(data.stats.current_send_rate.toLocaleString());
+            $('#total-sent').text(data.stats.total_sent_alltime.toLocaleString());
+            $('#failed-count').text(data.stats.total_failed_alltime.toLocaleString());
+        }
+    });
+    
+    $.get('/dashboard/queue-depth', function(data) {
+        if (data.success) {
+            $('#queue-depth').text(data.queues.total.toLocaleString());
+        }
+    });
+}
+
+// Update every 5 seconds
+setInterval(updateMetrics, 5000);
+
+// Initial load
+updateMetrics();
+</script>
+{% endblock %}
