@@ -1,0 +1,1 @@
+redis-cli LPUSH email_queue '{"id":"test-001","from":"noreply@sendbaba.com","to":"ekeminyd@gmail.com","subject":"Test Email","text_body":"This is a test email from SendBaba SMTP"}'

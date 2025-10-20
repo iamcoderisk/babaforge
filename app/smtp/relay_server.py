@@ -1,6 +1,5 @@
 """
-Custom SMTP Relay Server for sendbaba.com
-Built from scratch - Better than Postfix
+Custom SMTP Relay Server for sendbaba.com with TLS support
 """
 import asyncio
 import dns.resolver
@@ -9,6 +8,7 @@ from typing import Optional, List, Dict, Tuple
 import re
 import json
 import logging
+import ssl
 
 from app import redis_client
 from app.services.dkim.dkim_service import DKIMService
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class SMTPRelayServer:
-    """Custom SMTP Relay - Sends directly to MX servers"""
+    """Custom SMTP Relay - Sends directly to MX servers with TLS"""
     
     def __init__(self, server_ip='156.67.29.186', domain='sendbaba.com'):
         self.server_ip = server_ip
@@ -46,13 +46,14 @@ class SMTPRelayServer:
             redis_client.setex(cache_key, 3600, json.dumps(mx_records))
             logger.info(f"MX records for {domain}: {mx_records}")
             return mx_records
-        except:
-            logger.warning(f"No MX for {domain}, using domain directly")
+        except Exception as e:
+            logger.warning(f"No MX for {domain}, using domain directly: {e}")
             return [(10, domain)]
     
     async def connect_to_mx(self, mx_host: str, port: int = 25):
-        """Connect to MX server"""
+        """Connect to MX server with STARTTLS support"""
         try:
+            # Initial connection
             reader, writer = await asyncio.wait_for(
                 asyncio.open_connection(mx_host, port),
                 timeout=30
@@ -61,14 +62,65 @@ class SMTPRelayServer:
             greeting = await asyncio.wait_for(reader.readline(), timeout=10)
             logger.info(f"Connected to {mx_host}: {greeting.decode().strip()}")
             
+            # Send EHLO
             writer.write(f'EHLO {self.hostname}\r\n'.encode())
             await writer.drain()
             
+            # Read EHLO response and check for STARTTLS
+            supports_starttls = False
             while True:
                 line = await asyncio.wait_for(reader.readline(), timeout=10)
                 response = line.decode().strip()
+                if 'STARTTLS' in response.upper():
+                    supports_starttls = True
                 if not response.startswith('250-'):
                     break
+            
+            # Upgrade to TLS if supported
+            if supports_starttls:
+                logger.info(f"Starting TLS with {mx_host}")
+                writer.write(b'STARTTLS\r\n')
+                await writer.drain()
+                
+                response = await asyncio.wait_for(reader.readline(), timeout=10)
+                if response.decode().startswith('220'):
+                    # Create SSL context
+                    ssl_context = ssl.create_default_context()
+                    ssl_context.check_hostname = False
+                    ssl_context.verify_mode = ssl.CERT_NONE
+                    
+                    # Get the transport and upgrade to TLS
+                    transport = writer.transport
+                    protocol = transport.get_protocol()
+                    
+                    # Upgrade connection to TLS
+                    loop = asyncio.get_event_loop()
+                    new_transport = await loop.start_tls(
+                        transport, protocol, ssl_context,
+                        server_hostname=mx_host
+                    )
+                    
+                    # Create new reader/writer with TLS
+                    reader = asyncio.StreamReader()
+                    protocol = asyncio.StreamReaderProtocol(reader)
+                    new_transport.set_protocol(protocol)
+                    writer = asyncio.StreamWriter(new_transport, protocol, reader, loop)
+                    
+                    # Send EHLO again after TLS
+                    writer.write(f'EHLO {self.hostname}\r\n'.encode())
+                    await writer.drain()
+                    
+                    while True:
+                        line = await asyncio.wait_for(reader.readline(), timeout=10)
+                        response = line.decode().strip()
+                        if not response.startswith('250-'):
+                            break
+                    
+                    logger.info(f"TLS established with {mx_host}")
+                else:
+                    logger.warning(f"STARTTLS failed on {mx_host}, continuing without TLS")
+            else:
+                logger.warning(f"STARTTLS not supported by {mx_host}")
             
             return reader, writer
         except Exception as e:
@@ -168,14 +220,10 @@ class SMTPRelayServer:
                 
                 # Sign with DKIM
                 try:
-                    signed = self.dkim_service.sign_email(message)
-                    if isinstance(signed, bytes):
-                        full_message = signed + message.encode()
-                    else:
-                        full_message = message.encode()
+                    full_message = self.dkim_service.sign_email(message)
                 except Exception as e:
                     logger.warning(f"DKIM signing failed: {e}")
-                    full_message = message.encode()
+                    full_message = message.encode() if isinstance(message, str) else message
                 
                 # Send message
                 writer.write(full_message)

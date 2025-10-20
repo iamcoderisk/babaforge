@@ -75,21 +75,25 @@ class DKIMService:
         }
     
     def sign_email(self, message, private_key=None):
-        """Sign email with DKIM"""
+        """Sign email with DKIM and return complete signed message"""
         if private_key is None:
             if not os.path.exists(self.private_key_path):
                 logger.warning("Private key not found, skipping DKIM signing")
-                return message
+                return message if isinstance(message, bytes) else message.encode('utf-8')
             
             with open(self.private_key_path, 'rb') as f:
                 private_key = f.read()
         
+        # Convert message to bytes if needed
         if isinstance(message, str):
-            message = message.encode('utf-8')
+            message_bytes = message.encode('utf-8')
+        else:
+            message_bytes = message
         
         try:
+            # Generate DKIM signature
             signature = dkim.sign(
-                message=message,
+                message=message_bytes,
                 selector=self.selector.encode('utf-8'),
                 domain=self.domain.encode('utf-8'),
                 privkey=private_key,
@@ -98,7 +102,10 @@ class DKIMService:
                     b'message-id', b'mime-version', b'content-type'
                 ]
             )
-            return signature
+            
+            # Return signature + original message as complete signed email
+            return signature + message_bytes
+            
         except Exception as e:
             logger.error(f"DKIM signing failed: {e}")
-            return message
+            return message_bytes
