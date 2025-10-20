@@ -9,9 +9,7 @@ import re
 import json
 import logging
 import ssl
-
-from app import redis_client
-from app.services.dkim.dkim_service import DKIMService
+import redis
 
 logger = logging.getLogger(__name__)
 
@@ -23,16 +21,41 @@ class SMTPRelayServer:
         self.server_ip = server_ip
         self.domain = domain
         self.hostname = f'mail.{domain}'
-        self.dkim_service = DKIMService(domain)
+        self.dkim_service = None
         self.sent_count = 0
         self.failed_count = 0
+        
+        # Initialize Redis client
+        try:
+            self.redis_client = redis.Redis(
+                host='localhost',
+                port=6379,
+                decode_responses=True
+            )
+            self.redis_client.ping()
+        except Exception as e:
+            logger.warning(f"Redis connection failed: {e}")
+            self.redis_client = None
+        
+        # Initialize DKIM service
+        try:
+            from app.services.dkim.dkim_service import DKIMService
+            self.dkim_service = DKIMService(domain)
+        except Exception as e:
+            logger.warning(f"DKIM service unavailable: {e}")
     
     async def get_mx_records(self, domain: str) -> List[Tuple[int, str]]:
         """Get MX records with caching"""
         cache_key = f'mx:{domain}'
-        cached = redis_client.get(cache_key)
-        if cached:
-            return json.loads(cached)
+        
+        # Try to get from cache
+        if self.redis_client:
+            try:
+                cached = self.redis_client.get(cache_key)
+                if cached:
+                    return json.loads(cached)
+            except:
+                pass
         
         try:
             answers = dns.resolver.resolve(domain, 'MX')
@@ -43,7 +66,14 @@ class SMTPRelayServer:
                 mx_records.append((priority, mx_host))
             
             mx_records.sort(key=lambda x: x[0])
-            redis_client.setex(cache_key, 3600, json.dumps(mx_records))
+            
+            # Cache the results
+            if self.redis_client:
+                try:
+                    self.redis_client.setex(cache_key, 3600, json.dumps(mx_records))
+                except:
+                    pass
+            
             logger.info(f"MX records for {domain}: {mx_records}")
             return mx_records
         except Exception as e:
@@ -78,7 +108,7 @@ class SMTPRelayServer:
             
             # Upgrade to TLS if supported
             if supports_starttls:
-                logger.info(f"Starting TLS with {mx_host}")
+                logger.info(f"🔒 Starting TLS with {mx_host}")
                 writer.write(b'STARTTLS\r\n')
                 await writer.drain()
                 
@@ -116,11 +146,11 @@ class SMTPRelayServer:
                         if not response.startswith('250-'):
                             break
                     
-                    logger.info(f"TLS established with {mx_host}")
+                    logger.info(f"✅ TLS established with {mx_host}")
                 else:
                     logger.warning(f"STARTTLS failed on {mx_host}, continuing without TLS")
             else:
-                logger.warning(f"STARTTLS not supported by {mx_host}")
+                logger.warning(f"⚠️ STARTTLS not supported by {mx_host}")
             
             return reader, writer
         except Exception as e:
@@ -218,12 +248,25 @@ class SMTPRelayServer:
                 # Build message
                 message = self.build_message(email_data)
                 
-                # Sign with DKIM
+                # # Temporarily disable DKIM to test RFC 5322 compliance
+                # full_message = message.encode() if isinstance(message, str) else message
+                # logger.info(f"Message length: {len(full_message)} bytes")
+                # logger.info(f"Message preview: {full_message[:200]}")
+                # Sign with DKIM (properly formatted)
                 try:
-                    full_message = self.dkim_service.sign_email(message)
+                    if self.dkim_service:
+                        # DKIM signs the bytes version of the message
+                        message_bytes = message.encode() if isinstance(message, str) else message
+                        full_message = self.dkim_service.sign_email(message_bytes)
+                        logger.info("DKIM signature applied")
+                    else:
+                        full_message = message.encode() if isinstance(message, str) else message
+                        logger.info("No DKIM service available, sending without signature")
                 except Exception as e:
-                    logger.warning(f"DKIM signing failed: {e}")
+                    logger.warning(f"DKIM signing failed: {e}, sending without signature")
                     full_message = message.encode() if isinstance(message, str) else message
+
+                logger.info(f"Message length: {len(full_message)} bytes")
                 
                 # Send message
                 writer.write(full_message)
@@ -244,8 +287,13 @@ class SMTPRelayServer:
                 
                 if response_str.startswith('250'):
                     self.sent_count += 1
-                    redis_client.incr('metrics:sent:total')
-                    redis_client.incr(f'metrics:sent:domain:{recipient_domain}')
+                    
+                    if self.redis_client:
+                        try:
+                            self.redis_client.incr('metrics:sent:total')
+                            self.redis_client.incr(f'metrics:sent:domain:{recipient_domain}')
+                        except:
+                            pass
                     
                     return {
                         'success': True,
@@ -279,120 +327,26 @@ class SMTPRelayServer:
     def build_message(self, email_data: Dict) -> str:
         """Build RFC 5322 compliant message"""
         lines = []
+        
+        # Required headers in correct order
         lines.append(f"From: {email_data.get('from')}")
         lines.append(f"To: {email_data.get('to')}")
         lines.append(f"Subject: {email_data.get('subject', '(no subject)')}")
         lines.append(f"Date: {datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S +0000')}")
         lines.append(f"Message-ID: <{email_data.get('id')}@{self.domain}>")
+        lines.append("MIME-Version: 1.0")
         lines.append("Content-Type: text/plain; charset=utf-8")
+        lines.append("Content-Transfer-Encoding: 7bit")
+        
+        # CRITICAL: Blank line separating headers from body (RFC 5322 requirement)
         lines.append("")
-        lines.append(email_data.get('text_body', ''))
         
-        return '\r\n'.join(lines)
-
-
-class SMTPBounceReceiver:
-    """SMTP server to receive bounces on port 25"""
-    
-    def __init__(self, listen_ip='0.0.0.0', listen_port=25, domain='sendbaba.com'):
-        self.listen_ip = listen_ip
-        self.listen_port = listen_port
-        self.domain = domain
-    
-    async def handle_client(self, reader, writer):
-        """Handle incoming bounce connection"""
-        addr = writer.get_extra_info('peername')
-        logger.info(f"Bounce connection from {addr}")
+        # Body
+        body = email_data.get('text_body', '')
+        lines.append(body)
         
-        try:
-            writer.write(f'220 {self.domain} ESMTP Bounce Handler\r\n'.encode())
-            await writer.drain()
-            
-            mail_from = None
-            message_data = []
-            in_data = False
-            
-            while True:
-                line = await asyncio.wait_for(reader.readline(), timeout=300)
-                if not line:
-                    break
-                
-                command = line.decode().strip()
-                
-                if in_data:
-                    if command == '.':
-                        in_data = False
-                        full_message = '\r\n'.join(message_data)
-                        await self.process_bounce(full_message, mail_from)
-                        writer.write(b'250 OK Message accepted\r\n')
-                        await writer.drain()
-                        message_data = []
-                    else:
-                        message_data.append(command)
-                    continue
-                
-                cmd = command.upper()
-                
-                if cmd.startswith('EHLO') or cmd.startswith('HELO'):
-                    writer.write(f'250 {self.domain}\r\n'.encode())
-                elif cmd.startswith('MAIL FROM:'):
-                    match = re.search(r'<(.+?)>', command)
-                    mail_from = match.group(1) if match else ''
-                    writer.write(b'250 OK\r\n')
-                elif cmd.startswith('RCPT TO:'):
-                    writer.write(b'250 OK\r\n')
-                elif cmd == 'DATA':
-                    writer.write(b'354 Start mail input\r\n')
-                    in_data = True
-                elif cmd == 'QUIT':
-                    writer.write(b'221 Bye\r\n')
-                    break
-                else:
-                    writer.write(b'250 OK\r\n')
-                
-                await writer.drain()
-        
-        except Exception as e:
-            logger.error(f"Bounce handler error: {e}")
-        finally:
-            try:
-                writer.close()
-                await writer.wait_closed()
-            except:
-                pass
-    
-    async def process_bounce(self, message: str, mail_from: str):
-        """Process bounce message"""
-        logger.info(f"Processing bounce from {mail_from}")
-        
-        try:
-            bounce_data = {
-                'from': mail_from,
-                'message_preview': message[:500],
-                'timestamp': datetime.utcnow().isoformat()
-            }
-            
-            redis_client.lpush('bounces:received', json.dumps(bounce_data))
-            redis_client.ltrim('bounces:received', 0, 999)
-            redis_client.incr('metrics:bounced:total')
-            
-            logger.info("Bounce processed and stored")
-        except Exception as e:
-            logger.error(f"Error processing bounce: {e}")
-    
-    async def start(self):
-        """Start bounce receiver server"""
-        server = await asyncio.start_server(
-            self.handle_client,
-            self.listen_ip,
-            self.listen_port
-        )
-        
-        addr = server.sockets[0].getsockname()
-        logger.info(f'Bounce receiver listening on {addr}')
-        
-        async with server:
-            await server.serve_forever()
+        # Build the complete message with proper CRLF line endings
+        return '\r\n'.join(lines) + '\r\n'
 
 
 async def send_via_relay(email_data: Dict) -> Dict:

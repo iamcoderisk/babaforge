@@ -49,7 +49,6 @@ class EmailWorker:
         while self.running:
             try:
                 email_data = None
-                
                 # Check priority queues (highest first)
                 for priority in range(10, 0, -1):
                     queue_name = f'outgoing_{priority}'
@@ -58,6 +57,12 @@ class EmailWorker:
                     if result:
                         email_data = json.loads(result[1])
                         break
+
+                # Also check legacy email_queue if nothing in priority queues
+                if not email_data:
+                    result = self.redis_client.brpop('email_queue', timeout=1)
+                    if result:
+                        email_data = json.loads(result[1])
                 
                 if email_data:
                     await self.process_email(email_data)
