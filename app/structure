@@ -1,0 +1,281 @@
+enterprise-smtp-server/
+│
+├── app/
+│   ├── __init__.py
+│   │
+│   ├── main.py                           # Flask application factory
+│   │
+│   ├── config/
+│   │   ├── __init__.py
+│   │   ├── settings.py                   # Pydantic settings (env management)
+│   │   ├── database.py                   # Database configuration
+│   │   └── logging.py                    # Logging configuration
+│   │
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── database.py                   # SQLAlchemy ORM models (10+ tables)
+│   │   │   # - Organization
+│   │   │   # - Domain
+│   │   │   # - IPPool
+│   │   │   # - EmailOutgoing
+│   │   │   # - EmailIncoming
+│   │   │   # - Webhook
+│   │   │   # - SuppressionList
+│   │   │   # - Analytics
+│   │   └── schemas.py                    # Pydantic validation schemas
+│   │       # - EmailSendRequest
+│   │       # - EmailBatchRequest
+│   │       # - OrganizationCreate
+│   │       # - DomainCreate
+│   │       # - WebhookCreate
+│   │
+│   ├── controllers/
+│   │   ├── __init__.py
+│   │   ├── email_controller.py           # Email API endpoints
+│   │   │   # POST /send
+│   │   │   # POST /send/batch
+│   │   │   # GET /<message_id>
+│   │   │   # GET /track/open/<message_id>
+│   │   ├── organization_controller.py    # Organization management
+│   │   │   # POST /
+│   │   │   # GET /<org_id>
+│   │   │   # PUT /<org_id>
+│   │   │   # DELETE /<org_id>
+│   │   ├── domain_controller.py          # Domain management
+│   │   │   # POST /
+│   │   │   # GET /
+│   │   │   # GET /<domain_id>
+│   │   │   # POST /<domain_id>/verify
+│   │   └── analytics_controller.py       # Analytics & reporting
+│   │       # GET /realtime
+│   │       # GET /history
+│   │       # GET /stats
+│   │
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── email_service.py              # Core email business logic
+│   │   │   # - send_email()
+│   │   │   # - send_batch()
+│   │   │   # - process_outgoing_email()
+│   │   ├── dkim_service.py               # DKIM signing & verification
+│   │   │   # - generate_keys()
+│   │   │   # - sign_message()
+│   │   │   # - verify_message()
+│   │   │   # - get_dns_record()
+│   │   ├── queue_service.py              # RabbitMQ queue management
+│   │   │   # - connect()
+│   │   │   # - enqueue_email()
+│   │   │   # - consume_emails()
+│   │   ├── rate_limiter.py               # Redis-based rate limiting
+│   │   │   # - check_limit()
+│   │   │   # - get_current_usage()
+│   │   ├── smtp_service.py               # SMTP sending logic
+│   │   ├── webhook_service.py            # Webhook delivery
+│   │   └── analytics_service.py          # Analytics processing
+│   │
+│   ├── middleware/
+│   │   ├── __init__.py
+│   │   ├── auth.py                       # API key authentication
+│   │   │   # - require_api_key()
+│   │   │   # - require_admin()
+│   │   ├── rate_limit.py                 # Rate limiting middleware
+│   │   ├── error_handler.py              # Global error handling
+│   │   └── cors.py                       # CORS configuration
+│   │
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── logger.py                     # Logging utilities
+│   │   │   # - setup_logging()
+│   │   │   # - get_logger()
+│   │   ├── dns_utils.py                  # DNS utilities
+│   │   │   # - verify_reverse_dns()
+│   │   │   # - get_mx_records()
+│   │   │   # - verify_spf()
+│   │   ├── validators.py                 # Custom validators
+│   │   ├── formatters.py                 # Data formatters
+│   │   └── helpers.py                    # Helper functions
+│   │
+│   └── workers/
+│       ├── __init__.py
+│       ├── email_worker.py               # Email processing worker
+│       │   # - Consumes from RabbitMQ
+│       │   # - Processes outgoing emails
+│       │   # - Updates database
+│       ├── analytics_worker.py           # Analytics aggregation
+│       ├── cleanup_worker.py             # Database cleanup
+│       └── webhook_worker.py             # Webhook delivery
+│
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py                       # Pytest configuration
+│   │
+│   ├── unit/
+│   │   ├── __init__.py
+│   │   ├── test_email_service.py
+│   │   ├── test_dkim_service.py
+│   │   ├── test_rate_limiter.py
+│   │   ├── test_validators.py
+│   │   └── test_models.py
+│   │
+│   ├── integration/
+│   │   ├── __init__.py
+│   │   ├── test_api_endpoints.py
+│   │   ├── test_email_flow.py
+│   │   ├── test_worker_processing.py
+│   │   └── test_database.py
+│   │
+│   └── load/
+│       ├── __init__.py
+│       ├── locustfile.py                 # Load testing with Locust
+│       └── benchmark.py                  # Performance benchmarks
+│
+├── scripts/
+│   ├── install_dependencies.sh           # Install all dependencies (macOS)
+│   ├── init_database.sh                  # Initialize PostgreSQL
+│   ├── start_local.sh                    # Start server locally
+│   ├── start_worker.sh                   # Start background worker
+│   ├── run_tests.sh                      # Run test suite
+│   ├── deploy_production.sh              # Deploy to production
+│   ├── backup_database.sh                # Backup PostgreSQL
+│   ├── restore_database.sh               # Restore from backup
+│   ├── generate_keys.sh                  # Generate DKIM keys
+│   ├── health_check.sh                   # System health check
+│   └── load_test.sh                      # Run load tests
+│
+├── deployment/
+│   │
+│   ├── docker/
+│   │   ├── Dockerfile                    # Main application image
+│   │   ├── Dockerfile.worker             # Worker image
+│   │   ├── docker-compose.yml            # Development compose
+│   │   ├── docker-compose.prod.yml       # Production compose
+│   │   └── docker-compose.test.yml       # Testing compose
+│   │
+│   ├── kubernetes/
+│   │   ├── namespace.yaml
+│   │   ├── configmap.yaml
+│   │   ├── secrets.yaml
+│   │   ├── api-deployment.yaml
+│   │   ├── worker-deployment.yaml
+│   │   ├── postgres-statefulset.yaml
+│   │   ├── redis-statefulset.yaml
+│   │   ├── rabbitmq-statefulset.yaml
+│   │   ├── nginx-deployment.yaml
+│   │   ├── services.yaml
+│   │   ├── ingress.yaml
+│   │   ├── hpa.yaml                      # Horizontal Pod Autoscaler
+│   │   └── pdb.yaml                      # Pod Disruption Budget
+│   │
+│   ├── nginx/
+│   │   ├── nginx.conf                    # Main Nginx config
+│   │   ├── ssl.conf                      # SSL configuration
+│   │   └── upstream.conf                 # Upstream servers
+│   │
+│   ├── monitoring/
+│   │   ├── prometheus/
+│   │   │   ├── prometheus.yml
+│   │   │   ├── alerts.yml
+│   │   │   └── rules.yml
+│   │   ├── grafana/
+│   │   │   ├── dashboards/
+│   │   │   │   ├── smtp-overview.json
+│   │   │   │   ├── email-metrics.json
+│   │   │   │   ├── database-metrics.json
+│   │   │   │   └── system-metrics.json
+│   │   │   └── datasources.yml
+│   │   └── alertmanager/
+│   │       └── config.yml
+│   │
+│   └── terraform/
+│       ├── main.tf
+│       ├── variables.tf
+│       ├── outputs.tf
+│       ├── modules/
+│       │   ├── vpc/
+│       │   ├── rds/
+│       │   ├── elasticache/
+│       │   ├── eks/
+│       │   └── s3/
+│       └── environments/
+│           ├── dev/
+│           ├── staging/
+│           └── production/
+│
+├── docs/
+│   ├── README.md                         # Main documentation
+│   ├── INSTALLATION.md                   # Installation guide
+│   ├── API.md                            # API documentation
+│   ├── ARCHITECTURE.md                   # Architecture overview
+│   ├── DEPLOYMENT.md                     # Deployment guide
+│   ├── CONFIGURATION.md                  # Configuration reference
+│   ├── TROUBLESHOOTING.md                # Troubleshooting guide
+│   ├── PERFORMANCE.md                    # Performance tuning
+│   ├── SECURITY.md                       # Security best practices
+│   └── CONTRIBUTING.md                   # Contribution guidelines
+│
+├── migrations/
+│   ├── alembic.ini                       # Alembic configuration
+│   ├── env.py                            # Migration environment
+│   ├── script.py.mako                    # Migration template
+│   └── versions/
+│       ├── 001_initial_schema.py
+│       ├── 002_add_analytics.py
+│       ├── 003_add_webhooks.py
+│       └── 004_add_ip_pools.py
+│
+├── logs/
+│   ├── .gitkeep
+│   ├── smtp_server.log
+│   ├── access.log
+│   ├── error.log
+│   └── worker.log
+│
+├── keys/
+│   ├── .gitkeep
+│   ├── dkim_private.pem                  # DKIM private key (generated)
+│   └── dkim_public.pem                   # DKIM public key (generated)
+│
+├── ssl/
+│   ├── .gitkeep
+│   ├── cert.pem                          # SSL certificate (generated)
+│   └── key.pem                           # SSL private key (generated)
+│
+├── data/
+│   ├── postgres/                         # PostgreSQL data (mounted)
+│   ├── redis/                            # Redis data (mounted)
+│   └── rabbitmq/                         # RabbitMQ data (mounted)
+│
+├── backups/
+│   ├── .gitkeep
+│   └── daily/
+│
+├── .github/
+│   └── workflows/
+│       ├── test.yml                      # CI testing
+│       ├── lint.yml                      # Code linting
+│       ├── deploy-staging.yml            # Deploy to staging
+│       └── deploy-production.yml         # Deploy to production
+│
+├── .vscode/
+│   ├── settings.json                     # VSCode settings
+│   ├── launch.json                       # Debug configuration
+│   └── extensions.json                   # Recommended extensions
+│
+├── requirements.txt                      # Python dependencies
+├── requirements-dev.txt                  # Development dependencies
+├── requirements-test.txt                 # Testing dependencies
+├── setup.py                              # Package setup
+├── pyproject.toml                        # Python project config
+├── pytest.ini                            # Pytest configuration
+├── .flake8                               # Flake8 configuration
+├── .black                                # Black configuration
+├── mypy.ini                              # MyPy configuration
+├── .env.example                          # Environment template
+├── .env                                  # Environment variables (gitignored)
+├── .gitignore                            # Git ignore rules
+├── .dockerignore                         # Docker ignore rules
+├── Makefile                              # Common commands
+├── LICENSE                               # MIT License
+├── README.md                             # Project overview
+├── CHANGELOG.md                          # Version history
+└── project-setup.sh                      # One-command setup script

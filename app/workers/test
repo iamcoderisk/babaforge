@@ -5,7 +5,7 @@ curl -X POST https://sendbaba.com/api/v1/send \
   -H "Content-Type: application/json" \
   -d '{
     "to": "ekeminyd@gmail.com",
-    "from": "hello@sendbaba.com",
+    "from": "ekemini@sendbaba.com",
     "subject": "Test Email",
-    "text_body": "Hello from sendbaba.com!"
+    "text_body": "Hello from sendbaba.com! and Ekemini"
   }'

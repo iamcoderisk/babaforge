@@ -1,118 +1,121 @@
 """
-Email Service - Core email sending logic
+Email Service - Queue Management
 """
 import json
-import uuid
-from datetime import datetime
-from app import redis_client, db
-from app.models.email import Email
-from app.services.dkim.dkim_service import DKIMService
-from app.config.settings import Config
+import redis
 import logging
+from app.config.settings import Config
 
 logger = logging.getLogger(__name__)
 
 class EmailService:
-    """Email sending service"""
+    """Email service for queueing and status tracking"""
     
     def __init__(self):
         self.config = Config()
-        self.dkim_service = DKIMService(
-            domain=self.config.DOMAIN,
-            selector=self.config.DKIM_SELECTOR
+        # FIXED: Use decode_responses=False to handle bytes properly
+        self.redis_client = redis.Redis(
+            host=self.config.REDIS_HOST,
+            port=self.config.REDIS_PORT,
+            db=self.config.REDIS_DB,
+            decode_responses=False  # Changed to False
         )
+        # Test connection on init
+        try:
+            self.redis_client.ping()
+            logger.info("Redis connection established successfully")
+        except Exception as e:
+            logger.error(f"Redis connection failed: {e}")
     
     def queue_email(self, email_data):
-        """Queue email for sending"""
+        """Queue email for sending - uses same queue as working Redis test"""
         try:
-            # Extract domain
-            recipient_email = email_data.get('to')
-            domain = recipient_email.split('@')[1] if '@' in recipient_email else 'unknown'
-            
-            # Create database record
-            email = Email(
-                id=email_data.get('id', str(uuid.uuid4())),
-                batch_id=email_data.get('batch_id'),
-                recipient=recipient_email,
-                sender=email_data.get('from'),
-                subject=email_data.get('subject'),
-                status='queued',
-                priority=email_data.get('priority', 5),
-                domain=domain,
-                created_at=datetime.utcnow(),
-                queued_at=datetime.utcnow()
-            )
-            
-            db.session.add(email)
-            db.session.commit()
-            
-            # Add to Redis queue
-            priority = email_data.get('priority', 5)
-            queue_name = f'outgoing_{priority}'
-            
-            queue_data = {
-                'id': email.id,
-                'to': recipient_email,
+            # Ensure all required fields are present
+            email_payload = {
+                'id': email_data.get('id'),
                 'from': email_data.get('from'),
+                'to': email_data.get('to'),
                 'subject': email_data.get('subject'),
-                'text_body': email_data.get('text_body'),
+                'text_body': email_data.get('text_body', ''),
                 'html_body': email_data.get('html_body'),
+                'priority': email_data.get('priority', 5),
                 'headers': email_data.get('headers', {}),
-                'priority': priority,
-                'domain': domain,
-                'created_at': datetime.utcnow().isoformat()
+                'batch_id': email_data.get('batch_id')
             }
             
-            redis_client.lpush(queue_name, json.dumps(queue_data))
+            # Remove None values
+            email_payload = {k: v for k, v in email_payload.items() if v is not None}
             
-            logger.info(f"Email {email.id} queued to {recipient_email}")
+            # Convert to JSON and encode to bytes
+            email_json = json.dumps(email_payload)
             
-            return {'success': True, 'email_id': email.id}
-        
+            # Add to the SAME queue that works with TLS
+            # LPUSH returns the new length of the list
+            result = self.redis_client.lpush('email_queue', email_json.encode('utf-8'))
+            
+            logger.info(f"Email {email_payload['id']} queued successfully to email_queue (queue length: {result})")
+            
+            return {
+                'success': True,
+                'queue': 'email_queue',
+                'queue_length': result
+            }
+            
         except Exception as e:
-            logger.error(f"Error queuing email: {e}")
-            db.session.rollback()
+            logger.error(f"Error queueing email: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             raise
     
     def get_email_status(self, email_id):
-        """Get email status"""
+        """Get email status from database"""
         try:
-            email = Email.query.filter_by(id=email_id).first()
+            from app import db
+            from app.models.database import EmailOutgoing
             
-            if not email:
-                return None
+            email = EmailOutgoing.query.filter_by(message_id=email_id).first()
+            if email:
+                return {
+                    'status': email.status,
+                    'created_at': email.created_at.isoformat() if email.created_at else None,
+                    'delivered_at': email.delivered_at.isoformat() if email.delivered_at else None,
+                    'to': email.recipients[0] if email.recipients else None,
+                    'from': email.sender,
+                    'subject': email.subject
+                }
+            return None
             
-            return email.to_dict()
-        
         except Exception as e:
             logger.error(f"Error getting email status: {e}")
             return None
     
     def get_metrics(self):
-        """Get system metrics"""
+        """Get system metrics from Redis"""
         try:
-            # Get from Redis
-            total_sent = redis_client.get('metrics:sent:total') or 0
-            total_failed = redis_client.get('metrics:failed:total') or 0
-            current_rate = redis_client.get('metrics:send_rate:current') or 0
+            # Decode responses when getting metrics
+            total_sent = self.redis_client.get('metrics:sent:total')
+            total_bounced = self.redis_client.get('metrics:bounced:total')
+            
+            metrics = {
+                'total_sent': int(total_sent.decode('utf-8') if total_sent else 0),
+                'total_bounced': int(total_bounced.decode('utf-8') if total_bounced else 0),
+                'queue_depths': {}
+            }
             
             # Get queue depths
-            queue_depths = {}
-            total_queued = 0
             for priority in range(1, 11):
-                depth = redis_client.llen(f'outgoing_{priority}')
-                queue_depths[f'priority_{priority}'] = depth
-                total_queued += depth
+                queue_name = f'outgoing_{priority}'
+                depth = self.redis_client.llen(queue_name)
+                if depth > 0:
+                    metrics['queue_depths'][queue_name] = depth
             
-            return {
-                'total_sent': int(total_sent),
-                'total_failed': int(total_failed),
-                'current_rate': int(current_rate),
-                'total_queued': total_queued,
-                'queues': queue_depths,
-                'timestamp': datetime.utcnow().isoformat()
-            }
-        
+            # Check email_queue too
+            email_queue_depth = self.redis_client.llen('email_queue')
+            if email_queue_depth > 0:
+                metrics['queue_depths']['email_queue'] = email_queue_depth
+            
+            return metrics
+            
         except Exception as e:
             logger.error(f"Error getting metrics: {e}")
             return {}
