@@ -26,9 +26,8 @@ class EmailService:
             logger.info("Redis connection established successfully")
         except Exception as e:
             logger.error(f"Redis connection failed: {e}")
-    
     def queue_email(self, email_data):
-        """Queue email for sending - uses same queue as working Redis test"""
+        """Queue email for sending"""
         try:
             # Ensure all required fields are present
             email_payload = {
@@ -46,14 +45,50 @@ class EmailService:
             # Remove None values
             email_payload = {k: v for k, v in email_payload.items() if v is not None}
             
+            # Try to save to database (but don't fail if it errors)
+            try:
+                from app import db
+                from app.models.database import EmailOutgoing
+                from datetime import datetime
+                
+                # Check if record already exists
+                existing = EmailOutgoing.query.filter_by(message_id=email_payload['id']).first()
+                
+                if not existing:
+                    email_record = EmailOutgoing(
+                        message_id=email_payload['id'],
+                        org_id=1,  # Default organization
+                        sender=email_payload['from'],
+                        recipients=[email_payload['to']],
+                        subject=email_payload['subject'],
+                        body_text=email_payload.get('text_body', ''),
+                        body_html=email_payload.get('html_body'),
+                        status='queued',
+                        priority=email_payload.get('priority', 5),
+                        headers=email_payload.get('headers', {}),
+                        created_at=datetime.utcnow()
+                    )
+                    
+                    db.session.add(email_record)
+                    db.session.commit()
+                    logger.info(f"Email {email_payload['id']} saved to database")
+                else:
+                    logger.info(f"Email {email_payload['id']} already exists in database")
+                    
+            except Exception as db_error:
+                logger.warning(f"Database save failed (continuing anyway): {db_error}")
+                try:
+                    db.session.rollback()
+                except:
+                    pass
+            
             # Convert to JSON and encode to bytes
             email_json = json.dumps(email_payload)
             
-            # Add to the SAME queue that works with TLS
-            # LPUSH returns the new length of the list
+            # Add to Redis queue
             result = self.redis_client.lpush('email_queue', email_json.encode('utf-8'))
             
-            logger.info(f"Email {email_payload['id']} queued successfully to email_queue (queue length: {result})")
+            logger.info(f"Email {email_payload['id']} queued to Redis (queue length: {result})")
             
             return {
                 'success': True,
@@ -66,6 +101,45 @@ class EmailService:
             import traceback
             logger.error(traceback.format_exc())
             raise
+    # def queue_email(self, email_data):
+    #     """Queue email for sending - uses same queue as working Redis test"""
+    #     try:
+    #         # Ensure all required fields are present
+    #         email_payload = {
+    #             'id': email_data.get('id'),
+    #             'from': email_data.get('from'),
+    #             'to': email_data.get('to'),
+    #             'subject': email_data.get('subject'),
+    #             'text_body': email_data.get('text_body', ''),
+    #             'html_body': email_data.get('html_body'),
+    #             'priority': email_data.get('priority', 5),
+    #             'headers': email_data.get('headers', {}),
+    #             'batch_id': email_data.get('batch_id')
+    #         }
+            
+    #         # Remove None values
+    #         email_payload = {k: v for k, v in email_payload.items() if v is not None}
+            
+    #         # Convert to JSON and encode to bytes
+    #         email_json = json.dumps(email_payload)
+            
+    #         # Add to the SAME queue that works with TLS
+    #         # LPUSH returns the new length of the list
+    #         result = self.redis_client.lpush('email_queue', email_json.encode('utf-8'))
+            
+    #         logger.info(f"Email {email_payload['id']} queued successfully to email_queue (queue length: {result})")
+            
+    #         return {
+    #             'success': True,
+    #             'queue': 'email_queue',
+    #             'queue_length': result
+    #         }
+            
+    #     except Exception as e:
+    #         logger.error(f"Error queueing email: {e}")
+    #         import traceback
+    #         logger.error(traceback.format_exc())
+    #         raise
     
     def get_email_status(self, email_id):
         """Get email status from database"""
