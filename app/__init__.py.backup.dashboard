@@ -3,13 +3,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_login import LoginManager
 import redis
 import os
 
 db = SQLAlchemy()
 migrate = Migrate()
-login_manager = LoginManager()
 
 # Initialize Redis client
 redis_client = redis.Redis(
@@ -29,7 +27,7 @@ limiter = Limiter(
 def create_app():
     app = Flask(__name__)
     
-    # Config
+    # Force PostgreSQL configuration
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
         'DATABASE_URL',
         'postgresql://emailer:SecurePassword123@localhost:5432/emailer'
@@ -37,53 +35,58 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
     
+    # Redis config
+    app.config['REDIS_HOST'] = os.environ.get('REDIS_HOST', 'localhost')
+    app.config['REDIS_PORT'] = int(os.environ.get('REDIS_PORT', 6379))
+    
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
     limiter.init_app(app)
-    login_manager.init_app(app)
     
-    # Flask-Login config
-    login_manager.login_view = 'auth.login'
-    login_manager.login_message = 'Please log in to access this page.'
-    login_manager.login_message_category = 'info'
-    
-    @login_manager.user_loader
-    def load_user(user_id):
-        from app.models.user import User
-        return User.query.get(user_id)
-    
+    # Register blueprints
     with app.app_context():
-        # Import models
-        from app.models.user import User
-        from app.models.organization import Organization
-        from app.models.domain import Domain
+        # Import and register controllers
+        try:
+            from app.controllers.api_controller import api_bp
+            app.register_blueprint(api_bp, url_prefix='/api/v1')
+            print("✅ Registered api_controller")
+        except Exception as e:
+            print(f"❌ Could not register api_controller: {e}")
         
-        # Register blueprints
-        from app.controllers.web_controller import web_bp
-        from app.controllers.auth_controller import auth_bp
-        from app.controllers.dashboard_controller import dashboard_bp
-        from app.controllers.domain_controller import domain_bp
-        from app.controllers.api_controller import api_bp
+        try:
+            from app.controllers.email_controller import email_bp
+            app.register_blueprint(email_bp)
+            print("✅ Registered email_controller")
+        except Exception as e:
+            print(f"❌ Could not register email_controller: {e}")
         
-        app.register_blueprint(web_bp)
-        app.register_blueprint(auth_bp, url_prefix='/auth')
-        app.register_blueprint(dashboard_bp)
-        app.register_blueprint(domain_bp, url_prefix='/api/v1')
-        app.register_blueprint(api_bp, url_prefix='/api/v1')
+        try:
+            from app.controllers.dashboard_controller import dashboard_bp
+            app.register_blueprint(dashboard_bp)
+            print("✅ Registered dashboard_controller")
+        except Exception as e:
+            print(f"❌ Could not register dashboard_controller: {e}")
         
-        print("✅ All blueprints registered")
+        try:
+            from app.controllers.main_controller import main_bp
+            app.register_blueprint(main_bp)
+            print("✅ Registered main_controller")
+        except Exception as e:
+            print(f"❌ Could not register main_controller: {e}")
         
-        # Health check
+        # Health check route
         @app.route('/health')
         def health():
             try:
+                # Check database
                 db.session.execute('SELECT 1')
                 db_status = 'connected'
             except:
                 db_status = 'disconnected'
             
             try:
+                # Check Redis
                 redis_client.ping()
                 redis_status = 'connected'
             except:
@@ -94,5 +97,5 @@ def create_app():
                 'database': db_status,
                 'redis': redis_status
             }, 200
-    
+        
     return app

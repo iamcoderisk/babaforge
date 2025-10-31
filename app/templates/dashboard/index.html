@@ -1,98 +1,115 @@
 {% extends "base.html" %}
 
-{% block title %}Live Dashboard - sendbaba.com{% endblock %}
+{% block title %}Dashboard - SendBaba{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h2><i class="fas fa-chart-line"></i> Live Dashboard</h2>
-        <p><span class="live-indicator"></span> Real-time metrics updating</p>
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Welcome back, {{ current_user.first_name or current_user.email }}!</h1>
+        <p class="text-gray-600 mt-2">Here's what's happening with your email infrastructure</p>
     </div>
-</div>
 
-<div class="row g-4 mb-4" id="metric-cards">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <h6>Current Send Rate</h6>
-                <h2 id="send-rate">0</h2>
-                <small>emails/second</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h6>Total Sent</h6>
-                <h2 id="total-sent">0</h2>
-                <small>emails</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-warning text-dark">
-            <div class="card-body">
-                <h6>Queue Depth</h6>
-                <h2 id="queue-depth">0</h2>
-                <small>pending</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-danger text-white">
-            <div class="card-body">
-                <h6>Failed</h6>
-                <h2 id="failed-count">0</h2>
-                <small>errors</small>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <h5>System Status</h5>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle"></i> System is running and ready to send emails
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Emails Today</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.emails_sent_today }}</p>
                 </div>
-                <p><strong>Next Steps:</strong></p>
-                <ol>
-                    <li>Configure DNS records: <a href="/dns/setup">DNS Setup Wizard</a></li>
-                    <li>Send a test email using the API</li>
-                    <li>Start email workers to process the queue</li>
-                </ol>
+                <div class="text-purple-600 text-3xl">📧</div>
+            </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">This Month</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.emails_sent_month }}</p>
+                </div>
+                <div class="text-purple-600 text-3xl">📊</div>
+            </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Verified Domains</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.verified_domains }}</p>
+                </div>
+                <div class="text-purple-600 text-3xl">✅</div>
+            </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Total Domains</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.total_domains }}</p>
+                </div>
+                <div class="text-purple-600 text-3xl">🌐</div>
             </div>
         </div>
     </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{{ url_for('dashboard.domains') }}" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition text-center">
+                <i class="fas fa-plus-circle text-purple-600 text-3xl mb-2"></i>
+                <p class="font-medium">Add Domain</p>
+            </a>
+            <a href="#" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition text-center">
+                <i class="fas fa-envelope text-purple-600 text-3xl mb-2"></i>
+                <p class="font-medium">Send Email</p>
+            </a>
+            <a href="{{ url_for('dashboard.settings') }}" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition text-center">
+                <i class="fas fa-cog text-purple-600 text-3xl mb-2"></i>
+                <p class="font-medium">Settings</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Domains Overview -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-semibold">Your Domains</h2>
+                <a href="{{ url_for('dashboard.domains') }}" class="text-purple-600 hover:text-purple-700">
+                    View All →
+                </a>
+            </div>
+        </div>
+        <div class="p-6">
+            {% if domains %}
+                <div class="space-y-4">
+                    {% for domain in domains[:5] %}
+                    <div class="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                            <p class="font-medium">{{ domain.domain_name }}</p>
+                            <p class="text-sm text-gray-500">Added {{ domain.created_at.strftime('%b %d, %Y') }}</p>
+                        </div>
+                        <div>
+                            {% if domain.dns_verified %}
+                                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">✅ Verified</span>
+                            {% else %}
+                                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">⚠️ Pending</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <p class="text-gray-500 mb-4">No domains added yet</p>
+                    <a href="{{ url_for('dashboard.domains') }}" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 inline-block">
+                        Add Your First Domain
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-function updateMetrics() {
-    $.get('/dashboard/live-stats', function(data) {
-        if (data.success) {
-            $('#send-rate').text(data.stats.current_send_rate.toLocaleString());
-            $('#total-sent').text(data.stats.total_sent_alltime.toLocaleString());
-            $('#failed-count').text(data.stats.total_failed_alltime.toLocaleString());
-        }
-    });
-    
-    $.get('/dashboard/queue-depth', function(data) {
-        if (data.success) {
-            $('#queue-depth').text(data.queues.total.toLocaleString());
-        }
-    });
-}
-
-// Update every 5 seconds
-setInterval(updateMetrics, 5000);
-
-// Initial load
-updateMetrics();
-</script>
 {% endblock %}
