@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Documentation - SendBaba{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="bg-gradient-to-br from-purple-600 to-blue-600 text-white py-20">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+        <h1 class="text-5xl md:text-6xl font-bold mb-6">API Documentation</h1>
+        <p class="text-xl text-purple-100 max-w-3xl mx-auto">
+            Everything you need to integrate SendBaba into your applications
+        </p>
+    </div>
+</div>
+
+<!-- Quick Start -->
+<div class="py-20 bg-white">
+    <div class="max-w-5xl mx-auto px-4">
+        <h2 class="text-4xl font-bold text-gray-900 mb-8">Quick Start</h2>
+        
+        <div class="bg-gray-50 rounded-lg p-6 mb-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">1. Get Your API Key</h3>
+            <p class="text-gray-700 mb-4">
+                Sign up and navigate to your dashboard to find your API key. Include it in the <code class="bg-gray-200 px-2 py-1 rounded">X-API-Key</code> header for all requests.
+            </p>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-6 mb-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">2. Base URL</h3>
+            <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+                https://sendbaba.com/api/v1
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Endpoints -->
+<div class="py-20 bg-gray-50">
+    <div class="max-w-5xl mx-auto px-4">
+        <h2 class="text-4xl font-bold text-gray-900 mb-12">API Endpoints</h2>
+        
+        <!-- Send Single Email -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <div class="flex items-center mb-4">
+                <span class="px-3 py-1 bg-green-100 text-green-700 rounded font-bold text-sm mr-3">POST</span>
+                <code class="text-lg font-mono">/send</code>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Send Single Email</h3>
+            <p class="text-gray-600 mb-6">Send a single email to one recipient</p>
+            
+            <h4 class="font-bold text-gray-900 mb-3">Request Body:</h4>
+            <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-6">
+<pre>{
+  "to": "recipient@example.com",
+  "from": "sender@yourdomain.com",
+  "subject": "Hello World",
+  "html_body": "<h1>Hello!</h1><p>This is a test email.</p>",
+  "text_body": "Hello! This is a test email."
+}</pre>
+            </div>
+            
+            <h4 class="font-bold text-gray-900 mb-3">Example (cURL):</h4>
+            <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+<pre>curl -X POST https://sendbaba.com/api/v1/send \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "recipient@example.com",
+    "from": "hello@yourdomain.com",
+    "subject": "Test Email",
+    "html_body": "<h1>Hello World!</h1>"
+  }'</pre>
+            </div>
+        </div>
+        
+        <!-- Send Bulk -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <div class="flex items-center mb-4">
+                <span class="px-3 py-1 bg-green-100 text-green-700 rounded font-bold text-sm mr-3">POST</span>
+                <code class="text-lg font-mono">/send/bulk</code>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Send Bulk Emails</h3>
+            <p class="text-gray-600 mb-6">Send multiple emails in one request (up to 10,000)</p>
+            
+            <h4 class="font-bold text-gray-900 mb-3">Request Body:</h4>
+            <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+<pre>{
+  "emails": [
+    {
+      "to": "user1@example.com",
+      "from": "hello@yourdomain.com",
+      "subject": "Welcome!",
+      "html_body": "<h1>Welcome!</h1>"
+    },
+    {
+      "to": "user2@example.com",
+      "from": "hello@yourdomain.com",
+      "subject": "Welcome!",
+      "html_body": "<h1>Welcome!</h1>"
+    }
+  ]
+}</pre>
+            </div>
+        </div>
+        
+        <!-- Add Contact -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <div class="flex items-center mb-4">
+                <span class="px-3 py-1 bg-green-100 text-green-700 rounded font-bold text-sm mr-3">POST</span>
+                <code class="text-lg font-mono">/contact</code>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Add Contact</h3>
+            <p class="text-gray-600 mb-6">Add a new contact to your list</p>
+            
+            <h4 class="font-bold text-gray-900 mb-3">Request Body:</h4>
+            <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+<pre>{
+  "email": "contact@example.com",
+  "first_name": "John",
+  "last_name": "Doe",
+  "company": "Acme Inc",
+  "tags": ["customer", "vip"]
+}</pre>
+            </div>
+        </div>
+        
+        <!-- Get Contacts -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <div class="flex items-center mb-4">
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded font-bold text-sm mr-3">GET</span>
+                <code class="text-lg font-mono">/contacts</code>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">List Contacts</h3>
+            <p class="text-gray-600 mb-6">Get all your contacts with pagination</p>
+            
+            <h4 class="font-bold text-gray-900 mb-3">Query Parameters:</h4>
+            <ul class="list-disc list-inside text-gray-700 mb-4 space-y-2">
+                <li><code class="bg-gray-100 px-2 py-1 rounded">page</code> - Page number (default: 1)</li>
+                <li><code class="bg-gray-100 px-2 py-1 rounded">per_page</code> - Items per page (default: 50, max: 100)</li>
+                <li><code class="bg-gray-100 px-2 py-1 rounded">search</code> - Search term</li>
+            </ul>
+        </div>
+        
+        <!-- Get Usage -->
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <div class="flex items-center mb-4">
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded font-bold text-sm mr-3">GET</span>
+                <code class="text-lg font-mono">/usage</code>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Get Usage Stats</h3>
+            <p class="text-gray-600 mb-6">Check your current email usage and limits</p>
+            
+            <h4 class="font-bold text-gray-900 mb-3">Response:</h4>
+            <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+<pre>{
+  "success": true,
+  "usage": {
+    "today": {
+      "sent": 1250,
+      "failed": 3
+    },
+    "last_30_days": {
+      "sent": 45000,
+      "failed": 120
+    }
+  }
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SDKs -->
+<div class="py-20 bg-white">
+    <div class="max-w-5xl mx-auto px-4">
+        <h2 class="text-4xl font-bold text-gray-900 mb-12">Code Examples</h2>
+        
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="border-2 border-gray-200 rounded-lg p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">🐍 Python</h3>
+                <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+<pre>import requests
+
+response = requests.post(
+    'https://sendbaba.com/api/v1/send',
+    headers={'X-API-Key': 'YOUR_KEY'},
+    json={
+        'to': 'user@example.com',
+        'from': 'hello@yourdomain.com',
+        'subject': 'Hello',
+        'html_body': '<h1>Hi!</h1>'
+    }
+)
+print(response.json())</pre>
+                </div>
+            </div>
+            
+            <div class="border-2 border-gray-200 rounded-lg p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">📦 Node.js</h3>
+                <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+<pre>const axios = require('axios');
+
+axios.post('https://sendbaba.com/api/v1/send', {
+  to: 'user@example.com',
+  from: 'hello@yourdomain.com',
+  subject: 'Hello',
+  html_body: '<h1>Hi!</h1>'
+}, {
+  headers: {'X-API-Key': 'YOUR_KEY'}
+}).then(res => console.log(res.data));</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA -->
+<div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-20">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <h2 class="text-4xl font-bold mb-6">Need Help?</h2>
+        <p class="text-xl mb-8 text-purple-100">Our support team is here to assist you</p>
+        <a href="mailto:support@sendbaba.com" 
+           class="inline-block px-8 py-4 bg-white text-purple-600 rounded-lg font-bold text-lg hover:bg-gray-100 transition shadow-xl">
+            Contact Support
+        </a>
+    </div>
+</div>
+{% endblock %}

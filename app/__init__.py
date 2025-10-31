@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_login import LoginManager
+from sqlalchemy import text
 import redis
 import os
 
@@ -58,6 +59,7 @@ def create_app():
         from app.models.user import User
         from app.models.organization import Organization
         from app.models.domain import Domain
+        from app.models.email import Email
         
         # Register blueprints
         from app.controllers.web_controller import web_bp
@@ -65,20 +67,26 @@ def create_app():
         from app.controllers.dashboard_controller import dashboard_bp
         from app.controllers.domain_controller import domain_bp
         from app.controllers.api_controller import api_bp
+        from app.controllers.contact_controller import contact_bp
+        from app.controllers.campaign_controller import campaign_bp
+        from app.controllers.admin_controller import admin_bp
         
         app.register_blueprint(web_bp)
         app.register_blueprint(auth_bp, url_prefix='/auth')
         app.register_blueprint(dashboard_bp)
         app.register_blueprint(domain_bp, url_prefix='/api/v1')
         app.register_blueprint(api_bp, url_prefix='/api/v1')
+        app.register_blueprint(contact_bp, url_prefix='/api/v1')
+        app.register_blueprint(campaign_bp, url_prefix='/api/v1')
+        app.register_blueprint(admin_bp)
         
         print("✅ All blueprints registered")
         
-        # Health check
+        # Health check with proper text() usage
         @app.route('/health')
         def health():
             try:
-                db.session.execute('SELECT 1')
+                db.session.execute(text('SELECT 1'))
                 db_status = 'connected'
             except:
                 db_status = 'disconnected'
@@ -96,3 +104,6 @@ def create_app():
             }, 200
     
     return app
+    
+    # Set max upload size to 50MB
+    app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024

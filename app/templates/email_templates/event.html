@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Invitation</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 60px 30px; text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 10px;">🎉</div>
+                            <h1 style="color: #ffffff; margin: 0 0 10px 0; font-size: 32px;">You're Invited!</h1>
+                            <p style="color: #ffffff; margin: 0; font-size: 18px;">{{first_name}}, join us for something special</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Event Details -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <h2 style="color: #333333; text-align: center; margin: 0 0 30px 0; font-size: 28px;">{{event_name}}</h2>
+                            
+                            <!-- Info Boxes -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                                <tr>
+                                    <td width="50%" style="padding-right: 10px;">
+                                        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center;">
+                                            <div style="font-size: 32px; margin-bottom: 10px;">📅</div>
+                                            <p style="color: #666666; font-size: 12px; margin: 0 0 5px 0; text-transform: uppercase;">Date</p>
+                                            <p style="color: #333333; font-size: 16px; margin: 0; font-weight: bold;">{{event_date}}</p>
+                                        </div>
+                                    </td>
+                                    <td width="50%" style="padding-left: 10px;">
+                                        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center;">
+                                            <div style="font-size: 32px; margin-bottom: 10px;">⏰</div>
+                                            <p style="color: #666666; font-size: 12px; margin: 0 0 5px 0; text-transform: uppercase;">Time</p>
+                                            <p style="color: #333333; font-size: 16px; margin: 0; font-weight: bold;">{{event_time}}</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                                <tr>
+                                    <td>
+                                        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center;">
+                                            <div style="font-size: 32px; margin-bottom: 10px;">📍</div>
+                                            <p style="color: #666666; font-size: 12px; margin: 0 0 5px 0; text-transform: uppercase;">Location</p>
+                                            <p style="color: #333333; font-size: 16px; margin: 0; font-weight: bold;">{{event_location}}</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="color: #666666; font-size: 15px; line-height: 24px; margin: 0 0 30px 0; text-align: center;">
+                                {{event_description}}
+                            </p>
+                            
+                            <!-- RSVP Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{rsvp_url}}" style="background-color: #667eea; color: #ffffff; text-decoration: none; padding: 18px 50px; border-radius: 6px; font-size: 18px; font-weight: bold; display: inline-block;">RSVP Now</a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="color: #999999; font-size: 13px; text-align: center; margin: 20px 0 0 0;">
+                                Please RSVP by {{rsvp_deadline}}
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 30px; text-align: center;">
+                            <p style="color: #999999; font-size: 12px; margin: 0 0 10px 0;">
+                                Hosted by {{company}}
+                            </p>
+                            <p style="color: #999999; font-size: 12px; margin: 0;">
+                                <a href="{{unsubscribe_url}}" style="color: #667eea;">Unsubscribe</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

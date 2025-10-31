@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: #2c3e50; padding: 30px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Payment Receipt</h1>
+                            <p style="color: #ecf0f1; margin: 10px 0 0 0; font-size: 14px;">Order #{{order_number}}</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Success Message -->
+                    <tr>
+                        <td style="padding: 40px 30px 20px 30px; text-align: center;">
+                            <div style="font-size: 64px; color: #27ae60; margin-bottom: 20px;">✓</div>
+                            <h2 style="color: #333333; margin: 0 0 10px 0; font-size: 24px;">Payment Successful!</h2>
+                            <p style="color: #666666; margin: 0; font-size: 16px;">Thank you for your purchase, {{first_name}}.</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Order Details -->
+                    <tr>
+                        <td style="padding: 20px 30px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; border-radius: 8px; padding: 20px;">
+                                <tr>
+                                    <td style="padding: 10px 0; border-bottom: 1px solid #dee2e6;">
+                                        <table width="100%">
+                                            <tr>
+                                                <td style="color: #666666; font-size: 14px;">Date:</td>
+                                                <td align="right" style="color: #333333; font-size: 14px; font-weight: bold;">{{purchase_date}}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; border-bottom: 1px solid #dee2e6;">
+                                        <table width="100%">
+                                            <tr>
+                                                <td style="color: #666666; font-size: 14px;">Payment Method:</td>
+                                                <td align="right" style="color: #333333; font-size: 14px; font-weight: bold;">{{payment_method}}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0;">
+                                        <table width="100%">
+                                            <tr>
+                                                <td style="color: #666666; font-size: 14px;">Transaction ID:</td>
+                                                <td align="right" style="color: #999999; font-size: 12px;">{{transaction_id}}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Items -->
+                    <tr>
+                        <td style="padding: 20px 30px;">
+                            <h3 style="color: #333333; margin: 0 0 15px 0; font-size: 18px;">Order Summary</h3>
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr style="background-color: #f8f9fa;">
+                                    <th style="padding: 10px; text-align: left; color: #666666; font-size: 12px; text-transform: uppercase;">Item</th>
+                                    <th style="padding: 10px; text-align: right; color: #666666; font-size: 12px; text-transform: uppercase;">Price</th>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 15px 10px; border-bottom: 1px solid #dee2e6; color: #333333; font-size: 14px;">{{item_name}}</td>
+                                    <td style="padding: 15px 10px; border-bottom: 1px solid #dee2e6; color: #333333; font-size: 14px; text-align: right;">{{item_price}}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 15px 10px; color: #666666; font-size: 14px;">Subtotal</td>
+                                    <td style="padding: 15px 10px; color: #666666; font-size: 14px; text-align: right;">{{subtotal}}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 15px 10px; color: #666666; font-size: 14px;">Tax</td>
+                                    <td style="padding: 15px 10px; color: #666666; font-size: 14px; text-align: right;">{{tax}}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 15px 10px; border-top: 2px solid #333333; color: #333333; font-size: 18px; font-weight: bold;">Total</td>
+                                    <td style="padding: 15px 10px; border-top: 2px solid #333333; color: #27ae60; font-size: 18px; font-weight: bold; text-align: right;">{{total}}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Action Button -->
+                    <tr>
+                        <td style="padding: 20px 30px 40px 30px;" align="center">
+                            <a href="{{invoice_url}}" style="background-color: #3498db; color: #ffffff; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">Download Invoice</a>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 30px; text-align: center;">
+                            <p style="color: #666666; font-size: 13px; margin: 0 0 10px 0;">
+                                Questions about your order? Contact us at {{support_email}}
+                            </p>
+                            <p style="color: #999999; font-size: 12px; margin: 0;">
+                                © 2025 {{company}}
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

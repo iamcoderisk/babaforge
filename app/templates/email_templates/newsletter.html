@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsletter</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 30px; background-color: #2c3e50;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 28px;">📧 {{newsletter_title}}</h1>
+                            <p style="color: #ecf0f1; margin: 10px 0 0 0; font-size: 14px;">{{newsletter_date}}</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Hero Image -->
+                    <tr>
+                        <td style="padding: 0;">
+                            <img src="{{hero_image}}" alt="Newsletter" style="width: 100%; height: auto; display: block;">
+                        </td>
+                    </tr>
+                    
+                    <!-- Main Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="color: #333333; font-size: 16px; line-height: 24px; margin: 0 0 20px 0;">
+                                Hi {{first_name}},
+                            </p>
+                            <p style="color: #333333; font-size: 16px; line-height: 24px; margin: 0 0 30px 0;">
+                                Here's what's new this month at {{company}}:
+                            </p>
+                            
+                            <!-- Article 1 -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                                <tr>
+                                    <td style="border-left: 4px solid #3498db; padding-left: 20px;">
+                                        <h2 style="color: #2c3e50; margin: 0 0 10px 0; font-size: 22px;">{{article_1_title}}</h2>
+                                        <p style="color: #555555; font-size: 15px; line-height: 22px; margin: 0 0 15px 0;">
+                                            {{article_1_excerpt}}
+                                        </p>
+                                        <a href="{{article_1_url}}" style="color: #3498db; text-decoration: none; font-weight: bold;">Read More →</a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Article 2 -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                                <tr>
+                                    <td style="border-left: 4px solid #e74c3c; padding-left: 20px;">
+                                        <h2 style="color: #2c3e50; margin: 0 0 10px 0; font-size: 22px;">{{article_2_title}}</h2>
+                                        <p style="color: #555555; font-size: 15px; line-height: 22px; margin: 0 0 15px 0;">
+                                            {{article_2_excerpt}}
+                                        </p>
+                                        <a href="{{article_2_url}}" style="color: #e74c3c; text-decoration: none; font-weight: bold;">Read More →</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #2c3e50; padding: 30px; text-align: center;">
+                            <p style="color: #ecf0f1; font-size: 14px; margin: 0 0 15px 0;">
+                                Stay connected with us!
+                            </p>
+                            <table align="center" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding: 0 10px;">
+                                        <a href="{{facebook_url}}" style="color: #ecf0f1; font-size: 24px; text-decoration: none;">📘</a>
+                                    </td>
+                                    <td style="padding: 0 10px;">
+                                        <a href="{{twitter_url}}" style="color: #ecf0f1; font-size: 24px; text-decoration: none;">🐦</a>
+                                    </td>
+                                    <td style="padding: 0 10px;">
+                                        <a href="{{linkedin_url}}" style="color: #ecf0f1; font-size: 24px; text-decoration: none;">💼</a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p style="color: #95a5a6; font-size: 12px; margin: 20px 0 0 0;">
+                                © 2025 {{company}} | <a href="{{unsubscribe_url}}" style="color: #95a5a6;">Unsubscribe</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
