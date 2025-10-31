@@ -114,3 +114,47 @@ def regenerate_api_keys():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@dashboard_bp.route('/send-email')
+@login_required
+def send_email():
+    """Send email page"""
+    org = current_user.organization
+    
+    if not org:
+        flash('Organization not found.', 'danger')
+        return redirect(url_for('dashboard.index'))
+    
+    # Get verified domains
+    verified_domains = Domain.query.filter_by(
+        organization_id=org.id,
+        dns_verified=True,
+        is_active=True
+    ).all()
+    
+    return render_template('dashboard/send_email.html', 
+                         org=org, 
+                         user=current_user,
+                         verified_domains=verified_domains)
+
+@dashboard_bp.route('/bulk-send')
+@login_required
+def bulk_send():
+    """Bulk email sending page"""
+    org = current_user.organization
+    
+    if not org:
+        flash('Organization not found.', 'danger')
+        return redirect(url_for('dashboard.index'))
+    
+    # Get verified domains
+    verified_domains = Domain.query.filter_by(
+        organization_id=org.id,
+        dns_verified=True,
+        is_active=True
+    ).all()
+    
+    return render_template('dashboard/bulk_send.html', 
+                         org=org, 
+                         user=current_user,
+                         verified_domains=verified_domains)

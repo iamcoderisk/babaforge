@@ -1,0 +1,590 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Email Send - SendBaba{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Bulk Email Campaign</h1>
+        <p class="text-gray-600 mt-2">Upload contacts and send personalized emails at scale</p>
+    </div>
+
+    {% if verified_domains %}
+    
+    <!-- Progress Steps -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div class="flex-1 text-center">
+                <div id="step1-indicator" class="w-10 h-10 mx-auto rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">1</div>
+                <p class="mt-2 text-sm font-medium text-purple-600">Upload Contacts</p>
+            </div>
+            <div class="flex-1 border-t-2 border-gray-300"></div>
+            <div class="flex-1 text-center">
+                <div id="step2-indicator" class="w-10 h-10 mx-auto rounded-full bg-gray-300 text-white flex items-center justify-center font-bold">2</div>
+                <p class="mt-2 text-sm text-gray-500">Select Template</p>
+            </div>
+            <div class="flex-1 border-t-2 border-gray-300"></div>
+            <div class="flex-1 text-center">
+                <div id="step3-indicator" class="w-10 h-10 mx-auto rounded-full bg-gray-300 text-white flex items-center justify-center font-bold">3</div>
+                <p class="mt-2 text-sm text-gray-500">Review & Send</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 1: Upload Contacts -->
+    <div id="step1" class="step-content">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-xl font-semibold mb-6">Step 1: Upload Your Contact List</h2>
+            
+            <!-- File Upload Area -->
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-6">
+                <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" class="hidden" onchange="handleFileUpload(event)">
+                <div id="uploadPrompt">
+                    <i class="fas fa-cloud-upload-alt text-6xl text-gray-400 mb-4"></i>
+                    <p class="text-lg font-medium text-gray-700 mb-2">Drop your file here or click to browse</p>
+                    <p class="text-sm text-gray-500 mb-4">Supports CSV, XLSX, XLS files (Max 50MB)</p>
+                    <button onclick="document.getElementById('fileInput').click()" 
+                            class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                        Choose File
+                    </button>
+                </div>
+                
+                <div id="uploadSuccess" class="hidden">
+                    <i class="fas fa-check-circle text-6xl text-green-500 mb-4"></i>
+                    <p class="text-lg font-medium text-gray-700 mb-2" id="fileName"></p>
+                    <p class="text-sm text-gray-500 mb-4" id="fileInfo"></p>
+                    <button onclick="resetUpload()" class="text-purple-600 hover:text-purple-700">
+                        Upload Different File
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sample CSV Download -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold text-blue-900 mb-2">📋 CSV Format Guidelines</h3>
+                <p class="text-sm text-blue-800 mb-3">Your file should include these columns:</p>
+                <ul class="text-sm text-blue-800 space-y-1 mb-3">
+                    <li>• <strong>email</strong> (required) - Any column with "email" or "mail" in the name</li>
+                    <li>• <strong>first_name</strong> (optional) - For personalization</li>
+                    <li>• <strong>last_name</strong> (optional) - For personalization</li>
+                    <li>• <strong>company</strong> (optional) - For personalization</li>
+                    <li>• Supports both comma (,) and semicolon (;) delimiters</li>
+                    <li>• Handles quoted values and special characters</li>
+                </ul>
+                <button onclick="downloadSample()" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                    <i class="fas fa-download mr-1"></i>Download Sample CSV
+                </button>
+            </div>
+
+            <!-- Contact Preview -->
+            <div id="contactPreview" class="hidden mb-6">
+                <h3 class="font-semibold mb-3">Contact Preview (First 5 rows)</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full border">
+                        <thead class="bg-gray-50">
+                            <tr id="previewHeaders"></tr>
+                        </thead>
+                        <tbody id="previewBody"></tbody>
+                    </table>
+                </div>
+                <p class="mt-2 text-sm text-gray-600" id="totalContacts"></p>
+            </div>
+
+            <div class="flex justify-between">
+                <a href="{{ url_for('dashboard.index') }}" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    ← Back to Dashboard
+                </a>
+                <button onclick="goToStep(2)" id="step1NextBtn" disabled
+                        class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
+                    Next: Select Template →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Select Template -->
+    <div id="step2" class="step-content hidden">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-xl font-semibold mb-6">Step 2: Compose Your Email</h2>
+
+            <!-- From Email -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    From Email <span class="text-red-500">*</span>
+                </label>
+                <select id="bulkFromEmail" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                    <option value="">Select sender email</option>
+                    {% for domain in verified_domains %}
+                    <option value="noreply@{{ domain.domain_name }}">noreply@{{ domain.domain_name }}</option>
+                    <option value="hello@{{ domain.domain_name }}">hello@{{ domain.domain_name }}</option>
+                    <option value="support@{{ domain.domain_name }}">support@{{ domain.domain_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Subject -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Subject Line</label>
+                <input type="text" id="emailSubject" placeholder="Welcome to our service!"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                <p class="mt-1 text-sm text-gray-500">Use {% raw %}{{first_name}}{% endraw %} for personalization</p>
+            </div>
+
+            <!-- Email Body -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Email Body (HTML)</label>
+                <textarea id="emailBody" rows="12"
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg font-mono text-sm"
+                          placeholder="<h1>Hello {% raw %}{{first_name}}{% endraw %}!</h1>"></textarea>
+                <p class="mt-2 text-sm text-gray-500">
+                    💡 Use {% raw %}{{variable}}{% endraw %} for any CSV column (e.g., {% raw %}{{first_name}}{% endraw %}, {% raw %}{{company}}{% endraw %})
+                </p>
+            </div>
+
+            <!-- Quick Templates -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Quick Templates</label>
+                <select onchange="loadQuickTemplate(this.value)" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                    <option value="">Choose a template...</option>
+                    <option value="welcome">Welcome Email</option>
+                    <option value="newsletter">Newsletter</option>
+                    <option value="announcement">Announcement</option>
+                </select>
+            </div>
+
+            <div class="flex justify-between">
+                <button onclick="goToStep(1)" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    ← Back
+                </button>
+                <button onclick="goToStep(3)" id="step2NextBtn"
+                        class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                    Next: Review & Send →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: Review & Send -->
+    <div id="step3" class="step-content hidden">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-xl font-semibold mb-6">Step 3: Review & Send</h2>
+
+            <!-- Campaign Summary -->
+            <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                <h3 class="font-semibold mb-4">📧 Campaign Summary</h3>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-600">Recipients:</span>
+                        <span class="font-bold ml-2" id="reviewRecipients">0</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-600">From:</span>
+                        <span class="font-medium ml-2" id="reviewFrom">-</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-gray-600">Subject:</span>
+                        <span class="font-medium ml-2" id="reviewSubject">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Preview -->
+            <div class="mb-6">
+                <h3 class="font-semibold mb-3">👁️ Sample Email Preview</h3>
+                <div class="border rounded-lg p-6 bg-white">
+                    <div class="mb-4 pb-4 border-b text-sm">
+                        <p class="text-gray-600">To: <span class="font-medium">first.recipient@example.com</span></p>
+                        <p class="text-gray-600">Subject: <span class="font-medium" id="previewSubject">-</span></p>
+                    </div>
+                    <div id="previewBody" class="prose max-w-none"></div>
+                </div>
+            </div>
+
+            <!-- Confirmation -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <label class="flex items-start">
+                    <input type="checkbox" id="confirmSend" class="mt-1 mr-3">
+                    <span class="text-sm text-yellow-800">
+                        I confirm that I want to send <strong id="confirmCount">0</strong> emails. This action cannot be undone.
+                    </span>
+                </label>
+            </div>
+
+            <!-- Progress -->
+            <div id="sendProgress" class="hidden mb-6">
+                <div class="bg-gray-200 rounded-full h-4">
+                    <div id="progressBar" class="bg-purple-600 h-full rounded-full transition-all" style="width: 0%"></div>
+                </div>
+                <p class="text-center mt-2 text-sm">
+                    <span id="progressText">Sending...</span> <span id="progressCount">0/0</span>
+                </p>
+            </div>
+
+            <!-- Messages -->
+            <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p class="text-red-800"></p>
+            </div>
+
+            <div id="successMessage" class="hidden mb-6 p-6 bg-green-50 border border-green-200 rounded-lg text-center">
+                <i class="fas fa-check-circle text-5xl text-green-500 mb-3"></i>
+                <h3 class="text-xl font-semibold text-green-900 mb-2">Campaign Sent!</h3>
+                <p class="text-green-800">Your emails are being delivered.</p>
+            </div>
+
+            <div class="flex justify-between">
+                <button onclick="goToStep(2)" id="backBtn" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    ← Back
+                </button>
+                <button onclick="sendCampaign()" id="sendBtn" disabled
+                        class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300">
+                    <i class="fas fa-paper-plane mr-2"></i>Send Campaign
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- No verified domains -->
+    <div class="bg-white rounded-lg shadow-lg p-12 text-center">
+        <div class="text-6xl mb-4">🌐</div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">No Verified Domains</h3>
+        <p class="text-gray-600 mb-6">You need to verify a domain before sending bulk emails</p>
+        <a href="{{ url_for('dashboard.domains') }}" 
+           class="inline-block px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+            Verify Your Domain
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% raw %}
+<script>
+const API_KEY = '{% endraw %}{{ org.api_key if org else "" }}{% raw %}';
+let uploadedContacts = [];
+let campaignData = {};
+
+function goToStep(step) {
+    document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+    
+    for (let i = 1; i <= 3; i++) {
+        const indicator = document.getElementById('step' + i + '-indicator');
+        if (i < step) {
+            indicator.className = 'w-10 h-10 mx-auto rounded-full bg-green-500 text-white flex items-center justify-center font-bold';
+        } else if (i === step) {
+            indicator.className = 'w-10 h-10 mx-auto rounded-full bg-purple-600 text-white flex items-center justify-center font-bold';
+        } else {
+            indicator.className = 'w-10 h-10 mx-auto rounded-full bg-gray-300 text-white flex items-center justify-center font-bold';
+        }
+    }
+    
+    document.getElementById('step' + step).classList.remove('hidden');
+    
+    if (step === 3) {
+        updateReview();
+    }
+    
+    window.scrollTo(0, 0);
+}
+
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (!file.name.match(/\.(csv|xlsx|xls)$/)) {
+        alert('Please upload a CSV or Excel file');
+        return;
+    }
+    
+    if (file.size > 50 * 1024 * 1024) {
+        alert('File must be less than 10MB');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        parseCSV(e.target.result, file.name);
+    };
+    reader.readAsText(file);
+}
+
+function parseCSV(content, filename) {
+    const lines = content.split('\n').filter(line => line.trim());
+    if (lines.length < 2) {
+        alert('File must have headers and data rows');
+        return;
+    }
+    
+    // Parse headers - handle different delimiters and quotes
+    let delimiter = ',';
+    if (lines[0].includes(';') && lines[0].split(';').length > lines[0].split(',').length) {
+        delimiter = ';';
+    }
+    
+    const headers = parseCSVLine(lines[0], delimiter).map(h => h.trim().toLowerCase());
+    
+    console.log('Detected headers:', headers);
+    
+    // Find email column (check various names)
+    const emailColumnNames = ['email', 'e-mail', 'email address', 'emailaddress', 'mail', 'e_mail'];
+    let emailColumn = headers.find(h => emailColumnNames.includes(h));
+    
+    if (!emailColumn) {
+        // Try to find a column that looks like it contains emails
+        emailColumn = headers.find(h => h.includes('email') || h.includes('mail'));
+    }
+    
+    if (!emailColumn) {
+        alert('CSV must have an email column. Found columns: ' + headers.join(', '));
+        return;
+    }
+    
+    console.log('Using email column:', emailColumn);
+    
+    uploadedContacts = [];
+    let skipped = 0;
+    
+    for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        
+        const values = parseCSVLine(lines[i], delimiter);
+        const contact = {};
+        
+        headers.forEach((header, idx) => {
+            contact[header] = values[idx] ? values[idx].trim() : '';
+        });
+        
+        // Validate email
+        const email = contact[emailColumn];
+        if (email && email.includes('@') && email.includes('.')) {
+            // Standardize to 'email' key
+            contact.email = email;
+            uploadedContacts.push(contact);
+        } else {
+            skipped++;
+        }
+    }
+    
+    if (uploadedContacts.length === 0) {
+        alert('No valid emails found. Skipped ' + skipped + ' invalid rows.');
+        return;
+    }
+    
+    document.getElementById('uploadPrompt').classList.add('hidden');
+    document.getElementById('uploadSuccess').classList.remove('hidden');
+    document.getElementById('fileName').textContent = filename;
+    document.getElementById('fileInfo').textContent = uploadedContacts.length + ' valid contacts' + 
+        (skipped > 0 ? ' (' + skipped + ' skipped)' : '');
+    
+    displayPreview(headers);
+    
+    document.getElementById('step1NextBtn').disabled = false;
+}
+
+function parseCSVLine(line, delimiter = ',') {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+        
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                current += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === delimiter && !inQuotes) {
+            result.push(current);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    
+    result.push(current);
+    return result.map(val => val.replace(/^["']|["']$/g, ''));
+}
+
+
+
+
+function displayPreview(headers) {
+    const headerRow = document.getElementById('previewHeaders');
+    const bodyRows = document.getElementById('previewBody');
+    
+    headerRow.innerHTML = '';
+    bodyRows.innerHTML = '';
+    
+    headers.forEach(h => {
+        const th = document.createElement('th');
+        th.className = 'px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase border';
+        th.textContent = h;
+        headerRow.appendChild(th);
+    });
+    
+    uploadedContacts.slice(0, 5).forEach(contact => {
+        const tr = document.createElement('tr');
+        headers.forEach(h => {
+            const td = document.createElement('td');
+            td.className = 'px-4 py-2 text-sm border';
+            td.textContent = contact[h] || '-';
+            tr.appendChild(td);
+        });
+        bodyRows.appendChild(tr);
+    });
+    
+    document.getElementById('totalContacts').textContent = 
+        'Total: ' + uploadedContacts.length + ' contacts';
+    document.getElementById('contactPreview').classList.remove('hidden');
+}
+
+function resetUpload() {
+    document.getElementById('uploadPrompt').classList.remove('hidden');
+    document.getElementById('uploadSuccess').classList.add('hidden');
+    document.getElementById('contactPreview').classList.add('hidden');
+    document.getElementById('fileInput').value = '';
+    uploadedContacts = [];
+    document.getElementById('step1NextBtn').disabled = true;
+}
+
+function downloadSample() {
+    const csv = 'email,first_name,last_name,company\njohn@example.com,John,Doe,Acme Inc\njane@example.com,Jane,Smith,Tech Corp';
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample_contacts.csv';
+    a.click();
+}
+
+function loadQuickTemplate(type) {
+    const templates = {
+        welcome: {
+            subject: 'Welcome {{first_name}}!',
+            body: '<div style="font-family: Arial; max-width: 600px; margin: 0 auto;"><h1 style="color: #7c3aed;">Welcome {{first_name}}!</h1><p>Thank you for joining {{company}}.</p></div>'
+        },
+        newsletter: {
+            subject: 'Monthly Newsletter - {{company}}',
+            body: '<h2>Hi {{first_name}},</h2><p>Here\'s what\'s new this month...</p>'
+        },
+        announcement: {
+            subject: 'Important Update',
+            body: '<h1>Hello {{first_name}},</h1><p>We have an important update to share...</p>'
+        }
+    };
+    
+    if (templates[type]) {
+        document.getElementById('emailSubject').value = templates[type].subject;
+        document.getElementById('emailBody').value = templates[type].body;
+    }
+}
+
+function updateReview() {
+    const from = document.getElementById('bulkFromEmail').value;
+    const subject = document.getElementById('emailSubject').value;
+    const body = document.getElementById('emailBody').value;
+    
+    document.getElementById('reviewRecipients').textContent = uploadedContacts.length;
+    document.getElementById('reviewFrom').textContent = from;
+    document.getElementById('reviewSubject').textContent = subject;
+    document.getElementById('confirmCount').textContent = uploadedContacts.length;
+    
+    // Sample preview with first contact
+    if (uploadedContacts.length > 0) {
+        const sample = uploadedContacts[0];
+        let previewSubject = subject;
+        let previewBody = body;
+        
+        Object.keys(sample).forEach(key => {
+            const regex = new RegExp('{{' + key + '}}', 'g');
+            previewSubject = previewSubject.replace(regex, sample[key]);
+            previewBody = previewBody.replace(regex, sample[key]);
+        });
+        
+        document.getElementById('previewSubject').textContent = previewSubject;
+        document.getElementById('previewBody').innerHTML = previewBody;
+    }
+    
+    campaignData = { from, subject, body };
+}
+
+document.getElementById('confirmSend').addEventListener('change', function() {
+    document.getElementById('sendBtn').disabled = !this.checked;
+});
+
+async function sendCampaign() {
+    const btn = document.getElementById('sendBtn');
+    const backBtn = document.getElementById('backBtn');
+    const progress = document.getElementById('sendProgress');
+    const error = document.getElementById('errorMessage');
+    const success = document.getElementById('successMessage');
+    
+    btn.disabled = true;
+    backBtn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
+    progress.classList.remove('hidden');
+    error.classList.add('hidden');
+    
+    try {
+        const batchSize = 100;
+        let sent = 0;
+        
+        for (let i = 0; i < uploadedContacts.length; i += batchSize) {
+            const batch = uploadedContacts.slice(i, i + batchSize);
+            const emails = batch.map(contact => {
+                let subject = campaignData.subject;
+                let body = campaignData.body;
+                
+                Object.keys(contact).forEach(key => {
+                    const regex = new RegExp('{{' + key + '}}', 'g');
+                    subject = subject.replace(regex, contact[key]);
+                    body = body.replace(regex, contact[key]);
+                });
+                
+                return {
+                    to: contact.email,
+                    from: campaignData.from,
+                    subject: subject,
+                    html_body: body
+                };
+            });
+            
+            const response = await fetch('/api/v1/send/bulk', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': API_KEY
+                },
+                body: JSON.stringify({ emails })
+            });
+            
+            if (response.ok) {
+                sent += batch.length;
+                const percent = (sent / uploadedContacts.length) * 100;
+                document.getElementById('progressBar').style.width = percent + '%';
+                document.getElementById('progressCount').textContent = sent + '/' + uploadedContacts.length;
+            }
+        }
+        
+        progress.classList.add('hidden');
+        success.classList.remove('hidden');
+        btn.style.display = 'none';
+        backBtn.style.display = 'none';
+        
+    } catch (err) {
+        console.error(err);
+        error.querySelector('p').textContent = 'Failed to send. Please try again.';
+        error.classList.remove('hidden');
+        btn.disabled = false;
+        backBtn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send Campaign';
+    }
+}
+</script>
+{% endraw %}
+{% endblock %}

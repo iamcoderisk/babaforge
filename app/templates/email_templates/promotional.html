@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Offer</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 50px 30px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0 0 10px 0; font-size: 36px; font-weight: bold;">🎁 SPECIAL OFFER</h1>
+                            <p style="color: #ffffff; margin: 0; font-size: 18px;">Just for you, {{first_name}}!</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Discount Badge -->
+                    <tr>
+                        <td align="center" style="padding: 40px 30px 20px 30px;">
+                            <div style="background-color: #f5576c; color: #ffffff; display: inline-block; padding: 20px 40px; border-radius: 50px; font-size: 32px; font-weight: bold;">
+                                {{discount}}% OFF
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 20px 30px 40px 30px; text-align: center;">
+                            <h2 style="color: #333333; margin: 0 0 20px 0; font-size: 28px;">{{offer_title}}</h2>
+                            <p style="color: #666666; font-size: 16px; line-height: 24px; margin: 0 0 30px 0;">
+                                {{offer_description}}
+                            </p>
+                            
+                            <!-- Timer -->
+                            <div style="background-color: #fff3cd; border: 2px dashed #f5576c; padding: 20px; border-radius: 8px; margin: 0 0 30px 0;">
+                                <p style="color: #856404; font-size: 14px; margin: 0 0 5px 0; text-transform: uppercase; font-weight: bold;">⏰ Limited Time Offer</p>
+                                <p style="color: #856404; font-size: 18px; margin: 0; font-weight: bold;">Expires: {{expiry_date}}</p>
+                            </div>
+                            
+                            <!-- CTA -->
+                            <table align="center" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center" style="background-color: #f5576c; border-radius: 6px;">
+                                        <a href="{{cta_url}}" style="color: #ffffff; text-decoration: none; padding: 20px 50px; display: inline-block; font-size: 18px; font-weight: bold;">Claim Your Offer</a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="color: #999999; font-size: 12px; margin: 20px 0 0 0;">
+                                Use code: <strong style="color: #f5576c; font-size: 16px;">{{promo_code}}</strong>
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 30px; text-align: center;">
+                            <p style="color: #666666; font-size: 13px; margin: 0 0 10px 0;">
+                                This offer is exclusively for {{email}}
+                            </p>
+                            <p style="color: #999999; font-size: 12px; margin: 0;">
+                                © 2025 {{company}} | <a href="{{unsubscribe_url}}" style="color: #f5576c;">Unsubscribe</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

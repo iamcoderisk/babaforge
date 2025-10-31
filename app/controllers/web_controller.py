@@ -1,92 +1,34 @@
 from flask import Blueprint, render_template
-from flask_login import current_user
 
 web_bp = Blueprint('web', __name__)
 
 @web_bp.route('/')
 def index():
-    if current_user.is_authenticated:
-        return render_template('web/index_logged_in.html')
-    return render_template('web/index.html')
+    """Home page"""
+    return render_template('index.html')
 
 @web_bp.route('/pricing')
 def pricing():
-    plans = [
-        {
-            'name': 'Free',
-            'price': 0,
-            'period': 'forever',
-            'features': [
-                '10,000 emails/month',
-                '1,000 emails/day',
-                '1 custom domain',
-                'Basic analytics',
-                'Email support'
-            ],
-            'cta': 'Get Started Free',
-            'popular': False
-        },
-        {
-            'name': 'Starter',
-            'price': 29,
-            'period': 'month',
-            'features': [
-                '100,000 emails/month',
-                '10,000 emails/day',
-                '3 custom domains',
-                'Advanced analytics',
-                'Priority support',
-                'API access',
-                'Webhooks'
-            ],
-            'cta': 'Start Free Trial',
-            'popular': True
-        },
-        {
-            'name': 'Pro',
-            'price': 99,
-            'period': 'month',
-            'features': [
-                '1,000,000 emails/month',
-                '50,000 emails/day',
-                '10 custom domains',
-                'Full analytics suite',
-                'Premium support',
-                'Dedicated IP',
-                'Custom integrations',
-                'Team collaboration'
-            ],
-            'cta': 'Start Free Trial',
-            'popular': False
-        },
-        {
-            'name': 'Enterprise',
-            'price': 'Custom',
-            'period': '',
-            'features': [
-                '10M+ emails/month',
-                '500,000 emails/day',
-                'Unlimited domains',
-                'White-label options',
-                '24/7 phone support',
-                'Dedicated account manager',
-                'SLA guarantee',
-                'Custom contracts'
-            ],
-            'cta': 'Contact Sales',
-            'popular': False
-        }
-    ]
-    return render_template('web/pricing.html', plans=plans)
-
-@web_bp.route('/about')
-def about():
-    return render_template('web/about.html')
+    """Pricing page"""
+    from app.models.pricing import PricingPlan
+    try:
+        plans = PricingPlan.query.filter_by(is_active=True).order_by(PricingPlan.display_order).all()
+    except Exception as e:
+        print(f"Error loading plans: {e}")
+        plans = []
+    return render_template('pricing.html', plans=plans)
 
 @web_bp.route('/features')
 def features():
-    return render_template('web/features.html')
+    """Features page"""
+    return render_template('features.html')
 
 @web_bp.route('/docs')
 def docs():
-    return render_template('web/docs.html')
+    """Documentation page"""
+    return render_template('docs.html')
+
+@web_bp.route('/about')
+def about():
+    """About page"""
+    return render_template('about.html')

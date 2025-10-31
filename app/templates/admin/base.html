@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard - SendBaba{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Admin Navigation -->
+    <nav class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center space-x-8">
+                    <a href="{{ url_for('admin.index') }}" class="text-xl font-bold">
+                        🎛️ Admin Dashboard
+                    </a>
+                    <div class="hidden md:flex space-x-4">
+                        <a href="{{ url_for('admin.index') }}" class="hover:text-purple-400 px-3 py-2">Overview</a>
+                        <a href="{{ url_for('admin.users') }}" class="hover:text-purple-400 px-3 py-2">Users</a>
+                        <a href="{{ url_for('admin.organizations') }}" class="hover:text-purple-400 px-3 py-2">Organizations</a>
+                        <a href="{{ url_for('admin.domains') }}" class="hover:text-purple-400 px-3 py-2">Domains</a>
+                        <a href="{{ url_for('admin.emails') }}" class="hover:text-purple-400 px-3 py-2">Emails</a>
+                        <a href="{{ url_for('admin.campaigns') }}" class="hover:text-purple-400 px-3 py-2">Campaigns</a>
+                        <a href="{{ url_for('admin.analytics') }}" class="hover:text-purple-400 px-3 py-2">Analytics</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('dashboard.index') }}" class="hover:text-purple-400">
+                        <i class="fas fa-home"></i> User Dashboard
+                    </a>
+                    <span class="text-gray-400">{{ current_user.email }}</span>
+                    <a href="{{ url_for('auth.logout') }}" class="hover:text-red-400">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="max-w-7xl mx-auto px-4 mt-4">
+                {% for category, message in messages %}
+                    <div class="rounded-md p-4 mb-4 {% if category == 'success' %}bg-green-50 text-green-800{% elif category == 'danger' %}bg-red-50 text-red-800{% else %}bg-blue-50 text-blue-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

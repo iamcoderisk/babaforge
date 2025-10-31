@@ -1,50 +1,84 @@
-# ============= app/middleware/auth.py =============
-"""
-Authentication Middleware
-"""
 from functools import wraps
-from flask import request, jsonify, current_app
-
-from app.models.database import Organization
-from app.config.settings import settings
-from app.utils.logger import get_logger
-
-logger = get_logger(__name__)
+from flask import request, jsonify
+from app.models.organization import Organization
+from app.models.domain import Domain
+from datetime import date
 
 def require_api_key(f):
-    """Require valid API key"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        api_key = request.headers.get(settings.API_KEY_HEADER)
+        api_key = request.headers.get('X-API-Key')
         
         if not api_key:
-            return jsonify({'error': 'Missing API key'}), 401
+            return jsonify({
+                'success': False,
+                'error': 'API key required. Include X-API-Key header.'
+            }), 401
         
-        # Validate API key
-        db = current_app.session()
-        org = db.query(Organization).filter_by(api_key=api_key).first()
-        
+        org = Organization.query.filter_by(api_key=api_key, is_active=True).first()
         if not org:
-            return jsonify({'error': 'Invalid API key'}), 401
+            return jsonify({
+                'success': False,
+                'error': 'Invalid or inactive API key'
+            }), 401
         
-        if org.status != 'active':
-            return jsonify({'error': 'Organization inactive'}), 403
-        
-        # Pass org_id to the function
-        return f(org_id=org.id, *args, **kwargs)
+        request.organization = org
+        return f(*args, **kwargs)
     
     return decorated_function
 
-def require_admin(f):
-    """Require admin authentication"""
+def validate_sender_domain(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Simple admin key check (enhance with JWT in production)
-        admin_key = request.headers.get('X-Admin-Key')
+        data = request.get_json()
+        sender_email = data.get('from', '')
         
-        if admin_key != settings.SECRET_KEY:
-            return jsonify({'error': 'Unauthorized'}), 401
+        if not '@' in sender_email:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid sender email format'
+            }), 400
         
+        sender_domain = sender_email.split('@')[1].lower()
+        
+        domain = Domain.query.filter_by(
+            domain_name=sender_domain,
+            organization_id=request.organization.id,
+            dns_verified=True,
+            is_active=True
+        ).first()
+        
+        if not domain:
+            return jsonify({
+                'success': False,
+                'error': f'Domain {sender_domain} is not verified or authorized.'
+            }), 403
+        
+        request.domain = domain
+        return f(*args, **kwargs)
+    
+    return decorated_function
+
+def check_rate_limits(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        from app.models.domain import EmailUsage
+        from app import db
+        
+        org = request.organization
+        today = date.today()
+        
+        usage = EmailUsage.query.filter_by(
+            organization_id=org.id,
+            date=today
+        ).first()
+        
+        if not usage:
+            usage = EmailUsage(org.id, today)
+            db.session.add(usage)
+            db.session.commit()
+        
+        request.usage = usage
         return f(*args, **kwargs)
     
     return decorated_function
