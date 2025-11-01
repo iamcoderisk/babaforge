@@ -26,6 +26,7 @@ class Email(db.Model):
     
     def __init__(self, organization_id, sender, recipient, subject, **kwargs):
         self.id = str(uuid.uuid4())
+        self.tracking_id = str(uuid.uuid4())
         self.organization_id = organization_id
         self.sender = sender
         self.recipient = recipient

@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Billing & Subscription - SendBaba{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Billing & Subscription</h1>
+        <p class="text-gray-600 mt-2">Manage your subscription and payment methods</p>
+    </div>
+
+    <!-- Current Subscription -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Current Subscription</h2>
+        
+        {% if subscription %}
+        <div class="grid md:grid-cols-3 gap-6">
+            <div>
+                <p class="text-sm text-gray-600">Plan</p>
+                <p class="text-2xl font-bold text-purple-600">{{ subscription.plan.name }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Monthly Cost</p>
+                <p class="text-2xl font-bold text-gray-900">${{ "%.2f"|format(subscription.plan.price) }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Email Allowance</p>
+                <p class="text-2xl font-bold text-gray-900">{{ "{:,}".format(subscription.plan.emails_included) }}</p>
+            </div>
+        </div>
+        
+        <div class="mt-6 flex justify-between items-center">
+            <div>
+                <p class="text-sm text-gray-600">Status: 
+                    <span class="px-3 py-1 rounded-full text-sm font-medium {% if subscription.status == 'active' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ subscription.status }}
+                    </span>
+                </p>
+                <p class="text-sm text-gray-600 mt-2">
+                    Next billing date: {{ subscription.next_billing_date.strftime('%B %d, %Y') if subscription.next_billing_date else 'N/A' }}
+                </p>
+            </div>
+            <div>
+                <button onclick="cancelSubscription()" class="px-4 py-2 border border-red-600 text-red-600 rounded-lg hover:bg-red-50">
+                    Cancel Subscription
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <p class="text-gray-600 mb-4">You don't have an active subscription</p>
+            <a href="{{ url_for('web.pricing') }}" class="inline-block px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                View Plans
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">Payment Methods</h2>
+            <button onclick="addPaymentMethod()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                <i class="fas fa-plus mr-2"></i>Add Card
+            </button>
+        </div>
+        
+        {% if payment_methods %}
+        <div class="space-y-4">
+            {% for method in payment_methods %}
+            <div class="border rounded-lg p-4 flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <div class="text-3xl">
+                        {% if method.card_type == 'visa' %}
+                            <i class="fab fa-cc-visa text-blue-600"></i>
+                        {% elif method.card_type == 'mastercard' %}
+                            <i class="fab fa-cc-mastercard text-red-600"></i>
+                        {% else %}
+                            <i class="fas fa-credit-card text-gray-600"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">•••• •••• •••• {{ method.last4 }}</p>
+                        <p class="text-sm text-gray-600">Expires {{ method.exp_month }}/{{ method.exp_year }}</p>
+                        {% if method.is_default %}
+                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Default</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    {% if not method.is_default %}
+                    <button onclick="setDefault('{{ method.id }}')" class="text-blue-600 hover:text-blue-700">
+                        Set as Default
+                    </button>
+                    {% endif %}
+                    <button onclick="removeCard('{{ method.id }}')" class="text-red-600 hover:text-red-700">
+                        Remove
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-600 text-center py-4">No payment methods added yet</p>
+        {% endif %}
+    </div>
+
+    <!-- Available Plans (if not subscribed) -->
+    {% if not subscription %}
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">Available Plans</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+            {% for plan in plans %}
+            <div class="border-2 {% if plan.is_popular %}border-purple-500{% else %}border-gray-200{% endif %} rounded-lg p-6">
+                {% if plan.is_popular %}
+                <span class="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded-full">POPULAR</span>
+                {% endif %}
+                <h3 class="text-xl font-bold text-gray-900 mt-4">{{ plan.name }}</h3>
+                <p class="text-3xl font-bold text-purple-600 my-4">${{ "%.0f"|format(plan.price) }}<span class="text-lg text-gray-600">/mo</span></p>
+                <p class="text-gray-600 mb-4">{{ "{:,}".format(plan.emails_included) }} emails/month</p>
+                <button onclick="subscribeToPlan('{{ plan.id }}')" 
+                        class="w-full py-3 {% if plan.is_popular %}bg-purple-600 hover:bg-purple-700{% else %}bg-gray-200 hover:bg-gray-300{% endif %} text-{% if plan.is_popular %}white{% else %}gray-900{% endif %} rounded-lg font-semibold">
+                    Subscribe Now
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Transaction History -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Transaction History</h2>
+        
+        {% if transactions %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for txn in transactions %}
+                    <tr>
+                        <td class="px-6 py-4 text-sm text-gray-900">{{ txn.created_at.strftime('%b %d, %Y') }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ txn.reference }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900 font-medium">${{ "%.2f"|format(txn.amount) }}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-medium {% if txn.status == 'success' %}bg-green-100 text-green-800{% elif txn.status == 'failed' %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {{ txn.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-600 text-center py-4">No transactions yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Korapay Payment Modal (will be injected by Korapay) -->
+<div id="korapay-modal"></div>
+
+<script src="https://korablobstorage.blob.core.windows.net/modal-bucket/korapay-collections.min.js"></script>
+
+<script>
+const KORAPAY_PUBLIC_KEY = '{{ korapay_public_key }}';
+
+function addPaymentMethod() {
+    alert('Please subscribe to a plan to add a payment method');
+}
+
+function subscribeToPlan(planId) {
+    if (!confirm('Subscribe to this plan?')) return;
+    
+    const button = event.target;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+    
+    fetch(`/billing/subscribe/${planId}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Redirect to Korapay checkout
+            window.location.href = data.checkout_url;
+        } else {
+            alert('Error: ' + data.error);
+            button.disabled = false;
+            button.innerHTML = 'Subscribe Now';
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+        button.disabled = false;
+        button.innerHTML = 'Subscribe Now';
+    });
+}
+
+function setDefault(methodId) {
+    fetch(`/billing/payment-method/${methodId}/set-default`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    });
+}
+
+function removeCard(methodId) {
+    if (!confirm('Remove this payment method?')) return;
+    
+    fetch(`/billing/payment-method/${methodId}/remove`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    });
+}
+
+function cancelSubscription() {
+    if (!confirm('Are you sure you want to cancel your subscription? You will lose access to premium features.')) return;
+    
+    fetch('/billing/cancel-subscription', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -63,22 +63,26 @@ def create_app():
         
         # Register blueprints
         from app.controllers.web_controller import web_bp
+        from app.controllers.api_controller import api_bp
         from app.controllers.auth_controller import auth_bp
         from app.controllers.dashboard_controller import dashboard_bp
         from app.controllers.domain_controller import domain_bp
-        from app.controllers.api_controller import api_bp
         from app.controllers.contact_controller import contact_bp
         from app.controllers.campaign_controller import campaign_bp
         from app.controllers.admin_controller import admin_bp
+        from app.controllers.billing_controller import billing_bp
+        from app.controllers.tracking_controller import tracking_bp
         
         app.register_blueprint(web_bp)
+        app.register_blueprint(api_bp)
         app.register_blueprint(auth_bp, url_prefix='/auth')
         app.register_blueprint(dashboard_bp)
         app.register_blueprint(domain_bp, url_prefix='/api/v1')
-        app.register_blueprint(api_bp, url_prefix='/api/v1')
         app.register_blueprint(contact_bp, url_prefix='/api/v1')
         app.register_blueprint(campaign_bp, url_prefix='/api/v1')
         app.register_blueprint(admin_bp)
+        app.register_blueprint(billing_bp)
+        app.register_blueprint(tracking_bp)
         
         print("✅ All blueprints registered")
         

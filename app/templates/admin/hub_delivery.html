@@ -1,0 +1,133 @@
+{% extends "admin/hub_base.html" %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-4xl font-bold text-white mb-2">Email Delivery Monitoring</h1>
+    <p class="text-gray-400">Track all email deliveries in real-time</p>
+</div>
+
+<!-- Delivery Stats -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <p class="text-sm text-gray-400 mb-2">Total Emails</p>
+        <p class="text-3xl font-bold text-white">{{ "{:,}".format(total_emails) }}</p>
+    </div>
+    
+    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <p class="text-sm text-gray-400 mb-2">Delivered</p>
+        <p class="text-3xl font-bold text-green-400">{{ "{:,}".format(sent_emails) }}</p>
+        <p class="text-sm text-green-300 mt-1">{{ delivery_rate }}%</p>
+    </div>
+    
+    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <p class="text-sm text-gray-400 mb-2">Failed</p>
+        <p class="text-3xl font-bold text-red-400">{{ "{:,}".format(failed_emails) }}</p>
+    </div>
+    
+    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <p class="text-sm text-gray-400 mb-2">In Queue</p>
+        <p class="text-3xl font-bold text-yellow-400">{{ "{:,}".format(queued_emails) }}</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
+    <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+            <select name="status" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
+                <option value="">All Status</option>
+                <option value="sent" {% if current_status == 'sent' %}selected{% endif %}>Sent</option>
+                <option value="failed" {% if current_status == 'failed' %}selected{% endif %}>Failed</option>
+                <option value="queued" {% if current_status == 'queued' %}selected{% endif %}>Queued</option>
+                <option value="sending" {% if current_status == 'sending' %}selected{% endif %}>Sending</option>
+            </select>
+        </div>
+        <div>
+            <select name="org_id" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
+                <option value="">All Organizations</option>
+                {% for org in organizations %}
+                <option value="{{ org.id }}" {% if current_org == org.id %}selected{% endif %}>{{ org.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <button type="submit" class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                <i class="fas fa-filter mr-2"></i>Apply Filters
+            </button>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.delivery') }}" class="block w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 text-center">
+                <i class="fas fa-redo mr-2"></i>Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Email List -->
+<div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-700">
+            <thead class="bg-gray-900">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Time</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">From</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">To</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Subject</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Organization</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700">
+                {% for email in emails %}
+                <tr>
+                    <td class="px-6 py-4 text-sm text-gray-300">
+                        {{ email.created_at.strftime('%m/%d %H:%M:%S') }}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-300">{{ email.from_email }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-300">{{ email.to_email }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-300">{{ email.subject[:50] }}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs rounded {% if email.status == 'sent' %}bg-green-900 text-green-300{% elif email.status == 'failed' %}bg-red-900 text-red-300{% elif email.status == 'queued' %}bg-yellow-900 text-yellow-300{% else %}bg-blue-900 text-blue-300{% endif %}">
+                            {{ email.status }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-400">
+                        {{ email.organization.name if email.organization else 'N/A' }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<div class="mt-6 flex justify-center">
+    <nav class="inline-flex rounded-lg shadow-sm">
+        {% if pagination.has_prev %}
+        <a href="?page={{ pagination.prev_num }}&status={{ current_status }}&org_id={{ current_org }}" 
+           class="px-4 py-2 bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 rounded-l-lg">
+            Previous
+        </a>
+        {% endif %}
+        <span class="px-4 py-2 bg-gray-900 border-t border-b border-gray-700 text-white">
+            Page {{ pagination.page }} of {{ pagination.pages }}
+        </span>
+        {% if pagination.has_next %}
+        <a href="?page={{ pagination.next_num }}&status={{ current_status }}&org_id={{ current_org }}" 
+           class="px-4 py-2 bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 rounded-r-lg">
+            Next
+        </a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+
+<script>
+// Auto-refresh every 10 seconds
+setInterval(function() {
+    location.reload();
+}, 10000);
+</script>
+{% endblock %}

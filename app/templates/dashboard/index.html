@@ -4,116 +4,211 @@
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-8">
-    <!-- Header -->
+    <!-- Welcome Header -->
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900">Welcome back, {{ current_user.first_name or current_user.email }}!</h1>
-        <p class="text-gray-600 mt-2">Here's what's happening with your email infrastructure</p>
+        <p class="text-gray-600 mt-2">Here's what's happening with your email campaigns</p>
     </div>
 
-    <!-- Stats Grid -->
+    <!-- Quick Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Emails Today -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Emails Today</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.emails_today }}</p>
+                    <p class="text-sm text-green-600 mt-1">📧 {{ stats.emails_sent_today }} sent</p>
+                </div>
+                <div class="text-4xl">📧</div>
+            </div>
+        </div>
+
+        <!-- This Month -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">This Month</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.emails_this_month }}</p>
+                    <p class="text-sm text-green-600 mt-1">📊 {{ stats.emails_sent_this_month }} sent</p>
+                </div>
+                <div class="text-4xl">📊</div>
+            </div>
+        </div>
+
+        <!-- Open Rate -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Open Rate</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.open_rate }}%</p>
+                    <p class="text-sm text-blue-600 mt-1">👁️ Engagement</p>
+                </div>
+                <div class="text-4xl">📈</div>
+            </div>
+        </div>
+
+        <!-- Click Rate -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Click Rate</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.click_rate }}%</p>
+                    <p class="text-sm text-purple-600 mt-1">🖱️ Clicks</p>
+                </div>
+                <div class="text-4xl">📊</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Stats -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Emails Today</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ stats.emails_sent_today }}</p>
-                </div>
-                <div class="text-purple-600 text-3xl">📧</div>
-            </div>
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow p-6 text-white">
+            <p class="text-sm opacity-90 mb-1">Contacts</p>
+            <p class="text-3xl font-bold">{{ stats.contacts }}</p>
         </div>
-        
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">This Month</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ stats.emails_sent_month }}</p>
-                </div>
-                <div class="text-purple-600 text-3xl">📊</div>
-            </div>
+
+        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow p-6 text-white">
+            <p class="text-sm opacity-90 mb-1">Campaigns</p>
+            <p class="text-3xl font-bold">{{ stats.campaigns }}</p>
+            <p class="text-xs opacity-75 mt-1">{{ stats.active_campaigns }} active</p>
         </div>
-        
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Verified Domains</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ stats.verified_domains }}</p>
-                </div>
-                <div class="text-purple-600 text-3xl">✅</div>
-            </div>
+
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow p-6 text-white">
+            <p class="text-sm opacity-90 mb-1">Delivery Rate</p>
+            <p class="text-3xl font-bold">{{ stats.delivery_rate }}%</p>
         </div>
-        
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Total Domains</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ stats.total_domains }}</p>
-                </div>
-                <div class="text-purple-600 text-3xl">🌐</div>
-            </div>
+
+        <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-lg shadow p-6 text-white">
+            <p class="text-sm opacity-90 mb-1">Unsubscribes</p>
+            <p class="text-3xl font-bold">{{ stats.unsubscribes }}</p>
         </div>
     </div>
 
     <!-- Quick Actions -->
-    <div class="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a href="{{ url_for('dashboard.domains') }}" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition text-center">
-                <i class="fas fa-plus-circle text-purple-600 text-3xl mb-2"></i>
-                <p class="font-medium">Add Domain</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <a href="{{ url_for('dashboard.send_email') }}" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
+            <div class="text-4xl mb-4">✉️</div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Send Email</h3>
+            <p class="text-gray-600 text-sm">Compose and send a new email</p>
+        </a>
+
+        <a href="{{ url_for('dashboard.bulk_send') }}" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
+            <div class="text-4xl mb-4">📤</div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Bulk Send</h3>
+            <p class="text-gray-600 text-sm">Upload CSV and send to multiple recipients</p>
+        </a>
+
+        <a href="{{ url_for('dashboard.contacts') }}" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
+            <div class="text-4xl mb-4">👥</div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Contacts</h3>
+            <p class="text-gray-600 text-sm">Manage your contact list</p>
+        </a>
+    </div>
+
+    <!-- Recent Emails -->
+    <div class="bg-white rounded-lg shadow mb-8">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-900">Recent Emails</h2>
+            {% if stats.emails_this_month > 0 %}
+            <a href="{{ url_for('dashboard.analytics') }}" class="text-purple-600 hover:text-purple-700 text-sm font-medium">
+                View Analytics →
             </a>
-            <a href="{{ url_for('dashboard.send_email') }}" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition text-center">
-                <i class="fas fa-envelope text-purple-600 text-3xl mb-2"></i>
-                <p class="font-medium">Send Email</p>
-            </a>
-            <a href="{{ url_for('dashboard.bulk_send') }}" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition text-center">
-                <i class="fas fa-file-upload text-purple-600 text-3xl mb-2"></i>
-                <p class="font-medium">Bulk Send</p>
-            </a>
-            <a href="{{ url_for('dashboard.settings') }}" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition text-center">
-                <i class="fas fa-cog text-purple-600 text-3xl mb-2"></i>
-                <p class="font-medium">Settings</p>
-            </a>
+            {% endif %}
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">To</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Opens</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Clicks</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% if recent_emails %}
+                        {% for email in recent_emails %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                {{ email.created_at.strftime('%m/%d %H:%M') }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                {{ email.to_email }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                {{ email.subject[:50] }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if email.status == 'sent' %}bg-green-100 text-green-800
+                                    {% elif email.status == 'failed' %}bg-red-100 text-red-800
+                                    {% elif email.status == 'queued' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ email.status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <span class="{% if email.opens > 0 %}text-green-600 font-semibold{% else %}text-gray-400{% endif %}">
+                                    {{ email.opens if hasattr(email, 'opens') else 0 }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <span class="{% if email.clicks > 0 %}text-blue-600 font-semibold{% else %}text-gray-400{% endif %}">
+                                    {{ email.clicks if hasattr(email, 'clicks') else 0 }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                                No emails sent yet. <a href="{{ url_for('dashboard.send_email') }}" class="text-purple-600 hover:text-purple-700">Send your first email</a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Domains Overview -->
-    <div class="bg-white rounded-lg shadow">
-        <div class="p-6 border-b">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xl font-semibold">Your Domains</h2>
-                <a href="{{ url_for('dashboard.domains') }}" class="text-purple-600 hover:text-purple-700">
-                    View All →
+    <!-- Getting Started (if no emails) -->
+    {% if stats.emails_this_month == 0 %}
+    <div class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg shadow-lg p-8 text-white">
+        <h2 class="text-2xl font-bold mb-4">🚀 Get Started with SendBaba</h2>
+        <p class="mb-6 opacity-90">Follow these steps to send your first email campaign:</p>
+        
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                <div class="text-3xl mb-2">1️⃣</div>
+                <h3 class="font-semibold mb-2">Verify Domain</h3>
+                <p class="text-sm opacity-90">Set up DKIM, SPF, and DMARC</p>
+                <a href="{{ url_for('dashboard.domains') }}" class="inline-block mt-3 px-4 py-2 bg-white text-purple-600 rounded-lg text-sm font-medium hover:bg-gray-100">
+                    Setup Domain
+                </a>
+            </div>
+            
+            <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                <div class="text-3xl mb-2">2️⃣</div>
+                <h3 class="font-semibold mb-2">Add Contacts</h3>
+                <p class="text-sm opacity-90">Import your contact list</p>
+                <a href="{{ url_for('dashboard.contacts') }}" class="inline-block mt-3 px-4 py-2 bg-white text-purple-600 rounded-lg text-sm font-medium hover:bg-gray-100">
+                    Add Contacts
+                </a>
+            </div>
+            
+            <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                <div class="text-3xl mb-2">3️⃣</div>
+                <h3 class="font-semibold mb-2">Send Campaign</h3>
+                <p class="text-sm opacity-90">Create and send your first email</p>
+                <a href="{{ url_for('dashboard.send_email') }}" class="inline-block mt-3 px-4 py-2 bg-white text-purple-600 rounded-lg text-sm font-medium hover:bg-gray-100">
+                    Send Email
                 </a>
             </div>
         </div>
-        <div class="p-6">
-            {% if domains %}
-                <div class="space-y-4">
-                    {% for domain in domains[:5] %}
-                    <div class="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                            <p class="font-medium">{{ domain.domain_name }}</p>
-                            <p class="text-sm text-gray-500">Added {{ domain.created_at.strftime('%b %d, %Y') }}</p>
-                        </div>
-                        <div>
-                            {% if domain.dns_verified %}
-                                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">✅ Verified</span>
-                            {% else %}
-                                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">⚠️ Pending</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="text-center py-8">
-                    <p class="text-gray-500 mb-4">No domains added yet</p>
-                    <a href="{{ url_for('dashboard.domains') }}" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 inline-block">
-                        Add Your First Domain
-                    </a>
-                </div>
-            {% endif %}
-        </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}

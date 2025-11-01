@@ -5,15 +5,16 @@ from app.models.user import User
 from app.models.organization import Organization
 from app.models.domain import Domain
 from app.models.email import Email
-from app.models.contact import Contact, BulkImport
-from app.models.campaign import Campaign, EmailTemplate
-from sqlalchemy import func, text
+from app.models.contact import Contact
+from app.models.campaign import Campaign
+from app.models.pricing import Subscription, PricingPlan
+from sqlalchemy import func, text, and_, or_
 from datetime import datetime, timedelta
 import logging
 
 logger = logging.getLogger(__name__)
 
-admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
+admin_bp = Blueprint('admin', __name__, url_prefix='/hub')
 
 def admin_required(f):
     """Decorator to require admin role"""
@@ -21,8 +22,8 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
-            flash('Please log in to access this page.', 'warning')
-            return redirect(url_for('auth.login'))
+            flash('Please log in to access the admin panel.', 'warning')
+            return redirect(url_for('auth.login', next=request.url))
         
         if current_user.role != 'admin':
             flash('Access denied. Admin privileges required.', 'danger')
@@ -37,65 +38,83 @@ def admin_required(f):
 def index():
     """Admin dashboard overview"""
     try:
-        # System-wide statistics
-        total_users = User.query.count()
-        total_organizations = Organization.query.count()
-        total_domains = Domain.query.count()
-        verified_domains = Domain.query.filter_by(dns_verified=True).count()
-        total_contacts = Contact.query.count()
-        total_campaigns = Campaign.query.count()
-        
-        # Email statistics
+        # Date ranges
         today = datetime.utcnow().date()
         week_ago = datetime.utcnow() - timedelta(days=7)
         month_ago = datetime.utcnow() - timedelta(days=30)
         
-        emails_today = Email.query.filter(
-            func.date(Email.created_at) == today
-        ).count()
+        # User statistics
+        total_users = User.query.count()
+        active_users = User.query.filter_by(is_active=True).count()
+        verified_users = User.query.filter_by(is_verified=True).count()
+        new_users_today = User.query.filter(func.date(User.created_at) == today).count()
+        new_users_week = User.query.filter(User.created_at >= week_ago).count()
         
-        emails_week = Email.query.filter(
-            Email.created_at >= week_ago
-        ).count()
+        # Organization statistics
+        total_orgs = Organization.query.count()
+        active_orgs = Organization.query.filter_by(is_active=True).count()
+        paying_orgs = Subscription.query.filter_by(status='active').count()
         
-        emails_month = Email.query.filter(
-            Email.created_at >= month_ago
-        ).count()
+        # Domain statistics
+        total_domains = Domain.query.count()
+        verified_domains = Domain.query.filter_by(dns_verified=True).count()
+        pending_domains = total_domains - verified_domains
         
-        # Status breakdown
+        # Email statistics
+        emails_today = Email.query.filter(func.date(Email.created_at) == today).count()
+        emails_week = Email.query.filter(Email.created_at >= week_ago).count()
+        emails_month = Email.query.filter(Email.created_at >= month_ago).count()
+        
         emails_sent = Email.query.filter_by(status='sent').count()
         emails_failed = Email.query.filter_by(status='failed').count()
         emails_queued = Email.query.filter_by(status='queued').count()
         
+        # Revenue statistics
+        revenue_query = db.session.query(
+            func.sum(PricingPlan.price).label('total')
+        ).join(Subscription).filter(
+            Subscription.status == 'active'
+        ).first()
+        
+        monthly_revenue = float(revenue_query.total) if revenue_query.total else 0
+        annual_revenue = monthly_revenue * 12
+        
         # Recent activity
-        recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
-        recent_domains = Domain.query.order_by(Domain.created_at.desc()).limit(5).all()
-        recent_campaigns = Campaign.query.order_by(Campaign.created_at.desc()).limit(5).all()
+        recent_users = User.query.order_by(User.created_at.desc()).limit(10).all()
+        recent_domains = Domain.query.order_by(Domain.created_at.desc()).limit(10).all()
+        recent_emails = Email.query.order_by(Email.created_at.desc()).limit(20).all()
         
         # Top organizations by email volume
         top_orgs = db.session.query(
             Organization.id,
             Organization.name,
+            Organization.is_active,
             func.count(Email.id).label('email_count')
-        ).join(Email, Email.organization_id == Organization.id) \
-         .group_by(Organization.id, Organization.name) \
+        ).join(Email, Email.organization_id == Organization.id, isouter=True) \
+         .group_by(Organization.id, Organization.name, Organization.is_active) \
          .order_by(func.count(Email.id).desc()) \
          .limit(10).all()
+        
+        # Delivery statistics
+        delivery_rate = (emails_sent / (emails_sent + emails_failed) * 100) if (emails_sent + emails_failed) > 0 else 0
         
         stats = {
             'users': {
                 'total': total_users,
-                'active': User.query.filter_by(is_active=True).count(),
-                'verified': User.query.filter_by(is_verified=True).count()
+                'active': active_users,
+                'verified': verified_users,
+                'new_today': new_users_today,
+                'new_week': new_users_week
             },
             'organizations': {
-                'total': total_organizations,
-                'active': Organization.query.filter_by(is_active=True).count()
+                'total': total_orgs,
+                'active': active_orgs,
+                'paying': paying_orgs
             },
             'domains': {
                 'total': total_domains,
                 'verified': verified_domains,
-                'pending': total_domains - verified_domains
+                'pending': pending_domains
             },
             'emails': {
                 'today': emails_today,
@@ -103,26 +122,21 @@ def index():
                 'month': emails_month,
                 'sent': emails_sent,
                 'failed': emails_failed,
-                'queued': emails_queued
+                'queued': emails_queued,
+                'delivery_rate': round(delivery_rate, 2)
             },
-            'contacts': {
-                'total': total_contacts,
-                'active': Contact.query.filter_by(status='active').count(),
-                'unsubscribed': Contact.query.filter_by(status='unsubscribed').count()
-            },
-            'campaigns': {
-                'total': total_campaigns,
-                'draft': Campaign.query.filter_by(status='draft').count(),
-                'sent': Campaign.query.filter_by(status='sent').count(),
-                'scheduled': Campaign.query.filter_by(status='scheduled').count()
+            'revenue': {
+                'monthly': monthly_revenue,
+                'annual': annual_revenue,
+                'arr': annual_revenue  # Annual Recurring Revenue
             }
         }
         
-        return render_template('admin/index.html',
+        return render_template('admin/hub_index.html',
                              stats=stats,
                              recent_users=recent_users,
                              recent_domains=recent_domains,
-                             recent_campaigns=recent_campaigns,
+                             recent_emails=recent_emails,
                              top_orgs=top_orgs)
         
     except Exception as e:
@@ -134,162 +148,250 @@ def index():
 @login_required
 @admin_required
 def users():
-    """List all users"""
+    """User management page"""
     try:
         page = int(request.args.get('page', 1))
         per_page = 50
-        
         search = request.args.get('search', '').strip()
+        status = request.args.get('status', '')
         
         query = User.query
         
         if search:
             query = query.filter(
-                db.or_(
+                or_(
                     User.email.ilike(f'%{search}%'),
                     User.first_name.ilike(f'%{search}%'),
                     User.last_name.ilike(f'%{search}%')
                 )
             )
         
+        if status == 'active':
+            query = query.filter_by(is_active=True)
+        elif status == 'inactive':
+            query = query.filter_by(is_active=False)
+        elif status == 'verified':
+            query = query.filter_by(is_verified=True)
+        elif status == 'unverified':
+            query = query.filter_by(is_verified=False)
+        
         pagination = query.order_by(User.created_at.desc()).paginate(
             page=page, per_page=per_page, error_out=False
         )
         
-        return render_template('admin/users.html',
+        return render_template('admin/hub_users.html',
                              users=pagination.items,
-                             pagination=pagination)
+                             pagination=pagination,
+                             search=search,
+                             status=status)
         
     except Exception as e:
         logger.error(f"List users error: {e}")
         flash(f'Error loading users: {e}', 'danger')
         return redirect(url_for('admin.index'))
 
-@admin_bp.route('/organizations')
+@admin_bp.route('/user/<user_id>/block', methods=['POST'])
 @login_required
 @admin_required
-def organizations():
-    """List all organizations"""
+def block_user(user_id):
+    """Block a user"""
     try:
-        page = int(request.args.get('page', 1))
-        per_page = 50
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
         
-        pagination = Organization.query.order_by(
-            Organization.created_at.desc()
-        ).paginate(page=page, per_page=per_page, error_out=False)
+        if user.role == 'admin':
+            return jsonify({'success': False, 'error': 'Cannot block admin users'}), 403
         
-        # Get email counts for each org
-        org_stats = {}
-        for org in pagination.items:
-            email_count = Email.query.filter_by(organization_id=org.id).count()
-            domain_count = Domain.query.filter_by(organization_id=org.id).count()
-            user_count = User.query.filter_by(organization_id=org.id).count()
-            
-            org_stats[org.id] = {
-                'emails': email_count,
-                'domains': domain_count,
-                'users': user_count
-            }
+        user.is_active = False
         
-        return render_template('admin/organizations.html',
-                             organizations=pagination.items,
-                             pagination=pagination,
-                             org_stats=org_stats)
+        # Also block their organization
+        if user.organization:
+            user.organization.is_active = False
+        
+        db.session.commit()
+        
+        logger.info(f"Admin {current_user.email} blocked user {user.email}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'User {user.email} has been blocked'
+        })
         
     except Exception as e:
-        logger.error(f"List organizations error: {e}")
-        flash(f'Error loading organizations: {e}', 'danger')
-        return redirect(url_for('admin.index'))
+        logger.error(f"Block user error: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-@admin_bp.route('/emails')
+@admin_bp.route('/user/<user_id>/unblock', methods=['POST'])
 @login_required
 @admin_required
-def emails():
-    """List all emails"""
+def unblock_user(user_id):
+    """Unblock a user"""
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+        
+        user.is_active = True
+        
+        # Also unblock their organization
+        if user.organization:
+            user.organization.is_active = True
+        
+        db.session.commit()
+        
+        logger.info(f"Admin {current_user.email} unblocked user {user.email}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'User {user.email} has been unblocked'
+        })
+        
+    except Exception as e:
+        logger.error(f"Unblock user error: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@admin_bp.route('/user/<user_id>/details')
+@login_required
+@admin_required
+def user_details(user_id):
+    """View detailed user information"""
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            flash('User not found', 'danger')
+            return redirect(url_for('admin.users'))
+        
+        org = user.organization
+        
+        # Get user's email statistics
+        email_stats = db.session.query(
+            func.count(Email.id).label('total'),
+            func.sum(func.case((Email.status == 'sent', 1), else_=0)).label('sent'),
+            func.sum(func.case((Email.status == 'failed', 1), else_=0)).label('failed')
+        ).filter(Email.organization_id == org.id).first() if org else None
+        
+        # Get domains
+        domains = Domain.query.filter_by(organization_id=org.id).all() if org else []
+        
+        # Get recent emails
+        recent_emails = Email.query.filter_by(
+            organization_id=org.id
+        ).order_by(Email.created_at.desc()).limit(20).all() if org else []
+        
+        return render_template('admin/hub_user_details.html',
+                             user=user,
+                             org=org,
+                             email_stats=email_stats,
+                             domains=domains,
+                             recent_emails=recent_emails)
+        
+    except Exception as e:
+        logger.error(f"User details error: {e}")
+        flash(f'Error loading user details: {e}', 'danger')
+        return redirect(url_for('admin.users'))
+
+@admin_bp.route('/sales')
+@login_required
+@admin_required
+def sales():
+    """Sales and revenue dashboard"""
+    try:
+        # Get all active subscriptions
+        subscriptions = db.session.query(
+            Subscription,
+            PricingPlan,
+            Organization,
+            User
+        ).join(PricingPlan, Subscription.plan_id == PricingPlan.id) \
+         .join(Organization, Subscription.organization_id == Organization.id) \
+         .join(User, and_(User.organization_id == Organization.id, User.role == 'owner'), isouter=True) \
+         .filter(Subscription.status == 'active') \
+         .order_by(Subscription.created_at.desc()).all()
+        
+        # Calculate revenue
+        total_mrr = sum(float(sub.PricingPlan.price) for sub in subscriptions)
+        total_arr = total_mrr * 12
+        
+        # Revenue by plan
+        revenue_by_plan = db.session.query(
+            PricingPlan.name,
+            PricingPlan.price,
+            func.count(Subscription.id).label('subscribers'),
+            (PricingPlan.price * func.count(Subscription.id)).label('revenue')
+        ).join(Subscription).filter(Subscription.status == 'active') \
+         .group_by(PricingPlan.name, PricingPlan.price).all()
+        
+        return render_template('admin/hub_sales.html',
+                             subscriptions=subscriptions,
+                             total_mrr=total_mrr,
+                             total_arr=total_arr,
+                             revenue_by_plan=revenue_by_plan)
+        
+    except Exception as e:
+        logger.error(f"Sales dashboard error: {e}")
+        flash(f'Error loading sales data: {e}', 'danger')
+        return redirect(url_for('admin.index'))
+
+@admin_bp.route('/delivery')
+@login_required
+@admin_required
+def delivery():
+    """Email delivery monitoring"""
     try:
         page = int(request.args.get('page', 1))
         per_page = 100
-        status = request.args.get('status')
+        status = request.args.get('status', '')
+        org_id = request.args.get('org_id', '')
         
         query = Email.query
         
         if status:
             query = query.filter_by(status=status)
         
+        if org_id:
+            query = query.filter_by(organization_id=org_id)
+        
         pagination = query.order_by(Email.created_at.desc()).paginate(
             page=page, per_page=per_page, error_out=False
         )
         
-        return render_template('admin/emails.html',
+        # Delivery statistics
+        total_emails = Email.query.count()
+        sent_emails = Email.query.filter_by(status='sent').count()
+        failed_emails = Email.query.filter_by(status='failed').count()
+        queued_emails = Email.query.filter_by(status='queued').count()
+        
+        delivery_rate = (sent_emails / total_emails * 100) if total_emails > 0 else 0
+        
+        # Get organizations for filter
+        organizations = Organization.query.order_by(Organization.name).all()
+        
+        return render_template('admin/hub_delivery.html',
                              emails=pagination.items,
                              pagination=pagination,
-                             current_status=status)
+                             total_emails=total_emails,
+                             sent_emails=sent_emails,
+                             failed_emails=failed_emails,
+                             queued_emails=queued_emails,
+                             delivery_rate=round(delivery_rate, 2),
+                             organizations=organizations,
+                             current_status=status,
+                             current_org=org_id)
         
     except Exception as e:
-        logger.error(f"List emails error: {e}")
-        flash(f'Error loading emails: {e}', 'danger')
-        return redirect(url_for('admin.index'))
-
-@admin_bp.route('/domains')
-@login_required
-@admin_required
-def domains():
-    """List all domains"""
-    try:
-        page = int(request.args.get('page', 1))
-        per_page = 50
-        
-        verified_filter = request.args.get('verified')
-        
-        query = Domain.query
-        
-        if verified_filter == 'true':
-            query = query.filter_by(dns_verified=True)
-        elif verified_filter == 'false':
-            query = query.filter_by(dns_verified=False)
-        
-        pagination = query.order_by(Domain.created_at.desc()).paginate(
-            page=page, per_page=per_page, error_out=False
-        )
-        
-        return render_template('admin/domains.html',
-                             domains=pagination.items,
-                             pagination=pagination)
-        
-    except Exception as e:
-        logger.error(f"List domains error: {e}")
-        flash(f'Error loading domains: {e}', 'danger')
-        return redirect(url_for('admin.index'))
-
-@admin_bp.route('/campaigns')
-@login_required
-@admin_required
-def campaigns():
-    """List all campaigns"""
-    try:
-        page = int(request.args.get('page', 1))
-        per_page = 50
-        
-        pagination = Campaign.query.order_by(Campaign.created_at.desc()).paginate(
-            page=page, per_page=per_page, error_out=False
-        )
-        
-        return render_template('admin/campaigns.html',
-                             campaigns=pagination.items,
-                             pagination=pagination)
-        
-    except Exception as e:
-        logger.error(f"List campaigns error: {e}")
-        flash(f'Error loading campaigns: {e}', 'danger')
+        logger.error(f"Delivery monitoring error: {e}")
+        flash(f'Error loading delivery data: {e}', 'danger')
         return redirect(url_for('admin.index'))
 
 @admin_bp.route('/analytics')
 @login_required
 @admin_required
 def analytics():
-    """Analytics dashboard"""
+    """Advanced analytics dashboard"""
     try:
-        # Get date range from query params
         days = int(request.args.get('days', 30))
         start_date = datetime.utcnow() - timedelta(days=days)
         
@@ -303,15 +405,24 @@ def analytics():
             Email.created_at >= start_date
         ).group_by(func.date(Email.created_at)).order_by('date').all()
         
+        # Daily user signups
+        user_signups = db.session.query(
+            func.date(User.created_at).label('date'),
+            func.count(User.id).label('signups')
+        ).filter(
+            User.created_at >= start_date
+        ).group_by(func.date(User.created_at)).order_by('date').all()
+        
         # Format for charts
         chart_data = {
             'dates': [str(stat.date) for stat in daily_stats],
-            'total': [stat.total for stat in daily_stats],
-            'sent': [stat.sent for stat in daily_stats],
-            'failed': [stat.failed for stat in daily_stats]
+            'emails_total': [stat.total for stat in daily_stats],
+            'emails_sent': [stat.sent for stat in daily_stats],
+            'emails_failed': [stat.failed for stat in daily_stats],
+            'signups': dict((str(s.date), s.signups) for s in user_signups)
         }
         
-        return render_template('admin/analytics.html',
+        return render_template('admin/hub_analytics.html',
                              chart_data=chart_data,
                              days=days)
         
@@ -320,73 +431,24 @@ def analytics():
         flash(f'Error loading analytics: {e}', 'danger')
         return redirect(url_for('admin.index'))
 
-# API endpoints for admin actions
-
-@admin_bp.route('/user/<user_id>/toggle-active', methods=['POST'])
+@admin_bp.route('/api/stats/realtime')
 @login_required
 @admin_required
-def toggle_user_active(user_id):
-    """Toggle user active status"""
+def realtime_stats():
+    """Real-time statistics API"""
     try:
-        user = User.query.get(user_id)
-        if not user:
-            return jsonify({'success': False, 'error': 'User not found'}), 404
-        
-        user.is_active = not user.is_active
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'is_active': user.is_active,
-            'message': f"User {'activated' if user.is_active else 'deactivated'}"
-        })
-        
-    except Exception as e:
-        logger.error(f"Toggle user error: {e}")
-        db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@admin_bp.route('/organization/<org_id>/toggle-active', methods=['POST'])
-@login_required
-@admin_required
-def toggle_org_active(org_id):
-    """Toggle organization active status"""
-    try:
-        org = Organization.query.get(org_id)
-        if not org:
-            return jsonify({'success': False, 'error': 'Organization not found'}), 404
-        
-        org.is_active = not org.is_active
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'is_active': org.is_active,
-            'message': f"Organization {'activated' if org.is_active else 'deactivated'}"
-        })
-        
-    except Exception as e:
-        logger.error(f"Toggle org error: {e}")
-        db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@admin_bp.route('/stats/api')
-@login_required
-@admin_required
-def stats_api():
-    """Real-time stats API for dashboard"""
-    try:
-        # Get real-time counts
         stats = {
             'emails_queued': Email.query.filter_by(status='queued').count(),
             'emails_sending': Email.query.filter_by(status='sending').count(),
-            'campaigns_sending': Campaign.query.filter_by(status='sending').count(),
-            'active_users': User.query.filter_by(is_active=True).count(),
+            'campaigns_active': Campaign.query.filter_by(status='sending').count(),
+            'active_users_online': User.query.filter(
+                User.last_seen > datetime.utcnow() - timedelta(minutes=5)
+            ).count() if hasattr(User, 'last_seen') else 0,
             'timestamp': datetime.utcnow().isoformat()
         }
         
         return jsonify({'success': True, 'stats': stats})
         
     except Exception as e:
-        logger.error(f"Stats API error: {e}")
+        logger.error(f"Realtime stats error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500

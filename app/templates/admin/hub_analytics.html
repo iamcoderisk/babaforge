@@ -1,0 +1,126 @@
+{% extends "admin/hub_base.html" %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-4xl font-bold text-white mb-2">Analytics Dashboard</h1>
+    <p class="text-gray-400">Advanced metrics and trends</p>
+</div>
+
+<!-- Time Range Selector -->
+<div class="bg-gray-800 rounded-lg p-4 border border-gray-700 mb-6">
+    <div class="flex space-x-4">
+        <a href="?days=7" class="px-4 py-2 rounded-lg {% if days == 7 %}bg-purple-600 text-white{% else %}bg-gray-700 text-gray-300 hover:bg-gray-600{% endif %}">
+            7 Days
+        </a>
+        <a href="?days=30" class="px-4 py-2 rounded-lg {% if days == 30 %}bg-purple-600 text-white{% else %}bg-gray-700 text-gray-300 hover:bg-gray-600{% endif %}">
+            30 Days
+        </a>
+        <a href="?days=90" class="px-4 py-2 rounded-lg {% if days == 90 %}bg-purple-600 text-white{% else %}bg-gray-700 text-gray-300 hover:bg-gray-600{% endif %}">
+            90 Days
+        </a>
+    </div>
+</div>
+
+<!-- Email Volume Chart -->
+<div class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
+    <h3 class="text-lg font-semibold text-white mb-4">Email Volume Trend</h3>
+    <canvas id="emailChart" height="80"></canvas>
+</div>
+
+<!-- User Signups Chart -->
+<div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+    <h3 class="text-lg font-semibold text-white mb-4">User Signups</h3>
+    <canvas id="signupChart" height="80"></canvas>
+</div>
+
+<script>
+const emailData = {{ chart_data|tojson }};
+
+// Email Volume Chart
+new Chart(document.getElementById('emailChart'), {
+    type: 'line',
+    data: {
+        labels: emailData.dates,
+        datasets: [
+            {
+                label: 'Total',
+                data: emailData.emails_total,
+                borderColor: '#a78bfa',
+                backgroundColor: 'rgba(167, 139, 250, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: 'Sent',
+                data: emailData.emails_sent,
+                borderColor: '#34d399',
+                backgroundColor: 'rgba(52, 211, 153, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: 'Failed',
+                data: emailData.emails_failed,
+                borderColor: '#f87171',
+                backgroundColor: 'rgba(248, 113, 113, 0.1)',
+                tension: 0.4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                labels: { color: '#d1d5db' }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { color: '#9ca3af' },
+                grid: { color: '#374151' }
+            },
+            x: {
+                ticks: { color: '#9ca3af' },
+                grid: { color: '#374151' }
+            }
+        }
+    }
+});
+
+// Signup Chart
+const signupDates = emailData.dates;
+const signupCounts = signupDates.map(date => emailData.signups[date] || 0);
+
+new Chart(document.getElementById('signupChart'), {
+    type: 'bar',
+    data: {
+        labels: signupDates,
+        datasets: [{
+            label: 'New Users',
+            data: signupCounts,
+            backgroundColor: '#8b5cf6',
+            borderColor: '#a78bfa',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                labels: { color: '#d1d5db' }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { color: '#9ca3af', stepSize: 1 },
+                grid: { color: '#374151' }
+            },
+            x: {
+                ticks: { color: '#9ca3af' },
+                grid: { color: '#374151' }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

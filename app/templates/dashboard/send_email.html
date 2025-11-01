@@ -9,351 +9,250 @@
         <p class="text-gray-600 mt-2">Send a single email or test your setup</p>
     </div>
 
-    <!-- Check if user has verified domains -->
-    {% if verified_domains %}
-    
+    {% if not domains or domains|length == 0 %}
+    <!-- No domains warning -->
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-lg">
+        <div class="flex items-center mb-4">
+            <div class="text-4xl mr-4">📧</div>
+            <div>
+                <h3 class="text-lg font-semibold text-yellow-800">No Verified Domains</h3>
+                <p class="text-yellow-700">You need to add and verify a domain before sending emails</p>
+            </div>
+        </div>
+        <a href="{{ url_for('dashboard.domains') }}" 
+           class="inline-block px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">
+            Add Your First Domain
+        </a>
+    </div>
+    {% else %}
+
+    <!-- Send Email Form -->
     <div class="bg-white rounded-lg shadow-lg p-8">
-        <form id="sendEmailForm" onsubmit="sendEmail(event)">
-            <!-- From -->
+        <form id="sendEmailForm">
+            <!-- From Section -->
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    From <span class="text-red-500">*</span>
-                </label>
-                <select name="from_email" id="from_email" required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                    <option value="">Select sender email</option>
-                    {% for domain in verified_domains %}
-                    <option value="noreply@{{ domain.domain_name }}">noreply@{{ domain.domain_name }}</option>
-                    <option value="hello@{{ domain.domain_name }}">hello@{{ domain.domain_name }}</option>
-                    <option value="support@{{ domain.domain_name }}">support@{{ domain.domain_name }}</option>
-                    {% endfor %}
-                    <option value="custom">Custom email address...</option>
-                </select>
-                
-                <!-- Custom email input (hidden by default) -->
-                <input type="email" id="custom_from" placeholder="your-email@yourdomain.com"
-                       class="hidden w-full px-4 py-3 border border-gray-300 rounded-lg mt-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">From Email *</label>
+                <div class="flex items-center space-x-4">
+                    <input type="text" name="from_name" placeholder="sender" required
+                           class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                    <span class="text-gray-500">@</span>
+                    <select name="from_domain" required
+                            class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                        {% for domain in domains %}
+                        <option value="{{ domain.domain_name }}">{{ domain.domain_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Example: hello@{{ domains[0].domain_name }}</p>
             </div>
 
-            <!-- To -->
+            <!-- To Email -->
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    To <span class="text-red-500">*</span>
-                </label>
-                <input type="email" name="to" id="to" required
+                <label class="block text-sm font-medium text-gray-700 mb-2">To Email *</label>
+                <input type="email" name="to_email" required
                        placeholder="recipient@example.com"
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                <p class="mt-1 text-sm text-gray-500">Recipient's email address</p>
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
             </div>
 
             <!-- Subject -->
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Subject <span class="text-red-500">*</span>
-                </label>
-                <input type="text" name="subject" id="subject" required
-                       placeholder="Email subject"
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
+                <input type="text" name="subject" required
+                       placeholder="Enter email subject"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
             </div>
 
-            <!-- Message Type Tabs -->
+            <!-- Template Selection -->
             <div class="mb-6">
-                <div class="border-b border-gray-200 mb-4">
-                    <nav class="-mb-px flex space-x-8">
-                        <button type="button" onclick="showTab('html')" id="tab-html"
-                                class="tab-button active border-b-2 border-purple-600 py-4 px-1 text-sm font-medium text-purple-600">
-                            HTML Editor
-                        </button>
-                        <button type="button" onclick="showTab('text')" id="tab-text"
-                                class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                            Plain Text
-                        </button>
-                    </nav>
-                </div>
-
-                <!-- HTML Editor -->
-                <div id="html-editor" class="tab-content">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        HTML Body
-                    </label>
-                    <textarea name="html_body" id="html_body" rows="12"
-                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
-                              placeholder="<h1>Hello!</h1><p>Your email content here...</p>"></textarea>
-                    <p class="mt-2 text-sm text-gray-500">Write HTML content for your email</p>
-                </div>
-
-                <!-- Text Editor -->
-                <div id="text-editor" class="tab-content hidden">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Plain Text Body
-                    </label>
-                    <textarea name="text_body" id="text_body" rows="12"
-                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                              placeholder="Your plain text email content here..."></textarea>
-                    <p class="mt-2 text-sm text-gray-500">Plain text version of your email</p>
-                </div>
-            </div>
-
-            <!-- Quick Templates -->
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Quick Templates
-                </label>
-                <select onchange="loadTemplate(this.value)" 
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg">
-                    <option value="">Choose a template...</option>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Email Template</label>
+                <select id="templateSelect" onchange="loadTemplate(this.value)"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                    <option value="">Blank (Custom HTML)</option>
+                    <option value="simple">Simple Email</option>
                     <option value="welcome">Welcome Email</option>
-                    <option value="test">Test Email</option>
-                    <option value="notification">Notification</option>
+                    <option value="newsletter">Newsletter</option>
                 </select>
             </div>
 
-            <!-- Alert Messages -->
-            <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p class="text-red-800 text-sm"></p>
-            </div>
-
-            <div id="successMessage" class="hidden mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p class="text-green-800 text-sm"></p>
+            <!-- Email Body -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Email Content *</label>
+                
+                <textarea name="html_body" id="htmlBody" rows="15" required
+                          placeholder="<html><body><h1>Hello!</h1><p>Your message here...</p></body></html>"
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 font-mono text-sm"></textarea>
+                
+                <p class="text-xs text-gray-500 mt-2">
+                    HTML is supported for better formatting
+                </p>
             </div>
 
             <!-- Actions -->
-            <div class="flex justify-between items-center">
-                <a href="{{ url_for('dashboard.index') }}" 
-                   class="text-gray-600 hover:text-gray-800">
-                    ← Back to Dashboard
-                </a>
-                <div class="space-x-3">
-                    <button type="button" onclick="previewEmail()" 
-                            class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Preview
+            <div class="flex justify-between items-center pt-6 border-t">
+                <div class="space-x-2">
+                    <button type="button" onclick="previewEmail()"
+                            class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-eye mr-2"></i>Preview
                     </button>
-                    <button type="submit" id="sendButton"
-                            class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                        <i class="fas fa-paper-plane mr-2"></i>Send Email
+                    <button type="button" onclick="sendTestEmail()"
+                            class="px-6 py-3 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50">
+                        <i class="fas fa-vial mr-2"></i>Test to Me
                     </button>
                 </div>
+                <button type="submit" id="sendBtn"
+                        class="px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold">
+                    <i class="fas fa-paper-plane mr-2"></i>Send Email
+                </button>
             </div>
         </form>
     </div>
 
-    {% else %}
-    <!-- No verified domains -->
-    <div class="bg-white rounded-lg shadow-lg p-12 text-center">
-        <div class="text-6xl mb-4">📧</div>
-        <h3 class="text-xl font-semibold text-gray-900 mb-2">No Verified Domains</h3>
-        <p class="text-gray-600 mb-6">You need to add and verify a domain before sending emails</p>
-        <a href="{{ url_for('dashboard.domains') }}" 
-           class="inline-block px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-            Add Your First Domain
-        </a>
-    </div>
     {% endif %}
 </div>
 
-<!-- Preview Modal -->
-<div id="previewModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-8 border w-11/12 max-w-4xl shadow-lg rounded-lg bg-white">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-2xl font-bold">Email Preview</h3>
-            <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times text-2xl"></i>
-            </button>
-        </div>
-        <div class="border rounded-lg p-6 bg-gray-50">
-            <div class="mb-4 pb-4 border-b">
-                <p class="text-sm text-gray-600">From: <span id="preview-from" class="font-medium text-gray-900"></span></p>
-                <p class="text-sm text-gray-600">To: <span id="preview-to" class="font-medium text-gray-900"></span></p>
-                <p class="text-sm text-gray-600">Subject: <span id="preview-subject" class="font-bold text-gray-900"></span></p>
-            </div>
-            <div id="preview-body" class="bg-white p-6 rounded border"></div>
-        </div>
-        <div class="mt-6 flex justify-end">
-            <button onclick="closePreview()" 
-                    class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                Close
-            </button>
-        </div>
-    </div>
-</div>
-
 <script>
-const API_KEY = '{{ org.api_key if org else "" }}';
-
-// Tab switching
-function showTab(tab) {
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('active', 'border-purple-600', 'text-purple-600');
-        btn.classList.add('border-transparent', 'text-gray-500');
-    });
-    
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.add('hidden');
-    });
-    
-    document.getElementById('tab-' + tab).classList.add('active', 'border-purple-600', 'text-purple-600');
-    document.getElementById('tab-' + tab).classList.remove('border-transparent', 'text-gray-500');
-    document.getElementById(tab + '-editor').classList.remove('hidden');
-}
-
-// Custom email toggle
-document.getElementById('from_email').addEventListener('change', function() {
-    const customInput = document.getElementById('custom_from');
-    if (this.value === 'custom') {
-        customInput.classList.remove('hidden');
-        customInput.required = true;
-    } else {
-        customInput.classList.add('hidden');
-        customInput.required = false;
-    }
-});
-
-// Load templates
 function loadTemplate(template) {
     const templates = {
-        'welcome': {
-            subject: 'Welcome to Our Platform!',
-            html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-    <h1 style="color: #7c3aed;">Welcome!</h1>
-    <p>Thank you for joining us. We're excited to have you on board.</p>
-    <p>Get started by exploring our features:</p>
-    <ul>
-        <li>Feature 1</li>
-        <li>Feature 2</li>
-        <li>Feature 3</li>
-    </ul>
-    <p>Best regards,<br>The Team</p>
-</div>`,
-            text: 'Welcome!\n\nThank you for joining us. We\'re excited to have you on board.\n\nBest regards,\nThe Team'
-        },
-        'test': {
-            subject: 'Test Email from SendBaba',
-            html: '<h1>Test Email</h1><p>This is a test email from SendBaba SMTP service.</p><p>If you received this, your email setup is working correctly! ✅</p>',
-            text: 'Test Email\n\nThis is a test email from SendBaba SMTP service.\n\nIf you received this, your email setup is working correctly!'
-        },
-        'notification': {
-            subject: 'Important Notification',
-            html: '<div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px;"><h2 style="margin-top: 0;">Notification</h2><p>This is an important notification message.</p></div>',
-            text: 'Important Notification\n\nThis is an important notification message.'
-        }
+        'simple': `<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h2>Hello!</h2>
+    <p>This is a simple email message.</p>
+    <p>Best regards,<br>Your Name</p>
+</body>
+</html>`,
+        'welcome': `<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0;">Welcome!</h1>
+    </div>
+    <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <h2>Hello there!</h2>
+        <p>We're excited to have you on board.</p>
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="#" style="display: inline-block; padding: 15px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Get Started</a>
+        </div>
+    </div>
+</body>
+</html>`,
+        'newsletter': `<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h2 style="color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 10px;">Monthly Newsletter</h2>
+    <h3>What's New This Month</h3>
+    <p>Here are the latest updates...</p>
+    <div style="background: #f5f5f5; padding: 20px; margin: 20px 0; border-left: 4px solid #667eea;">
+        <h4>Featured Article</h4>
+        <p>Your content here...</p>
+    </div>
+</body>
+</html>`
     };
     
     if (template && templates[template]) {
-        document.getElementById('subject').value = templates[template].subject;
-        document.getElementById('html_body').value = templates[template].html;
-        document.getElementById('text_body').value = templates[template].text;
+        document.getElementById('htmlBody').value = templates[template];
     }
 }
 
-// Preview email
 function previewEmail() {
-    const fromEmail = document.getElementById('from_email').value === 'custom' 
-        ? document.getElementById('custom_from').value 
-        : document.getElementById('from_email').value;
-    const to = document.getElementById('to').value;
-    const subject = document.getElementById('subject').value;
-    const htmlBody = document.getElementById('html_body').value;
+    const subject = document.querySelector('input[name="subject"]').value;
+    const body = document.getElementById('htmlBody').value;
     
-    document.getElementById('preview-from').textContent = fromEmail;
-    document.getElementById('preview-to').textContent = to;
-    document.getElementById('preview-subject').textContent = subject;
-    document.getElementById('preview-body').innerHTML = htmlBody || '<p class="text-gray-500">No content</p>';
-    
-    document.getElementById('previewModal').classList.remove('hidden');
-}
-
-function closePreview() {
-    document.getElementById('previewModal').classList.add('hidden');
-}
-
-// Send email
-async function sendEmail(event) {
-    event.preventDefault();
-    
-    const button = document.getElementById('sendButton');
-    const errorDiv = document.getElementById('errorMessage');
-    const successDiv = document.getElementById('successMessage');
-    
-    // Hide messages
-    errorDiv.classList.add('hidden');
-    successDiv.classList.add('hidden');
-    
-    // Get form data
-    const fromEmail = document.getElementById('from_email').value === 'custom' 
-        ? document.getElementById('custom_from').value 
-        : document.getElementById('from_email').value;
-    
-    const data = {
-        from: fromEmail,
-        to: document.getElementById('to').value,
-        subject: document.getElementById('subject').value,
-        html_body: document.getElementById('html_body').value,
-        text_body: document.getElementById('text_body').value
-    };
-    
-    // Validate
-    if (!data.from || !data.to || !data.subject) {
-        errorDiv.querySelector('p').textContent = 'Please fill in all required fields';
-        errorDiv.classList.remove('hidden');
+    if (!subject || !body) {
+        alert('Please fill in subject and body first');
         return;
     }
     
-    if (!data.html_body && !data.text_body) {
-        errorDiv.querySelector('p').textContent = 'Please provide either HTML or text body';
-        errorDiv.classList.remove('hidden');
+    const preview = window.open('', 'Preview', 'width=800,height=600');
+    preview.document.write(`
+        <html>
+        <head>
+            <title>Email Preview</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+                .preview-header { background: white; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+                .preview-body { background: white; padding: 20px; border-radius: 5px; }
+            </style>
+        </head>
+        <body>
+            <div class="preview-header">
+                <strong>Subject:</strong> ${subject}
+            </div>
+            <div class="preview-body">
+                ${body}
+            </div>
+        </body>
+        </html>
+    `);
+}
+
+function sendTestEmail() {
+    const form = document.getElementById('sendEmailForm');
+    
+    if (!form.checkValidity()) {
+        form.reportValidity();
         return;
     }
     
-    // Disable button
+    const formData = new FormData(form);
+    formData.set('to_email', '{{ current_user.email }}');
+    formData.set('is_test', 'true');
+    
+    sendEmailRequest(formData, 'Test email sent to {{ current_user.email }}!');
+}
+
+function sendEmailRequest(formData, successMessage) {
+    const button = document.getElementById('sendBtn');
+    const originalText = button.innerHTML;
     button.disabled = true;
     button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
     
-    try {
-        const response = await fetch('/api/v1/send', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-API-Key': API_KEY
-            },
-            body: JSON.stringify(data)
+    fetch('/api/emails/send', {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers.get('content-type'));
+        
+        return response.text().then(text => {
+            console.log('Response text:', text);
+            
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error('Failed to parse JSON:', e);
+                console.error('Response was:', text);
+                throw new Error('Server returned invalid JSON. Response: ' + text.substring(0, 200));
+            }
         });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            successDiv.querySelector('p').textContent = `✅ Email sent successfully! Email ID: ${result.email_id}`;
-            successDiv.classList.remove('hidden');
-            
-            // Clear form
-            document.getElementById('sendEmailForm').reset();
-            
-            // Scroll to success message
-            successDiv.scrollIntoView({ behavior: 'smooth' });
+    })
+    .then(data => {
+        if (data.success) {
+            alert(successMessage || 'Email sent successfully!');
+            if (!successMessage) {
+                document.getElementById('sendEmailForm').reset();
+            }
         } else {
-            errorDiv.querySelector('p').textContent = result.error || 'Failed to send email';
-            errorDiv.classList.remove('hidden');
+            alert('Error: ' + (data.error || 'Unknown error'));
         }
-    } catch (error) {
-        errorDiv.querySelector('p').textContent = 'Network error. Please try again.';
-        errorDiv.classList.remove('hidden');
-    } finally {
         button.disabled = false;
-        button.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send Email';
-    }
+        button.innerHTML = originalText;
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        alert('Error: ' + error.message);
+        button.disabled = false;
+        button.innerHTML = originalText;
+    });
 }
 
-// Close modal on escape
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closePreview();
-    }
+document.getElementById('sendEmailForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    sendEmailRequest(formData);
 });
 </script>
-
-<style>
-.tab-button.active {
-    border-color: #7c3aed !important;
-    color: #7c3aed !important;
-}
-</style>
 {% endblock %}
