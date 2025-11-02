@@ -116,7 +116,7 @@ def add_contact():
             return jsonify({'success': False, 'error': 'Contact already exists'}), 400
         
         # Create contact
-        contact = Contact(organization_id=org.id, email=email)
+        contact = Contact(organization_id=org.id)
         contact.email = email
         contact.first_name = data.get('first_name', '').strip()
         contact.last_name = data.get('last_name', '').strip()
@@ -188,7 +188,7 @@ def import_contacts():
                 continue
             
             # Create contact
-            contact = Contact(organization_id=org.id, email=email)
+            contact = Contact(organization_id=org.id)
             contact.email = email
             contact.first_name = str(row.get('first_name') or row.get('First Name') or '').strip()
             contact.last_name = str(row.get('last_name') or row.get('Last Name') or '').strip()
@@ -370,12 +370,9 @@ def bulk_send():
             return jsonify({'success': False, 'error': f'Domain {from_domain} is not verified'}), 400
         
         # Create campaign
-        campaign_name = f"Bulk Campaign - {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}"
-        campaign = Campaign(
-            organization_id=org.id,
-            name=campaign_name,
-            subject=subject
-        )
+        campaign = Campaign(organization_id=org.id)
+        campaign.name = f"Bulk Campaign - {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}"
+        campaign.subject = subject
         campaign.html_body = html_body
         campaign.status = 'queued' if send_option == 'now' else 'scheduled'
         campaign.total_recipients = len(contacts)
@@ -404,12 +401,12 @@ def bulk_send():
             # Create email
             email = Email(
                 organization_id=org.id,
-                sender=from_email,
-                recipient=contact['email'],
-                subject=personalized_subject
+                from_email=from_email,
+                to_email=contact['email']
             )
+            email.subject = personalized_subject
             email.html_body = personalized_body
-            email.status = 'queued'
+            email.campaign_id = campaign.id
             email.status = 'queued'
             
             db.session.add(email)
@@ -551,10 +548,10 @@ def send_email_api():
                     organization_id=org.id,
                     sender=from_email,
                     recipient=contact['email'],
-                    subject=personalized_subject
+                    subject=personalized_subject,
+                    html_body=personalized_body,
+                    status='queued'
                 )
-                email.html_body = personalized_body
-                email.status = 'queued' 
                 
                 db.session.add(email)
                 db.session.flush()

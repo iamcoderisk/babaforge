@@ -2,533 +2,297 @@
 
 {% block title %}Domains - SendBaba{% endblock %}
 
-{% block extra_css %}
-<style>
-    .modal {
-        display: none;
-    }
-    .modal.active {
-        display: flex;
-    }
-    .dns-record {
-        font-family: 'Courier New', monospace;
-        font-size: 0.875rem;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-8">
+    <div class="mb-8 flex justify-between items-center">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">Domain Management</h1>
-            <p class="text-gray-600 mt-2">Add and verify domains to send emails</p>
+            <h1 class="text-3xl font-bold text-gray-900">Email Domains</h1>
+            <p class="text-gray-600 mt-2">Manage and verify your sending domains</p>
         </div>
-        <button onclick="openAddDomainModal()" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+        <button onclick="showAddDomainModal()" 
+                class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold">
             <i class="fas fa-plus mr-2"></i>Add Domain
         </button>
     </div>
 
-    <!-- Domain Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Total Domains</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ domains|length }}</p>
-                </div>
-                <div class="text-purple-600 text-3xl">🌐</div>
-            </div>
-        </div>
-        
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Verified Domains</p>
-                    <p class="text-2xl font-bold text-green-600">{{ domains|selectattr('dns_verified')|list|length }}</p>
-                </div>
-                <div class="text-green-600 text-3xl">✅</div>
-            </div>
-        </div>
-        
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Pending Verification</p>
-                    <p class="text-2xl font-bold text-yellow-600">{{ domains|rejectattr('dns_verified')|list|length }}</p>
-                </div>
-                <div class="text-yellow-600 text-3xl">⚠️</div>
-            </div>
-        </div>
-    </div>
-
     <!-- Domains List -->
-    {% if domains %}
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Domain Name
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Added
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Verified
-                    </th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DNS Records</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Added</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 {% for domain in domains %}
-                <tr class="hover:bg-gray-50">
+                <tr>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="text-sm font-medium text-gray-900">{{ domain.domain_name }}</div>
-                        </div>
+                        <div class="text-sm font-medium text-gray-900">{{ domain.domain_name }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         {% if domain.dns_verified %}
-                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                <i class="fas fa-check-circle mr-1"></i> Verified
-                            </span>
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            Verified
+                        </span>
                         {% else %}
-                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                <i class="fas fa-clock mr-1"></i> Pending
-                            </span>
-                        {% endif %}
-                        {% if not domain.is_active %}
-                            <span class="ml-2 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                Inactive
-                            </span>
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                            Pending
+                        </span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ domain.created_at.strftime('%b %d, %Y') }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {% if domain.verified_at %}
-                            {{ domain.verified_at.strftime('%b %d, %Y') }}
-                        {% else %}
-                            <span class="text-gray-400">Not verified</span>
-                        {% endif %}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button onclick="viewDNSRecords('{{ domain.id }}')" class="text-purple-600 hover:text-purple-900 mr-3">
-                            <i class="fas fa-eye"></i> DNS
+                    <td class="px-6 py-4">
+                        <button onclick="showDNSRecords('{{ domain.domain_name }}')" 
+                                class="text-sm text-purple-600 hover:text-purple-900">
+                            View DNS Records
                         </button>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ domain.created_at.strftime('%Y-%m-%d') if domain.created_at else 'N/A' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                         {% if not domain.dns_verified %}
-                        <button onclick="verifyDomain('{{ domain.id }}')" class="text-green-600 hover:text-green-900 mr-3">
-                            <i class="fas fa-check"></i> Verify
+                        <button onclick="verifyDomain('{{ domain.id }}')" 
+                                class="text-blue-600 hover:text-blue-900">
+                            Verify
                         </button>
                         {% endif %}
-                        <button onclick="deleteDomain('{{ domain.id }}')" class="text-red-600 hover:text-red-900">
-                            <i class="fas fa-trash"></i>
+                        <button onclick="deleteDomain('{{ domain.id }}')" 
+                                class="text-red-600 hover:text-red-900">
+                            Delete
                         </button>
                     </td>
                 </tr>
                 {% endfor %}
+                
+                {% if not domains %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center">
+                        <div class="text-gray-400">
+                            <i class="fas fa-globe fa-3x mb-4"></i>
+                            <p class="text-lg">No domains added yet</p>
+                            <p class="text-sm mt-2">Add your first domain to start sending emails</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
             </tbody>
         </table>
     </div>
-    {% else %}
-    <!-- Empty State -->
-    <div class="bg-white rounded-lg shadow p-12 text-center">
-        <div class="text-6xl mb-4">🌐</div>
-        <h3 class="text-xl font-semibold text-gray-900 mb-2">No domains added yet</h3>
-        <p class="text-gray-600 mb-6">Add your first domain to start sending emails</p>
-        <button onclick="openAddDomainModal()" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
-            <i class="fas fa-plus mr-2"></i>Add Your First Domain
-        </button>
+
+    <!-- DNS Records Info -->
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-blue-900 mb-4">📋 Required DNS Records</h3>
+        <div class="space-y-4 text-sm">
+            <div>
+                <strong>SPF Record:</strong>
+                <code class="block mt-1 bg-white p-2 rounded">v=spf1 ip4:156.67.29.186 ~all</code>
+            </div>
+            <div>
+                <strong>DKIM Record (default._domainkey):</strong>
+                <code class="block mt-1 bg-white p-2 rounded text-xs">Contact support for your DKIM public key</code>
+            </div>
+            <div>
+                <strong>DMARC Record (_dmarc):</strong>
+                <code class="block mt-1 bg-white p-2 rounded">v=DMARC1; p=none; rua=mailto:dmarc@yourdomain.com</code>
+            </div>
+        </div>
     </div>
-    {% endif %}
 </div>
 
 <!-- Add Domain Modal -->
-<div id="addDomainModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full items-center justify-center z-50">
-    <div class="relative p-8 bg-white w-full max-w-2xl m-auto rounded-lg shadow-lg">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-gray-900">Add New Domain</h3>
-            <button onclick="closeAddDomainModal()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times text-2xl"></i>
-            </button>
-        </div>
-        
-        <form id="addDomainForm" onsubmit="addDomain(event)">
-            <div class="mb-6">
-                <label for="domain_name" class="block text-sm font-medium text-gray-700 mb-2">
-                    Domain Name
-                </label>
-                <input type="text" id="domain_name" name="domain_name" required
-                       placeholder="example.com"
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                <p class="mt-2 text-sm text-gray-500">
-                    Enter the domain you want to use for sending emails (e.g., yourdomain.com)
-                </p>
-            </div>
-            
-            <div id="addDomainError" class="hidden mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p class="text-red-800 text-sm"></p>
-            </div>
-            
-            <div class="flex justify-end space-x-3">
-                <button type="button" onclick="closeAddDomainModal()" 
-                        class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-                    Cancel
-                </button>
-                <button type="submit" id="addDomainBtn"
-                        class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                    <i class="fas fa-plus mr-2"></i>Add Domain
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <!-- DNS Records Modal -->
-<div id="dnsRecordsModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full items-center justify-center z-50">
-    <div class="relative p-8 bg-white w-full max-w-4xl m-auto rounded-lg shadow-lg max-h-screen overflow-y-auto">
+<div id="dnsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" onclick="if(event.target === this) closeDNSModal()">
+    <div class="relative top-20 mx-auto p-8 border w-full max-w-3xl shadow-lg rounded-lg bg-white">
         <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-gray-900">DNS Configuration</h3>
+            <h3 class="text-2xl font-bold text-gray-900">
+                DNS Records for <span id="modalDomain" class="text-purple-600"></span>
+            </h3>
             <button onclick="closeDNSModal()" class="text-gray-400 hover:text-gray-600">
                 <i class="fas fa-times text-2xl"></i>
             </button>
         </div>
         
-        <div id="dnsRecordsContent">
-            <!-- DNS records will be loaded here -->
-        </div>
-    </div>
-</div>
+        <div class="space-y-6">
+            <!-- SPF Record -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex justify-between items-start mb-2">
+                    <h4 class="font-semibold text-blue-900 text-lg">1. SPF Record</h4>
+                    <button onclick="copyToClipboard('v=spf1 ip4:156.67.29.186 ~all', this)" 
+                            class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                        <i class="fas fa-copy mr-2"></i>Copy
+                    </button>
+                </div>
+                <div class="space-y-2 text-sm">
+                    <div><strong>Type:</strong> <code class="bg-white px-2 py-1 rounded">TXT</code></div>
+                    <div><strong>Name:</strong> <code class="bg-white px-2 py-1 rounded">@</code></div>
+                    <div><strong>Value:</strong></div>
+                    <code class="block bg-white p-3 rounded font-mono text-xs break-all">v=spf1 ip4:156.67.29.186 ~all</code>
+                </div>
+            </div>
 
-<!-- Verify Domain Modal -->
-<div id="verifyDomainModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full items-center justify-center z-50">
-    <div class="relative p-8 bg-white w-full max-w-2xl m-auto rounded-lg shadow-lg">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-gray-900">Verify Domain</h3>
-            <button onclick="closeVerifyModal()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times text-2xl"></i>
+            <!-- DKIM Record -->
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div class="flex justify-between items-start mb-2">
+                    <h4 class="font-semibold text-green-900 text-lg">2. DKIM Record</h4>
+                    <button onclick="alert('Contact support for your DKIM public key')" 
+                            class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">
+                        <i class="fas fa-info-circle mr-2"></i>Get Key
+                    </button>
+                </div>
+                <div class="space-y-2 text-sm">
+                    <div><strong>Type:</strong> <code class="bg-white px-2 py-1 rounded">TXT</code></div>
+                    <div><strong>Name:</strong> <code class="bg-white px-2 py-1 rounded">default._domainkey</code></div>
+                    <div><strong>Value:</strong></div>
+                    <code class="block bg-white p-3 rounded font-mono text-xs break-all">v=DKIM1; k=rsa; p=YOUR_PUBLIC_KEY_HERE</code>
+                    <p class="text-green-800 mt-2">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Contact support or check the "Required DNS Records" section below for your DKIM public key
+                    </p>
+                </div>
+            </div>
+
+            <!-- DMARC Record -->
+            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div class="flex justify-between items-start mb-2">
+                    <h4 class="font-semibold text-purple-900 text-lg">3. DMARC Record</h4>
+                    <button onclick="copyToClipboard('v=DMARC1; p=none; rua=mailto:' + document.getElementById('modalDmarcEmail').textContent, this)" 
+                            class="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700">
+                        <i class="fas fa-copy mr-2"></i>Copy
+                    </button>
+                </div>
+                <div class="space-y-2 text-sm">
+                    <div><strong>Type:</strong> <code class="bg-white px-2 py-1 rounded">TXT</code></div>
+                    <div><strong>Name:</strong> <code class="bg-white px-2 py-1 rounded">_dmarc</code></div>
+                    <div><strong>Value:</strong></div>
+                    <code class="block bg-white p-3 rounded font-mono text-xs break-all">v=DMARC1; p=none; rua=mailto:<span id="modalDmarcEmail"></span></code>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 bg-gray-50 rounded-lg p-4">
+            <p class="text-sm text-gray-700">
+                <i class="fas fa-clock text-gray-500 mr-2"></i>
+                <strong>Note:</strong> DNS changes can take 10-15 minutes to propagate. After adding these records, click "Verify" to check your domain.
+            </p>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+            <button onclick="closeDNSModal()" 
+                    class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                Close
             </button>
         </div>
-        
-        <div id="verifyContent">
-            <div class="text-center py-8">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-                <p class="mt-4 text-gray-600">Verifying DNS records...</p>
-            </div>
+    </div>
+</div>
+
+<div id="addDomainModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Add New Domain</h3>
+            <form id="addDomainForm">
+                <input type="text" name="domain_name" placeholder="yourdomain.com" required
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 mb-4">
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="hideAddDomainModal()"
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                        Add Domain
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-{% endblock %}
-
-{% block extra_js %}
 <script>
-// Get API key from meta tag or embed it
-const API_KEY = '{{ current_user.organization.api_key if current_user.organization else "" }}';
-
-function openAddDomainModal() {
-    document.getElementById('addDomainModal').classList.add('active');
-    document.getElementById('domain_name').focus();
+function showAddDomainModal() {
+    document.getElementById('addDomainModal').classList.remove('hidden');
 }
 
-function closeAddDomainModal() {
-    document.getElementById('addDomainModal').classList.remove('active');
-    document.getElementById('addDomainForm').reset();
-    document.getElementById('addDomainError').classList.add('hidden');
+function hideAddDomainModal() {
+    document.getElementById('addDomainModal').classList.add('hidden');
 }
 
-async function addDomain(event) {
-    event.preventDefault();
+document.getElementById('addDomainForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
     
-    const btn = document.getElementById('addDomainBtn');
-    const errorDiv = document.getElementById('addDomainError');
-    const domainName = document.getElementById('domain_name').value.trim().toLowerCase();
-    
-    // Disable button
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
-    errorDiv.classList.add('hidden');
-    
-    try {
-        const response = await fetch('/api/v1/domain/add', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-API-Key': API_KEY
-            },
-            body: JSON.stringify({ domain: domainName })
-        });
-        
-        const data = await response.json();
-        
+    fetch('/dashboard/domains/add', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
         if (data.success) {
-            // Show DNS records immediately
-            closeAddDomainModal();
-            viewDNSRecords(data.domain_id, data);
+            alert('Domain added successfully!');
+            location.reload();
         } else {
-            errorDiv.querySelector('p').textContent = data.error || 'Failed to add domain';
-            errorDiv.classList.remove('hidden');
+            alert('Error: ' + data.error);
         }
-    } catch (error) {
-        errorDiv.querySelector('p').textContent = 'Network error. Please try again.';
-        errorDiv.classList.remove('hidden');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-plus mr-2"></i>Add Domain';
-    }
+    });
+});
+
+function verifyDomain(domainId) {
+    if (!confirm('Have you added the DNS records?')) return;
+    
+    fetch(`/dashboard/domains/${domainId}/verify`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Domain verified successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    });
 }
 
-async function viewDNSRecords(domainId, domainData = null) {
-    const modal = document.getElementById('dnsRecordsModal');
-    const content = document.getElementById('dnsRecordsContent');
+function deleteDomain(domainId) {
+    if (!confirm('Are you sure you want to delete this domain?')) return;
     
-    modal.classList.add('active');
-    content.innerHTML = '<div class="text-center py-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div></div>';
-    
-    try {
-        let data = domainData;
-        
-        if (!data) {
-            const response = await fetch(`/api/v1/domain/${domainId}`, {
-                headers: { 'X-API-Key': API_KEY }
-            });
-            data = await response.json();
+    fetch(`/dashboard/domains/${domainId}/delete`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Domain deleted successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
         }
-        
-        if (data.success || data.domain) {
-            const domain = data.domain || data;
-            const records = domain.dns_records;
-            
-            content.innerHTML = `
-                <div class="mb-6">
-                    <h4 class="text-lg font-semibold mb-2">${domain.name || domain.domain}</h4>
-                    <p class="text-gray-600">Add these DNS records to your domain's DNS settings:</p>
-                </div>
-                
-                ${renderDNSRecord('SPF Record', records.spf)}
-                ${renderDNSRecord('DKIM Record', records.dkim)}
-                ${renderDNSRecord('DMARC Record', records.dmarc)}
-                ${renderDNSRecord('Verification Record', records.verification)}
-                
-                <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h5 class="font-semibold text-blue-900 mb-2">📝 Instructions:</h5>
-                    <ol class="list-decimal list-inside space-y-2 text-sm text-blue-800">
-                        <li>Log in to your domain registrar or DNS provider</li>
-                        <li>Navigate to DNS management section</li>
-                        <li>Add each record exactly as shown above</li>
-                        <li>Wait 5-10 minutes for DNS propagation</li>
-                        <li>Click "Verify Domain" button below</li>
-                    </ol>
-                </div>
-                
-                <div class="mt-6 flex justify-end space-x-3">
-                    <button onclick="closeDNSModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Close
-                    </button>
-                    ${!domain.dns_verified ? `
-                    <button onclick="verifyDomain('${domain.id || domainId}')" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                        <i class="fas fa-check mr-2"></i>Verify Domain
-                    </button>
-                    ` : ''}
-                </div>
-            `;
-        }
-    } catch (error) {
-        content.innerHTML = '<div class="text-center py-8 text-red-600">Failed to load DNS records</div>';
-    }
+    });
 }
 
-function renderDNSRecord(title, record) {
-    return `
-        <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-            <div class="flex justify-between items-start mb-3">
-                <h5 class="font-semibold text-gray-900">${title}</h5>
-                <button onclick="copyToClipboard('${record.value.replace(/'/g, "\\'")}')" 
-                        class="text-sm text-purple-600 hover:text-purple-700">
-                    <i class="fas fa-copy mr-1"></i>Copy Value
-                </button>
-            </div>
-            <div class="space-y-2">
-                <div class="grid grid-cols-4 gap-4 text-sm">
-                    <div>
-                        <span class="text-gray-500 font-medium">Type:</span>
-                        <span class="ml-2 font-mono">${record.type}</span>
-                    </div>
-                    <div class="col-span-3">
-                        <span class="text-gray-500 font-medium">Name:</span>
-                        <span class="ml-2 font-mono">${record.name}</span>
-                    </div>
-                </div>
-                <div>
-                    <span class="text-gray-500 font-medium text-sm">Value:</span>
-                    <div class="mt-1 p-2 bg-white border border-gray-300 rounded dns-record break-all">
-                        ${record.value}
-                    </div>
-                </div>
-                <p class="text-xs text-gray-500">${record.description || ''}</p>
-            </div>
-        </div>
-    `;
+function showDNSRecords(domain) {
+    document.getElementById('modalDomain').textContent = domain;
+    document.getElementById('modalDmarcEmail').textContent = `dmarc@${domain}`;
+    document.getElementById('dnsModal').classList.remove('hidden');
 }
 
 function closeDNSModal() {
-    document.getElementById('dnsRecordsModal').classList.remove('active');
+    document.getElementById('dnsModal').classList.add('hidden');
 }
 
-async function verifyDomain(domainId) {
-    const modal = document.getElementById('verifyDomainModal');
-    const content = document.getElementById('verifyContent');
-    
-    // Close DNS modal if open
-    closeDNSModal();
-    
-    modal.classList.add('active');
-    content.innerHTML = `
-        <div class="text-center py-8">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-            <p class="mt-4 text-gray-600">Verifying DNS records...</p>
-            <p class="mt-2 text-sm text-gray-500">This may take a few moments</p>
-        </div>
-    `;
-    
-    try {
-        const response = await fetch(`/api/v1/domain/verify/${domainId}`, {
-            method: 'POST',
-            headers: { 'X-API-Key': API_KEY }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            content.innerHTML = `
-                <div class="text-center py-8">
-                    <div class="text-green-600 text-6xl mb-4">✅</div>
-                    <h4 class="text-2xl font-bold text-gray-900 mb-2">Domain Verified!</h4>
-                    <p class="text-gray-600 mb-6">${data.domain} is now verified and ready to send emails.</p>
-                    <button onclick="closeVerifyModal(); location.reload()" 
-                            class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                        Continue
-                    </button>
-                </div>
-            `;
-        } else {
-            const checks = data.dns_checks || {};
-            content.innerHTML = `
-                <div class="py-6">
-                    <div class="text-yellow-600 text-5xl mb-4 text-center">⚠️</div>
-                    <h4 class="text-xl font-bold text-gray-900 mb-4 text-center">Verification Failed</h4>
-                    <p class="text-gray-600 mb-6 text-center">${data.message || 'Some DNS records are not configured correctly'}</p>
-                    
-                    <div class="space-y-3 mb-6">
-                        ${Object.entries(checks).map(([key, check]) => `
-                            <div class="flex items-start p-3 rounded-lg ${check.status === 'passed' ? 'bg-green-50' : 'bg-red-50'}">
-                                <span class="text-2xl mr-3">${check.status === 'passed' ? '✅' : '❌'}</span>
-                                <div>
-                                    <p class="font-semibold ${check.status === 'passed' ? 'text-green-900' : 'text-red-900'}">${key.toUpperCase()}</p>
-                                    <p class="text-sm ${check.status === 'passed' ? 'text-green-700' : 'text-red-700'}">${check.message}</p>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    
-                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-6">
-                        <p class="text-sm text-blue-800">
-                            <strong>Tip:</strong> DNS changes can take 5-60 minutes to propagate. 
-                            Please wait a few minutes and try again.
-                        </p>
-                    </div>
-                    
-                    <div class="flex justify-center space-x-3">
-                        <button onclick="closeVerifyModal()" 
-                                class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                            Close
-                        </button>
-                        <button onclick="viewDNSRecords('${domainId}')" 
-                                class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                            View DNS Records
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-    } catch (error) {
-        content.innerHTML = `
-            <div class="text-center py-8">
-                <div class="text-red-600 text-5xl mb-4">❌</div>
-                <h4 class="text-xl font-bold text-gray-900 mb-2">Verification Error</h4>
-                <p class="text-gray-600 mb-6">Failed to verify domain. Please try again.</p>
-                <button onclick="closeVerifyModal()" 
-                        class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                    Close
-                </button>
-            </div>
-        `;
-    }
-}
-
-function closeVerifyModal() {
-    document.getElementById('verifyDomainModal').classList.remove('active');
-}
-
-async function deleteDomain(domainId) {
-    if (!confirm('Are you sure you want to delete this domain? This action cannot be undone.')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/api/v1/domain/${domainId}`, {
-            method: 'DELETE',
-            headers: { 'X-API-Key': API_KEY }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            location.reload();
-        } else {
-            alert(data.error || 'Failed to delete domain');
-        }
-    } catch (error) {
-        alert('Network error. Please try again.');
-    }
-}
-
-function copyToClipboard(text) {
+function copyToClipboard(text, button) {
     navigator.clipboard.writeText(text).then(() => {
-        // Show temporary success message
-        const btn = event.target.closest('button');
-        const originalHTML = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
+        button.classList.add('bg-green-600');
         setTimeout(() => {
-            btn.innerHTML = originalHTML;
+            button.innerHTML = originalText;
+            button.classList.remove('bg-green-600');
         }, 2000);
     });
 }
-
-// Close modals on escape key
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closeAddDomainModal();
-        closeDNSModal();
-        closeVerifyModal();
-    }
-});
-
-// Close modals on outside click
-document.querySelectorAll('.modal').forEach(modal => {
-    modal.addEventListener('click', function(event) {
-        if (event.target === modal) {
-            modal.classList.remove('active');
-        }
-    });
-});
 </script>
 {% endblock %}

@@ -107,6 +107,11 @@ def create_app():
                 'redis': redis_status
             }, 200
     
+    
+    # Add Python builtins to Jinja2
+    app.jinja_env.globals['hasattr'] = hasattr
+    app.jinja_env.globals['getattr'] = getattr
+    
     return app
     
     # Set max upload size to 50MB

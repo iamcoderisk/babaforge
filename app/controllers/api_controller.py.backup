@@ -116,7 +116,7 @@ def add_contact():
             return jsonify({'success': False, 'error': 'Contact already exists'}), 400
         
         # Create contact
-        contact = Contact(organization_id=org.id, email=email)
+        contact = Contact(organization_id=org.id)
         contact.email = email
         contact.first_name = data.get('first_name', '').strip()
         contact.last_name = data.get('last_name', '').strip()
@@ -124,7 +124,6 @@ def add_contact():
         
         db.session.add(contact)
         db.session.commit()
-
         
         return jsonify({
             'success': True,
@@ -188,7 +187,7 @@ def import_contacts():
                 continue
             
             # Create contact
-            contact = Contact(organization_id=org.id, email=email)
+            contact = Contact(organization_id=org.id)
             contact.email = email
             contact.first_name = str(row.get('first_name') or row.get('First Name') or '').strip()
             contact.last_name = str(row.get('last_name') or row.get('Last Name') or '').strip()
@@ -284,41 +283,20 @@ def send_single_email():
         from_email = f"{from_name}@{from_domain}" if from_name else f"noreply@{from_domain}"
         
         # Create email record
-        # Create email record
         email = Email(
             organization_id=org.id,
-            sender=from_email,
-            recipient=to_email,
-            subject=subject,
-            html_body=html_body if html_body else None,
-            text_body=text_body if text_body else None,
-            status="queued"
+            from_email=from_email,
+            to_email=to_email
         )
+        email.subject = subject
+        email.html_body = html_body if html_body else None
+        email.text_body = text_body if text_body else None
+        email.status = 'queued'
         
         db.session.add(email)
         db.session.commit()
         
-        # Queue email for sending via Redis
-        try:
-            import redis
-            import json
-            redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
-            
-            email_data = {
-                'id': str(email.id),
-                'from': from_email,
-                'to': to_email,
-                'subject': subject,
-                'html': html_body or text_body,
-                'text': text_body,
-                'priority': int(priority) if priority else 5
-            }
-            
-            queue_name = f'outgoing_{email_data["priority"]}'
-            redis_client.lpush(queue_name, json.dumps(email_data))
-            logger.info(f"✅ Email {email.id} queued to {queue_name}")
-        except Exception as e:
-            logger.error(f"❌ Failed to queue email: {e}")
+        logger.info(f"Email queued successfully - ID: {email.id}")
         
         return jsonify({
             'success': True,
@@ -370,12 +348,9 @@ def bulk_send():
             return jsonify({'success': False, 'error': f'Domain {from_domain} is not verified'}), 400
         
         # Create campaign
-        campaign_name = f"Bulk Campaign - {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}"
-        campaign = Campaign(
-            organization_id=org.id,
-            name=campaign_name,
-            subject=subject
-        )
+        campaign = Campaign(organization_id=org.id)
+        campaign.name = f"Bulk Campaign - {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}"
+        campaign.subject = subject
         campaign.html_body = html_body
         campaign.status = 'queued' if send_option == 'now' else 'scheduled'
         campaign.total_recipients = len(contacts)
@@ -404,12 +379,12 @@ def bulk_send():
             # Create email
             email = Email(
                 organization_id=org.id,
-                sender=from_email,
-                recipient=contact['email'],
-                subject=personalized_subject
+                from_email=from_email,
+                to_email=contact['email']
             )
+            email.subject = personalized_subject
             email.html_body = personalized_body
-            email.status = 'queued'
+            email.campaign_id = campaign.id
             email.status = 'queued'
             
             db.session.add(email)
@@ -442,153 +417,3 @@ def internal_error(error):
     """Handle 500 errors"""
     logger.error(f"Internal error: {error}")
     return jsonify({'success': False, 'error': 'Internal server error'}), 500
-
-@api_bp.route('/v1/send', methods=['POST'])
-def send_email_api():
-    """Public API endpoint to send emails"""
-    try:
-        # Get JSON data
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({'success': False, 'error': 'No data provided'}), 400
-        
-        # Required fields
-        to_email = data.get('to', '').strip()
-        from_email = data.get('from', '').strip()
-        subject = data.get('subject', '').strip()
-        html_body = data.get('html_body', '').strip()
-        text_body = data.get('text_body', '').strip()
-        
-        if not to_email or not from_email or not subject:
-            return jsonify({'success': False, 'error': 'Missing required fields: to, from, subject'}), 400
-        
-        if not html_body and not text_body:
-            return jsonify({'success': False, 'error': 'Email body is required (html_body or text_body)'}), 400
-        
-        # Extract domain from from_email
-        from_domain = from_email.split('@')[1] if '@' in from_email else None
-        
-        if not from_domain:
-            return jsonify({'success': False, 'error': 'Invalid from email address'}), 400
-        
-        # Verify domain exists (no org check for public API)
-        domain = Domain.query.filter_by(
-            domain_name=from_domain,
-            dns_verified=True
-        ).first()
-        
-        if not domain:
-            return jsonify({'success': False, 'error': f'Domain {from_domain} is not verified'}), 400
-        
-        # Create email record
-        email = Email(
-            organization_id=domain.organization_id,
-            sender=from_email,
-            recipient=to_email,
-            subject=subject,
-            html_body=html_body if html_body else None,
-            text_body=text_body if text_body else None,
-            status="queued"
-        )
-        
-        db.session.add(email)
-        db.session.commit()
-        
-        # Queue email for sending via Redis
-        try:
-            import redis
-            import json
-            redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
-            
-            email_data = {
-                'id': str(email.id),
-                'from': from_email,
-                'to': to_email,
-                'subject': subject,
-                'html': html_body or text_body,
-                'text': text_body,
-                'priority': 5
-            }
-            
-            queue_name = 'outgoing_5'
-            redis_client.lpush(queue_name, json.dumps(email_data))
-            logger.info(f"✅ API Email {email.id} queued to {queue_name}")
-        except Exception as e:
-            logger.error(f"❌ Failed to queue email: {e}")
-        
-        return jsonify({
-            'success': True,
-            'message': 'Email queued successfully',
-            'email_id': email.id
-        }), 200
-        
-    except Exception as e:
-        logger.error(f"API send email error: {e}", exc_info=True)
-        db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-        # Create email records and queue them
-        from_email = f"{from_name}@{from_domain}" if from_name else f"noreply@{from_domain}"
-        
-        import redis
-        redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
-        
-        queued_count = 0
-        for contact in contacts:
-            try:
-                # Replace variables in subject and body
-                personalized_subject = subject
-                personalized_body = html_body
-                
-                for key, value in contact.items():
-                    placeholder = f"{{{{{key}}}}}"
-                    personalized_subject = personalized_subject.replace(placeholder, str(value))
-                    personalized_body = personalized_body.replace(placeholder, str(value))
-                
-                # Create email record
-                email = Email(
-                    organization_id=org.id,
-                    sender=from_email,
-                    recipient=contact['email'],
-                    subject=personalized_subject
-                )
-                email.html_body = personalized_body
-                email.status = 'queued' 
-                
-                db.session.add(email)
-                db.session.flush()
-                
-                # Queue email for worker
-                email_data = {
-                    'id': str(email.id),
-                    'from': from_email,
-                    'to': contact['email'],
-                    'subject': personalized_subject,
-                    'html': personalized_body,
-                    'priority': 5
-                }
-                
-                redis_client.lpush('outgoing_5', json.dumps(email_data))
-                queued_count += 1
-                
-            except Exception as e:
-                logger.error(f"Error queuing email for {contact.get('email')}: {e}")
-                continue
-        
-        campaign.emails_sent = 0
-        db.session.commit()
-        
-        logger.info(f"Bulk campaign created - ID: {campaign.id}, emails: {queued_count}")
-        
-        return jsonify({
-            'success': True,
-            'message': f'Campaign created! {queued_count} emails queued for sending',
-            'campaign_id': campaign.id,
-            'total': queued_count
-        })
-        
-    except Exception as e:
-        logger.error(f"Bulk send error: {e}", exc_info=True)
-        db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
