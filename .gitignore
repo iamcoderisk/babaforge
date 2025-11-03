@@ -7,35 +7,63 @@ __pycache__/
 venv/
 env/
 ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Flask
+instance/
+.webassets-cache
 
 # Database
 *.db
 *.sqlite
-
-# Logs
-logs/
-*.log
-
-# Keys & Certificates
-keys/
-ssl/
-*.pem
-*.key
-*.crt
+*.sqlite3
 
 # Environment
 .env
 .env.local
+.env.*.local
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+
+# Logs
+*.log
+logs/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Data
-data/
+# SSL
+*.pem
+*.key
+*.crt
+certs/
+
+# PM2
+.pm2/
+
+# Backups
+*.backup
+*.bak
+
+# Uploads
+uploads/
