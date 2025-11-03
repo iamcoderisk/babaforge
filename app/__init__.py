@@ -1,118 +1,73 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from flask_login import LoginManager
-from sqlalchemy import text
+from flask_migrate import Migrate
 import redis
+import logging
 import os
 
 db = SQLAlchemy()
-migrate = Migrate()
 login_manager = LoginManager()
+migrate = Migrate()
 
 # Initialize Redis client
 redis_client = redis.Redis(
-    host=os.environ.get('REDIS_HOST', 'localhost'),
-    port=int(os.environ.get('REDIS_PORT', 6379)),
-    db=int(os.environ.get('REDIS_DB', 0)),
+    host=os.getenv('REDIS_HOST', 'localhost'),
+    port=int(os.getenv('REDIS_PORT', 6379)),
     decode_responses=True
 )
 
-# Initialize rate limiter
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"],
-    storage_uri=f"redis://{os.environ.get('REDIS_HOST', 'localhost')}:{os.environ.get('REDIS_PORT', 6379)}"
-)
+logger = logging.getLogger(__name__)
 
 def create_app():
     app = Flask(__name__)
     
-    # Config
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
-        'DATABASE_URL',
-        'postgresql://emailer:SecurePassword123@localhost:5432/emailer'
-    )
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+    # Configuration
+    from app.config.settings import Config
+    app.config.from_object(Config)
     
     # Initialize extensions
     db.init_app(app)
-    migrate.init_app(app, db)
-    limiter.init_app(app)
     login_manager.init_app(app)
+    migrate.init_app(app, db)
     
-    # Flask-Login config
     login_manager.login_view = 'auth.login'
-    login_manager.login_message = 'Please log in to access this page.'
-    login_manager.login_message_category = 'info'
+    
+    # Import models
+    from app.models.user import User
+    from app.models.organization import Organization
+    from app.models.domain import Domain
+    from app.models.email import Email
+    from app.models.contact import Contact
+    from app.models.campaign import Campaign
     
     @login_manager.user_loader
     def load_user(user_id):
-        from app.models.user import User
         return User.query.get(user_id)
     
-    with app.app_context():
-        # Import models
-        from app.models.user import User
-        from app.models.organization import Organization
-        from app.models.domain import Domain
-        from app.models.email import Email
-        
-        # Register blueprints
-        from app.controllers.web_controller import web_bp
-        from app.controllers.api_controller import api_bp
-        from app.controllers.auth_controller import auth_bp
-        from app.controllers.dashboard_controller import dashboard_bp
-        from app.controllers.domain_controller import domain_bp
-        from app.controllers.contact_controller import contact_bp
-        from app.controllers.campaign_controller import campaign_bp
-        from app.controllers.admin_controller import admin_bp
-        from app.controllers.billing_controller import billing_bp
+    # Register blueprints
+    from app.controllers.auth_controller import auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    
+    from app.controllers.dashboard_controller import dashboard_bp
+    app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
+    
+    from app.controllers.api_controller import api_bp
+    app.register_blueprint(api_bp, url_prefix='/api')
+    
+    from app.controllers.main_controller import main_bp
+    app.register_blueprint(main_bp)
+    
+    # Also register as 'web' for backward compatibility
+    app.register_blueprint(main_bp, url_prefix='', name='web')
+    
+    try:
         from app.controllers.tracking_controller import tracking_bp
-        
-        app.register_blueprint(web_bp)
-        app.register_blueprint(api_bp)
-        app.register_blueprint(auth_bp, url_prefix='/auth')
-        app.register_blueprint(dashboard_bp)
-        app.register_blueprint(domain_bp, url_prefix='/api/v1')
-        app.register_blueprint(contact_bp, url_prefix='/api/v1')
-        app.register_blueprint(campaign_bp, url_prefix='/api/v1')
-        app.register_blueprint(admin_bp)
-        app.register_blueprint(billing_bp)
-        app.register_blueprint(tracking_bp)
-        
-        print("✅ All blueprints registered")
-        
-        # Health check with proper text() usage
-        @app.route('/health')
-        def health():
-            try:
-                db.session.execute(text('SELECT 1'))
-                db_status = 'connected'
-            except:
-                db_status = 'disconnected'
-            
-            try:
-                redis_client.ping()
-                redis_status = 'connected'
-            except:
-                redis_status = 'disconnected'
-            
-            return {
-                'status': 'healthy',
-                'database': db_status,
-                'redis': redis_status
-            }, 200
+        app.register_blueprint(tracking_bp, url_prefix='/t')
+        logger.info("✅ Tracking blueprint registered")
+    except Exception as e:
+        logger.warning(f"⚠️ Tracking blueprint not registered: {e}")
     
-    
-    # Add Python builtins to Jinja2
-    app.jinja_env.globals['hasattr'] = hasattr
-    app.jinja_env.globals['getattr'] = getattr
+    logger.info("✅ Flask app initialized successfully")
     
     return app
-    
-    # Set max upload size to 50MB
-    app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024

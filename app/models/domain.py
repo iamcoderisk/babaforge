@@ -102,3 +102,15 @@ class EmailUsage(db.Model):
         self.id = str(uuid.uuid4())
         self.organization_id = organization_id
         self.date = date
+
+    def to_dict(self):
+        """Convert domain to dictionary"""
+        return {
+            'id': self.id,
+            'domain_name': self.domain_name,
+            'dns_verified': self.dns_verified,
+            'dkim_public_key': self.dkim_public_key,
+            'verified_at': self.verified_at.isoformat() if self.verified_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+

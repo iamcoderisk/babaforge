@@ -1,36 +1,42 @@
-"""
-Main Controller
-"""
-from flask import Blueprint, render_template, jsonify
+from flask import Blueprint, render_template, jsonify, request
+from flask_login import login_required, current_user
+import redis
 from app import redis_client
-import logging
-
-logger = logging.getLogger(__name__)
 
 main_bp = Blueprint('main', __name__)
 
+
 @main_bp.route('/')
 def index():
-    """Home page"""
+    """Homepage"""
     return render_template('index.html')
+
+
+@main_bp.route('/pricing')
+def pricing():
+    """Pricing page"""
+    return render_template('pricing.html')
+
+
+@main_bp.route('/features')
+def features():
+    """Features page"""
+    return render_template('features.html')
+
+
+@main_bp.route('/about')
+def about():
+    """About page"""
+    return render_template('about.html')
+
+
+@main_bp.route('/docs')
+def docs():
+    """Documentation page"""
+    return render_template('docs.html')
+
 
 @main_bp.route('/health')
 def health():
     """Health check endpoint"""
-    try:
-        redis_client.ping()
-        return jsonify({
-            'status': 'healthy',
-            'redis': 'connected',
-            'service': 'email-system'
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'unhealthy',
-            'error': str(e)
-        }), 503
-
-@main_bp.route('/ready')
-def ready():
-    """Readiness check"""
-    return jsonify({'status': 'ready'})
+    return jsonify({'status': 'healthy', 'service': 'sendbaba'}), 200

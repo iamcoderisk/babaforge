@@ -338,110 +338,133 @@ def bulk_send():
     try:
         org = current_user.organization
         
-        if not org:
-            return jsonify({'success': False, 'error': 'Organization not found'}), 400
-        
         # Get form data
-        contacts_json = request.form.get('contacts')
+        campaign_name = request.form.get('campaign_name')
         subject = request.form.get('subject')
-        html_body = request.form.get('html_body')
-        from_name = request.form.get('from_name', '')
+        body = request.form.get('body')
+        from_name = request.form.get('from_name')
         from_domain = request.form.get('from_domain')
-        send_option = request.form.get('send_option', 'now')
         
-        if not contacts_json or not subject or not html_body:
-            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        # Validate required fields
+        if not all([campaign_name, subject, body, from_name, from_domain]):
+            return jsonify({
+                'success': False,
+                'error': 'Missing required fields: campaign_name, subject, body, from_name, from_domain'
+            })
         
-        # Parse contacts
-        import json
-        contacts = json.loads(contacts_json)
+        sender_email = f"{from_name}@{from_domain}"
         
-        if len(contacts) == 0:
-            return jsonify({'success': False, 'error': 'No contacts provided'}), 400
+        # Get recipients
+        contact_ids = request.form.get('contact_ids')
+        uploaded_contacts = request.form.get('uploaded_contacts')
         
-        # Verify domain
-        domain = Domain.query.filter_by(
-            organization_id=org.id,
-            domain_name=from_domain,
-            dns_verified=True
-        ).first()
+        recipients = []
         
-        if not domain:
-            return jsonify({'success': False, 'error': f'Domain {from_domain} is not verified'}), 400
+        if contact_ids:
+            # Use existing contacts
+            import json
+            contact_id_list = json.loads(contact_ids)
+            from app.models.contact import Contact
+            
+            for contact_id in contact_id_list:
+                contact = Contact.query.filter_by(
+                    id=contact_id,
+                    organization_id=org.id
+                ).first()
+                
+                if contact:
+                    recipients.append({
+                        'email': contact.email,
+                        'first_name': contact.first_name or contact.name or '',
+                        'last_name': contact.last_name or '',
+                        'company': contact.company or ''
+                    })
+        
+        elif uploaded_contacts:
+            # Use uploaded contacts
+            import json
+            recipients = json.loads(uploaded_contacts)
+        
+        if not recipients:
+            return jsonify({
+                'success': False,
+                'error': 'No recipients selected'
+            })
         
         # Create campaign
-        campaign_name = f"Bulk Campaign - {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}"
+        from app.models.campaign import Campaign
         campaign = Campaign(
             organization_id=org.id,
             name=campaign_name,
-            subject=subject
+            subject=subject,
+            html_body=body,
+            status='sending',
+            total_recipients=len(recipients)
         )
-        campaign.html_body = html_body
-        campaign.status = 'queued' if send_option == 'now' else 'scheduled'
-        campaign.total_recipients = len(contacts)
-        
-        if send_option == 'schedule':
-            schedule_time = request.form.get('schedule_time')
-            if schedule_time:
-                campaign.scheduled_at = datetime.fromisoformat(schedule_time)
-        
         db.session.add(campaign)
         db.session.flush()
         
-        # Create email records
-        from_email = f"{from_name}@{from_domain}" if from_name else f"noreply@{from_domain}"
+        # Create email records and queue
+        import redis
+        redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
         
         queued_count = 0
-        for contact in contacts:
-            # Replace variables in subject and body
+        for recipient in recipients:
+            # Personalize content
             personalized_subject = subject
-            personalized_body = html_body
+            personalized_body = body
             
-            for key, value in contact.items():
-                personalized_subject = personalized_subject.replace(f"{{{{{key}}}}}", str(value))
-                personalized_body = personalized_body.replace(f"{{{{{key}}}}}", str(value))
+            for key, value in recipient.items():
+                personalized_subject = personalized_subject.replace(f'{{{{{key}}}}}', str(value))
+                personalized_body = personalized_body.replace(f'{{{{{key}}}}}', str(value))
             
-            # Create email
-            email = Email(
+            # Create email record
+            from app.models.email import Email
+            email_record = Email(
                 organization_id=org.id,
-                sender=from_email,
-                recipient=contact['email'],
-                subject=personalized_subject
+                campaign_id=campaign.id,
+                sender=sender_email,
+                recipient=recipient['email'],
+                subject=personalized_subject,
+                html_body=personalized_body,
+                status='queued'
             )
-            email.html_body = personalized_body
-            email.status = 'queued'
-            email.status = 'queued'
+            db.session.add(email_record)
+            db.session.flush()
             
-            db.session.add(email)
+            # Queue email
+            email_data = {
+                'id': str(email_record.id),
+                'from': sender_email,
+                'to': recipient['email'],
+                'subject': personalized_subject,
+                'html_body': personalized_body,
+                'campaign_id': str(campaign.id),
+                'retry_count': 0
+            }
+            
+            import json
+            redis_client.lpush('outgoing_10', json.dumps(email_data))
             queued_count += 1
         
-        campaign.emails_sent = 0
         db.session.commit()
         
-        logger.info(f"Bulk campaign created - ID: {campaign.id}, emails: {queued_count}")
+        logger.info(f"Campaign {campaign_name} queued with {queued_count} emails")
         
         return jsonify({
             'success': True,
-            'message': f'Campaign created with {queued_count} emails',
+            'message': f'Campaign queued successfully! Sending to {queued_count} recipients.',
             'campaign_id': campaign.id,
-            'total': queued_count
+            'queued': queued_count
         })
-        
+    
     except Exception as e:
         logger.error(f"Bulk send error: {e}", exc_info=True)
         db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@api_bp.errorhandler(404)
-def not_found(error):
-    """Handle 404 errors"""
-    return jsonify({'success': False, 'error': 'Endpoint not found'}), 404
-
-@api_bp.errorhandler(500)
-def internal_error(error):
-    """Handle 500 errors"""
-    logger.error(f"Internal error: {error}")
-    return jsonify({'success': False, 'error': 'Internal server error'}), 500
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
 
 @api_bp.route('/v1/send', methods=['POST'])
 def send_email_api():

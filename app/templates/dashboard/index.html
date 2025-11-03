@@ -3,218 +3,225 @@
 {% block title %}Dashboard - SendBaba{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 py-8">
-    <!-- Welcome Header -->
+<div class="p-6 md:p-8">
+    <!-- Header -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Welcome back, {{ current_user.first_name or current_user.email }}!</h1>
-        <p class="text-gray-600 mt-2">Here's what's happening with your email campaigns</p>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p class="text-gray-600 mt-1">Welcome back! Here's your email marketing overview.</p>
     </div>
-
-    <!-- Quick Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- Emails Today -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600 mb-1">Emails Today</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ stats.emails_today }}</p>
-                    <p class="text-sm text-green-600 mt-1">📧 {{ stats.emails_sent_today }} sent</p>
+    
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-paper-plane text-purple-600 text-xl"></i>
                 </div>
-                <div class="text-4xl">📧</div>
             </div>
+            <div class="text-3xl font-bold text-gray-900 mb-1">{{ stats.total_sent }}</div>
+            <div class="text-sm text-gray-600">Emails Sent</div>
         </div>
-
-        <!-- This Month -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600 mb-1">This Month</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ stats.emails_this_month }}</p>
-                    <p class="text-sm text-green-600 mt-1">📊 {{ stats.emails_sent_this_month }} sent</p>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-users text-blue-600 text-xl"></i>
                 </div>
-                <div class="text-4xl">📊</div>
             </div>
+            <div class="text-3xl font-bold text-gray-900 mb-1">{{ stats.total_contacts }}</div>
+            <div class="text-sm text-gray-600">Total Contacts</div>
         </div>
-
-        <!-- Open Rate -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600 mb-1">Open Rate</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ stats.open_rate }}%</p>
-                    <p class="text-sm text-blue-600 mt-1">👁️ Engagement</p>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-globe text-green-600 text-xl"></i>
                 </div>
-                <div class="text-4xl">📈</div>
             </div>
+            <div class="text-3xl font-bold text-gray-900 mb-1">{{ stats.total_domains }}</div>
+            <div class="text-sm text-gray-600">Domains</div>
         </div>
-
-        <!-- Click Rate -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600 mb-1">Click Rate</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ stats.click_rate }}%</p>
-                    <p class="text-sm text-purple-600 mt-1">🖱️ Clicks</p>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-clock text-orange-600 text-xl"></i>
                 </div>
-                <div class="text-4xl">📊</div>
             </div>
+            <div class="text-3xl font-bold text-gray-900 mb-1">{{ stats.queued }}</div>
+            <div class="text-sm text-gray-600">Queued</div>
         </div>
     </div>
-
-    <!-- Additional Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow p-6 text-white">
-            <p class="text-sm opacity-90 mb-1">Contacts</p>
-            <p class="text-3xl font-bold">{{ stats.contacts }}</p>
-        </div>
-
-        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow p-6 text-white">
-            <p class="text-sm opacity-90 mb-1">Campaigns</p>
-            <p class="text-3xl font-bold">{{ stats.campaigns }}</p>
-            <p class="text-xs opacity-75 mt-1">{{ stats.active_campaigns }} active</p>
-        </div>
-
-        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow p-6 text-white">
-            <p class="text-sm opacity-90 mb-1">Delivery Rate</p>
-            <p class="text-3xl font-bold">{{ stats.delivery_rate }}%</p>
-        </div>
-
-        <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-lg shadow p-6 text-white">
-            <p class="text-sm opacity-90 mb-1">Unsubscribes</p>
-            <p class="text-3xl font-bold">{{ stats.unsubscribes }}</p>
-        </div>
-    </div>
-
+    
     <!-- Quick Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <a href="{{ url_for('dashboard.send_email') }}" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
-            <div class="text-4xl mb-4">✉️</div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Send Email</h3>
-            <p class="text-gray-600 text-sm">Compose and send a new email</p>
-        </a>
-
-        <a href="{{ url_for('dashboard.bulk_send') }}" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
-            <div class="text-4xl mb-4">📤</div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Bulk Send</h3>
-            <p class="text-gray-600 text-sm">Upload CSV and send to multiple recipients</p>
-        </a>
-
-        <a href="{{ url_for('dashboard.contacts') }}" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
-            <div class="text-4xl mb-4">👥</div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Contacts</h3>
-            <p class="text-gray-600 text-sm">Manage your contact list</p>
-        </a>
-
-        <a href="{{ url_for('dashboard.domains') }}" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
-            <div class="text-4xl mb-4">🌐</div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Domains</h3>
-            <p class="text-gray-600 text-sm">Manage sending domains</p>
-        </a>
-    </div>
-
-    <!-- Recent Emails -->
-    <div class="bg-white rounded-lg shadow mb-8">
-        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h2 class="text-xl font-semibold text-gray-900">Recent Emails</h2>
-            {% if stats.emails_this_month > 0 %}
-            <a href="{{ url_for('dashboard.analytics') }}" class="text-purple-600 hover:text-purple-700 text-sm font-medium">
-                View Analytics →
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{{ url_for('dashboard.send_email') }}" 
+               class="flex items-center p-4 border-2 border-gray-200 rounded-xl hover:border-purple-300 hover:shadow-md transition group">
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition">
+                    <i class="fas fa-envelope text-purple-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="font-semibold text-gray-900">Send Email</h3>
+                    <p class="text-sm text-gray-600">Send a single email</p>
+                </div>
             </a>
+            
+            <a href="{{ url_for('dashboard.bulk_send') }}" 
+               class="flex items-center p-4 border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition group">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition">
+                    <i class="fas fa-paper-plane text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="font-semibold text-gray-900">Bulk Campaign</h3>
+                    <p class="text-sm text-gray-600">Send to multiple contacts</p>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('dashboard.contacts') }}" 
+               class="flex items-center p-4 border-2 border-gray-200 rounded-xl hover:border-green-300 hover:shadow-md transition group">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition">
+                    <i class="fas fa-users text-green-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="font-semibold text-gray-900">Manage Contacts</h3>
+                    <p class="text-sm text-gray-600">View and import contacts</p>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Recent Campaigns & Emails in Tabs -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="border-b border-gray-200">
+            <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                <button onclick="switchTab('campaigns')" id="campaignsTab"
+                        class="tab-button border-b-2 border-purple-600 py-4 px-1 text-sm font-medium text-purple-600">
+                    Recent Campaigns
+                </button>
+                <button onclick="switchTab('emails')" id="emailsTab"
+                        class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    Individual Emails
+                </button>
+            </nav>
+        </div>
+        
+        <div id="campaignsContent" class="p-6">
+            {% if campaigns and campaigns|length > 0 %}
+            <div class="space-y-4">
+                {% for campaign in campaigns %}
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h3 class="font-semibold text-gray-900">{{ campaign.name }}</h3>
+                            <p class="text-sm text-gray-600">{{ campaign.subject }}</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-sm font-medium
+                            {% if campaign.status == 'completed' %}bg-green-100 text-green-800
+                            {% elif campaign.status == 'sending' %}bg-blue-100 text-blue-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ campaign.status }}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-600">Sent:</span>
+                            <span class="font-semibold ml-2">{{ campaign.total_sent or 0 }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Recipients:</span>
+                            <span class="font-semibold ml-2">{{ campaign.total_recipients or 0 }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Created:</span>
+                            <span class="font-semibold ml-2">{{ campaign.created_at.strftime('%Y-%m-%d') if campaign.created_at else 'N/A' }}</span>
+                        </div>
+                        <div class="text-right">
+                            <a href="{{ url_for('dashboard.analytics') }}" class="text-purple-600 hover:text-purple-800 font-medium">
+                                View Details →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-paper-plane text-gray-300 text-4xl mb-4"></i>
+                <p class="text-gray-600 mb-4">No campaigns yet</p>
+                <a href="{{ url_for('dashboard.bulk_send') }}" 
+                   class="inline-block bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium">
+                    Create Your First Campaign
+                </a>
+            </div>
             {% endif %}
         </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">To</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Opens</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Clicks</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    {% if recent_emails %}
-                        {% for email in recent_emails %}
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ email.created_at.strftime('%m/%d %H:%M') }}
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-900">
-                                {{ email.to_email }}
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-900">
-                                {{ email.subject[:50] }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+        
+        <div id="emailsContent" class="p-6 hidden">
+            {% if individual_emails and individual_emails|length > 0 %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">To</th>
+                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Subject</th>
+                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Status</th>
+                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for email in individual_emails %}
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-3 px-4 text-sm">{{ email.recipient }}</td>
+                            <td class="py-3 px-4 text-sm">{{ email.subject }}</td>
+                            <td class="py-3 px-4">
+                                <span class="px-2 py-1 rounded-full text-xs font-medium
                                     {% if email.status == 'sent' %}bg-green-100 text-green-800
                                     {% elif email.status == 'failed' %}bg-red-100 text-red-800
-                                    {% elif email.status == 'queued' %}bg-yellow-100 text-yellow-800
+                                    {% elif email.status == 'queued' %}bg-blue-100 text-blue-800
                                     {% else %}bg-gray-100 text-gray-800{% endif %}">
                                     {{ email.status }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <span class="{% if email.opens > 0 %}text-green-600 font-semibold{% else %}text-gray-400{% endif %}">
-                                    {{ email.opens if hasattr(email, 'opens') else 0 }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <span class="{% if email.clicks > 0 %}text-blue-600 font-semibold{% else %}text-gray-400{% endif %}">
-                                    {{ email.clicks if hasattr(email, 'clicks') else 0 }}
-                                </span>
+                            <td class="py-3 px-4 text-sm text-gray-600">
+                                {{ email.created_at.strftime('%Y-%m-%d %H:%M') if email.created_at else 'N/A' }}
                             </td>
                         </tr>
                         {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                                No emails sent yet. <a href="{{ url_for('dashboard.send_email') }}" class="text-purple-600 hover:text-purple-700">Send your first email</a>
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-envelope text-gray-300 text-4xl mb-4"></i>
+                <p class="text-gray-600">No individual emails sent yet</p>
+            </div>
+            {% endif %}
         </div>
     </div>
-
-    <!-- Getting Started (if no emails) -->
-    {% if stats.emails_this_month == 0 %}
-    <div class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg shadow-lg p-8 text-white">
-        <h2 class="text-2xl font-bold mb-4">🚀 Get Started with SendBaba</h2>
-        <p class="mb-6 opacity-90">Follow these steps to send your first email campaign:</p>
-        
-        <div class="grid md:grid-cols-3 gap-6">
-            <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                <div class="text-3xl mb-2">1️⃣</div>
-                <h3 class="font-semibold mb-2">Verify Domain</h3>
-                <p class="text-sm opacity-90">Set up DKIM, SPF, and DMARC</p>
-                <a href="{{ url_for('dashboard.domains') }}" class="inline-block mt-3 px-4 py-2 bg-white text-purple-600 rounded-lg text-sm font-medium hover:bg-gray-100">
-                    Setup Domain
-                </a>
-            </div>
-            
-            <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                <div class="text-3xl mb-2">2️⃣</div>
-                <h3 class="font-semibold mb-2">Add Contacts</h3>
-                <p class="text-sm opacity-90">Import your contact list</p>
-                <a href="{{ url_for('dashboard.contacts') }}" class="inline-block mt-3 px-4 py-2 bg-white text-purple-600 rounded-lg text-sm font-medium hover:bg-gray-100">
-                    Add Contacts
-                </a>
-            </div>
-            
-            <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                <div class="text-3xl mb-2">3️⃣</div>
-                <h3 class="font-semibold mb-2">Send Campaign</h3>
-                <p class="text-sm opacity-90">Create and send your first email</p>
-                <a href="{{ url_for('dashboard.send_email') }}" class="inline-block mt-3 px-4 py-2 bg-white text-purple-600 rounded-lg text-sm font-medium hover:bg-gray-100">
-                    Send Email
-                </a>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
+
+<script>
+function switchTab(tab) {
+    // Update buttons
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('border-purple-600', 'text-purple-600');
+        btn.classList.add('border-transparent', 'text-gray-500');
+    });
+    
+    // Show selected tab
+    if (tab === 'campaigns') {
+        document.getElementById('campaignsTab').classList.add('border-purple-600', 'text-purple-600');
+        document.getElementById('campaignsTab').classList.remove('border-transparent', 'text-gray-500');
+        document.getElementById('campaignsContent').classList.remove('hidden');
+        document.getElementById('emailsContent').classList.add('hidden');
+    } else {
+        document.getElementById('emailsTab').classList.add('border-purple-600', 'text-purple-600');
+        document.getElementById('emailsTab').classList.remove('border-transparent', 'text-gray-500');
+        document.getElementById('campaignsContent').classList.add('hidden');
+        document.getElementById('emailsContent').classList.remove('hidden');
+    }
+}
+</script>
 {% endblock %}

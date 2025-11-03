@@ -3,130 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SendBaba - Enterprise Email Platform{% endblock %}</title>
-    
-    <!-- Tailwind CSS -->
+    <title>{% block title %}SendBaba{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .btn-primary {
-            @apply bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-200;
-        }
+        .sidebar-link { transition: all 0.2s; }
+        .sidebar-link:hover { background: rgba(139, 92, 246, 0.1); }
+        .sidebar-link.active { background: rgba(139, 92, 246, 0.15); border-left: 3px solid #8B5CF6; }
+        #mobileSidebar { transform: translateX(-100%); transition: transform 0.3s; }
+        #mobileSidebar.show { transform: translateX(0); }
     </style>
-    
-    {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex">
-                    <div class="flex-shrink-0 flex items-center">
-                        <a href="/" class="text-2xl font-bold text-purple-600">
-                            📧 SendBaba
-                        </a>
-                    </div>
-                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                        <a href="{{ url_for('web.index') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Home
-                        </a>
-                        <a href="{{ url_for('web.pricing') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Pricing
-                        </a>
-                        <a href="{{ url_for('web.features') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Features
-                        </a>
-                        <a href="{{ url_for('web.docs') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Docs
-                        </a>
-                        <a href="{{ url_for('web.about') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            About
-                        </a>
-                    </div>
+{% if current_user.is_authenticated and request.path.startswith('/dashboard') %}
+<div class="flex h-screen">
+    <!-- Desktop Sidebar -->
+    <aside class="w-64 bg-white border-r hidden md:block">
+        <div class="p-6 border-b">
+            <a href="/" class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-paper-plane text-white text-sm"></i>
                 </div>
-                <div class="flex items-center">
-                    {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('dashboard.index') }}" class="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium">
-                            Dashboard
-                        </a>
-                        <a href="{{ url_for('auth.logout') }}" class="ml-4 text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium">
-                            Logout
-                        </a>
-                    {% else %}
-                        <a href="{{ url_for('auth.login') }}" class="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium">
-                            Login
-                        </a>
-                        <a href="{{ url_for('auth.signup') }}" class="ml-4 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
-                            Sign Up Free
-                        </a>
-                    {% endif %}
+                <span class="text-xl font-bold">SendBaba</span>
+            </a>
+        </div>
+        <nav class="p-4">
+            <ul class="space-y-1">
+                <li><a href="{{ url_for('dashboard.index') }}" class="sidebar-link flex items-center px-4 py-3 rounded-lg {% if request.endpoint == 'dashboard.index' %}active{% endif %}"><i class="fas fa-th-large w-5"></i><span class="ml-3">Dashboard</span></a></li>
+                <li><a href="{{ url_for('dashboard.send_email') }}" class="sidebar-link flex items-center px-4 py-3 rounded-lg {% if request.endpoint == 'dashboard.send_email' %}active{% endif %}"><i class="fas fa-envelope w-5"></i><span class="ml-3">Send Email</span></a></li>
+                <li><a href="{{ url_for('dashboard.bulk_send') }}" class="sidebar-link flex items-center px-4 py-3 rounded-lg {% if request.endpoint == 'dashboard.bulk_send' %}active{% endif %}"><i class="fas fa-paper-plane w-5"></i><span class="ml-3">Campaigns</span></a></li>
+                <li><a href="{{ url_for('dashboard.contacts') }}" class="sidebar-link flex items-center px-4 py-3 rounded-lg {% if request.endpoint == 'dashboard.contacts' %}active{% endif %}"><i class="fas fa-users w-5"></i><span class="ml-3">Contacts</span></a></li>
+                <li><a href="{{ url_for('dashboard.domains') }}" class="sidebar-link flex items-center px-4 py-3 rounded-lg {% if request.endpoint == 'dashboard.domains' %}active{% endif %}"><i class="fas fa-globe w-5"></i><span class="ml-3">Domains</span></a></li>
+                <li><a href="{{ url_for('dashboard.analytics') }}" class="sidebar-link flex items-center px-4 py-3 rounded-lg {% if request.endpoint == 'dashboard.analytics' %}active{% endif %}"><i class="fas fa-chart-line w-5"></i><span class="ml-3">Analytics</span></a></li>
+            </ul>
+        </nav>
+    </aside>
+    
+    <!-- Mobile Sidebar -->
+    <aside id="mobileSidebar" class="fixed inset-y-0 left-0 w-64 bg-white border-r z-50 md:hidden">
+        <div class="p-6 border-b flex justify-between items-center">
+            <a href="/" class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-paper-plane text-white text-sm"></i>
                 </div>
+                <span class="text-xl font-bold">SendBaba</span>
+            </a>
+            <button onclick="toggleMobile()" class="text-gray-500">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <nav class="p-4">
+            <ul class="space-y-1">
+                <li><a href="{{ url_for('dashboard.index') }}" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i class="fas fa-th-large w-5"></i><span class="ml-3">Dashboard</span></a></li>
+                <li><a href="{{ url_for('dashboard.send_email') }}" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i class="fas fa-envelope w-5"></i><span class="ml-3">Send Email</span></a></li>
+                <li><a href="{{ url_for('dashboard.bulk_send') }}" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i class="fas fa-paper-plane w-5"></i><span class="ml-3">Campaigns</span></a></li>
+                <li><a href="{{ url_for('dashboard.contacts') }}" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i class="fas fa-users w-5"></i><span class="ml-3">Contacts</span></a></li>
+                <li><a href="{{ url_for('dashboard.domains') }}" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i class="fas fa-globe w-5"></i><span class="ml-3">Domains</span></a></li>
+                <li><a href="{{ url_for('dashboard.analytics') }}" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i class="fas fa-chart-line w-5"></i><span class="ml-3">Analytics</span></a></li>
+            </ul>
+        </nav>
+    </aside>
+    
+    <!-- Mobile Overlay -->
+    <div id="mobileOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" onclick="toggleMobile()"></div>
+    
+    <div class="flex-1 overflow-y-auto">
+        <!-- Mobile Header -->
+        <header class="bg-white border-b p-4 md:hidden flex justify-between items-center">
+            <button onclick="toggleMobile()" class="text-gray-600">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <span class="font-bold text-lg">SendBaba</span>
+            <a href="{{ url_for('auth.logout') }}" class="text-gray-600">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </header>
+{% else %}
+<nav class="bg-white border-b">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex justify-between h-16">
+            <div class="flex items-center">
+                <a href="/" class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-paper-plane text-white text-sm"></i>
+                    </div>
+                    <span class="text-xl font-bold">SendBaba</span>
+                </a>
+                <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
+                    <a href="{{ url_for('main.features') }}" class="text-gray-700 hover:text-purple-600 text-sm">Features</a>
+                    <a href="{{ url_for('main.pricing') }}" class="text-gray-700 hover:text-purple-600 text-sm">Pricing</a>
+                    <a href="{{ url_for('main.docs') }}" class="text-gray-700 hover:text-purple-600 text-sm">Docs</a>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard.index') }}" class="text-gray-700">Dashboard</a>
+                <a href="{{ url_for('auth.logout') }}" class="text-gray-500">Logout</a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="text-gray-700">Login</a>
+                <a href="{{ url_for('auth.signup') }}" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm">Sign Up</a>
+                {% endif %}
             </div>
         </div>
-    </nav>
-
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-                {% for category, message in messages %}
-                    <div class="rounded-md p-4 mb-4 {% if category == 'success' %}bg-green-50 text-green-800{% elif category == 'danger' %}bg-red-50 text-red-800{% elif category == 'warning' %}bg-yellow-50 text-yellow-800{% else %}bg-blue-50 text-blue-800{% endif %}">
-                        <p>{{ message }}</p>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-
-    <!-- Main Content -->
-    {% block content %}{% endblock %}
-
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white mt-20">
-        <div class="max-w-7xl mx-auto px-4 py-12">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                    <h3 class="text-xl font-bold mb-4">SendBaba</h3>
-                    <p class="text-gray-400">Enterprise email platform for modern businesses</p>
-                </div>
-                <div>
-                    <h4 class="font-semibold mb-4">Product</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="{{ url_for('web.features') }}" class="hover:text-white">Features</a></li>
-                        <li><a href="{{ url_for('web.pricing') }}" class="hover:text-white">Pricing</a></li>
-                        <li><a href="{{ url_for('web.docs') }}" class="hover:text-white">Documentation</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-semibold mb-4">Company</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="{{ url_for('web.about') }}" class="hover:text-white">About</a></li>
-                        <li><a href="#" class="hover:text-white">Blog</a></li>
-                        <li><a href="#" class="hover:text-white">Careers</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-semibold mb-4">Support</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="#" class="hover:text-white">Help Center</a></li>
-                        <li><a href="#" class="hover:text-white">Contact</a></li>
-                        <li><a href="#" class="hover:text-white">Status</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2025 SendBaba. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    {% block extra_js %}{% endblock %}
+    </div>
+</nav>
+{% endif %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="p-4">
+    {% for category, message in messages %}
+    <div class="rounded p-3 mb-2 {% if category == 'error' %}bg-red-50 text-red-800{% else %}bg-green-50 text-green-800{% endif %}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+{% block content %}{% endblock %}
+{% if not (current_user.is_authenticated and request.path.startswith('/dashboard')) %}
+<footer class="bg-white border-t mt-12">
+    <div class="max-w-7xl mx-auto py-8 px-4">
+        <p class="text-center text-gray-500 text-sm">© 2025 SendBaba</p>
+    </div>
+</footer>
+{% endif %}
+{% if current_user.is_authenticated and request.path.startswith('/dashboard') %}
+    </div>
+</div>
+{% endif %}
+<script>
+function toggleMobile() {
+    const sidebar = document.getElementById('mobileSidebar');
+    const overlay = document.getElementById('mobileOverlay');
+    sidebar.classList.toggle('show');
+    overlay.classList.toggle('hidden');
+}
+</script>
+{% block scripts %}{% endblock %}
 </body>
 </html>

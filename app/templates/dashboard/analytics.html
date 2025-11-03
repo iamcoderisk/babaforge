@@ -1,106 +1,64 @@
 {% extends "base.html" %}
 
-{% block title %}Email Analytics - SendBaba{% endblock %}
+{% block title %}Analytics - SendBaba{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-8">
     <h1 class="text-3xl font-bold text-gray-900 mb-8">Email Analytics</h1>
     
-    <!-- Email Performance Table -->
-    <div class="bg-white rounded-lg shadow-lg mb-8 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-900">Email Performance</h2>
-        </div>
+    <!-- Email Performance -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-xl font-bold mb-4">Campaign Performance</h2>
+        
+        {% if campaigns and campaigns|length > 0 %}
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sent</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">To</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Opens</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Clicks</th>
+            <table class="min-w-full">
+                <thead>
+                    <tr class="border-b">
+                        <th class="text-left py-3 px-4">Campaign</th>
+                        <th class="text-left py-3 px-4">Subject</th>
+                        <th class="text-left py-3 px-4">Sent</th>
+                        <th class="text-left py-3 px-4">Status</th>
+                        <th class="text-left py-3 px-4">Date</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200">
-                    {% for email_data in emails %}
-                    <tr>
-                        <td class="px-6 py-4 text-sm text-gray-600">
-                            {{ email_data.Email.created_at.strftime('%m/%d %H:%M') }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-900">
-                            {{ email_data.Email.to_email }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-900">
-                            {{ email_data.Email.subject[:50] }}
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs rounded-full {% if email_data.Email.status == 'sent' %}bg-green-100 text-green-800{% elif email_data.Email.status == 'failed' %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
-                                {{ email_data.Email.status }}
+                <tbody>
+                    {% for campaign in campaigns %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-3 px-4 font-medium">{{ campaign.name }}</td>
+                        <td class="py-3 px-4">{{ campaign.subject }}</td>
+                        <td class="py-3 px-4">{{ campaign.total_sent or 0 }}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded text-xs
+                                {% if campaign.status == 'completed' %}bg-green-100 text-green-800
+                                {% elif campaign.status == 'sending' %}bg-blue-100 text-blue-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ campaign.status }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-sm">
-                            <span class="{% if email_data.opens > 0 %}text-green-600 font-semibold{% else %}text-gray-400{% endif %}">
-                                {{ email_data.opens }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm">
-                            <span class="{% if email_data.clicks > 0 %}text-blue-600 font-semibold{% else %}text-gray-400{% endif %}">
-                                {{ email_data.clicks }}
-                            </span>
+                        <td class="py-3 px-4 text-sm text-gray-600">
+                            {{ campaign.created_at.strftime('%Y-%m-%d') if campaign.created_at else 'N/A' }}
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+        {% else %}
+        <p class="text-center text-gray-500 py-8">No campaigns yet</p>
+        {% endif %}
     </div>
     
     <!-- Recent Clicks -->
-    <div class="bg-white rounded-lg shadow-lg mb-8">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-900">Recent Clicks</h2>
-        </div>
-        <div class="p-6">
-            {% if recent_clicks %}
-            <div class="space-y-4">
-                {% for click, email in recent_clicks %}
-                <div class="border-l-4 border-blue-500 pl-4 py-2">
-                    <p class="text-sm text-gray-900 font-medium">{{ email.to_email }}</p>
-                    <p class="text-sm text-gray-600 truncate">{{ click.url }}</p>
-                    <p class="text-xs text-gray-500">{{ click.clicked_at.strftime('%b %d, %Y %H:%M') }}</p>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p class="text-gray-500 text-center py-4">No clicks yet</p>
-            {% endif %}
-        </div>
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-xl font-bold mb-4">Recent Clicks</h2>
+        <p class="text-center text-gray-500 py-8">No clicks yet</p>
     </div>
     
     <!-- Unsubscribes -->
-    <div class="bg-white rounded-lg shadow-lg">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-900">Unsubscribes</h2>
-        </div>
-        <div class="p-6">
-            {% if unsubscribes %}
-            <div class="space-y-4">
-                {% for unsub in unsubscribes %}
-                <div class="border-l-4 border-red-500 pl-4 py-2">
-                    <p class="text-sm text-gray-900 font-medium">{{ unsub.email_address }}</p>
-                    {% if unsub.reason %}
-                    <p class="text-sm text-gray-600">Reason: {{ unsub.reason }}</p>
-                    {% endif %}
-                    <p class="text-xs text-gray-500">{{ unsub.unsubscribed_at.strftime('%b %d, %Y %H:%M') }}</p>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p class="text-gray-500 text-center py-4">No unsubscribes</p>
-            {% endif %}
-        </div>
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Unsubscribes</h2>
+        <p class="text-center text-gray-500 py-8">No unsubscribes</p>
     </div>
 </div>
 {% endblock %}

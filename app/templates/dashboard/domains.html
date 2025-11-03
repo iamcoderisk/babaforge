@@ -4,27 +4,28 @@
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-8">
-    <div class="mb-8 flex justify-between items-center">
+    <div class="flex justify-between items-center mb-8">
         <div>
             <h1 class="text-3xl font-bold text-gray-900">Email Domains</h1>
             <p class="text-gray-600 mt-2">Manage and verify your sending domains</p>
         </div>
-        <button onclick="showAddDomainModal()" 
-                class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold">
-            <i class="fas fa-plus mr-2"></i>Add Domain
+        <button onclick="showAddModal()" 
+                class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">
+            Add Domain
         </button>
     </div>
-
+    
     <!-- Domains List -->
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    {% if domains and domains|length > 0 %}
+    <div class="bg-white shadow rounded-lg overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DNS Records</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Added</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Domain</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">DKIM</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Added</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -35,194 +36,199 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         {% if domain.dns_verified %}
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                             Verified
                         </span>
                         {% else %}
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                             Pending
                         </span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4">
-                        <button onclick="showDNSRecords('{{ domain.domain_name }}')" 
-                                class="text-sm text-purple-600 hover:text-purple-900">
-                            View DNS Records
-                        </button>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if domain.dkim_public_key %}
+                        <span class="text-green-600">✓ Generated</span>
+                        {% else %}
+                        <span class="text-gray-400">Not generated</span>
+                        {% endif %}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ domain.created_at.strftime('%Y-%m-%d') if domain.created_at else 'N/A' }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                        <button onclick='viewDNS({{ domain.id | tojson }}, {{ domain.domain_name | tojson }}, {{ domain.dkim_public_key | tojson }})' 
+                                class="text-purple-600 hover:text-purple-900">View DNS</button>
+                        
+                        {% if not domain.dkim_public_key %}
+                        <button onclick="generateDKIM('{{ domain.id }}')" 
+                                class="text-blue-600 hover:text-blue-900">Generate DKIM</button>
+                        {% endif %}
+                        
                         {% if not domain.dns_verified %}
                         <button onclick="verifyDomain('{{ domain.id }}')" 
-                                class="text-blue-600 hover:text-blue-900">
-                            Verify
-                        </button>
+                                class="text-green-600 hover:text-green-900">Verify</button>
                         {% endif %}
+                        
                         <button onclick="deleteDomain('{{ domain.id }}')" 
-                                class="text-red-600 hover:text-red-900">
-                            Delete
-                        </button>
+                                class="text-red-600 hover:text-red-900">Delete</button>
                     </td>
                 </tr>
                 {% endfor %}
-                
-                {% if not domains %}
-                <tr>
-                    <td colspan="5" class="px-6 py-12 text-center">
-                        <div class="text-gray-400">
-                            <i class="fas fa-globe fa-3x mb-4"></i>
-                            <p class="text-lg">No domains added yet</p>
-                            <p class="text-sm mt-2">Add your first domain to start sending emails</p>
-                        </div>
-                    </td>
-                </tr>
-                {% endif %}
             </tbody>
         </table>
     </div>
-
-    <!-- DNS Records Info -->
-    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 class="text-lg font-semibold text-blue-900 mb-4">📋 Required DNS Records</h3>
-        <div class="space-y-4 text-sm">
+    {% else %}
+    <div class="bg-white shadow rounded-lg p-12 text-center">
+        <p class="text-gray-500 mb-4">No domains added yet</p>
+        <button onclick="showAddModal()" 
+                class="inline-block bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg">
+            Add Your First Domain
+        </button>
+    </div>
+    {% endif %}
+    
+    <!-- Required DNS Records -->
+    <div class="mt-8 bg-white shadow rounded-lg p-6">
+        <h2 class="text-xl font-bold mb-4">📋 Required DNS Records</h2>
+        
+        <div class="space-y-6">
             <div>
-                <strong>SPF Record:</strong>
-                <code class="block mt-1 bg-white p-2 rounded">v=spf1 ip4:156.67.29.186 ~all</code>
+                <h3 class="font-semibold text-gray-700 mb-2">SPF Record (TXT):</h3>
+                <p class="text-sm text-gray-600 mb-2">Add this TXT record to your domain:</p>
+                <div class="bg-gray-50 p-4 rounded border">
+                    <div class="grid grid-cols-3 gap-4 text-sm mb-2">
+                        <div><strong>Type:</strong> TXT</div>
+                        <div><strong>Host:</strong> @</div>
+                        <div><strong>TTL:</strong> 3600</div>
+                    </div>
+                    <div class="text-sm">
+                        <strong>Value:</strong>
+                        <code class="block bg-white p-2 rounded mt-1">v=spf1 ip4:156.67.29.186 ~all</code>
+                    </div>
+                </div>
             </div>
+            
             <div>
-                <strong>DKIM Record (default._domainkey):</strong>
-                <code class="block mt-1 bg-white p-2 rounded text-xs">Contact support for your DKIM public key</code>
+                <h3 class="font-semibold text-gray-700 mb-2">DKIM Record (TXT):</h3>
+                <p class="text-sm text-gray-600 mb-2">Generate DKIM keys first, then add this TXT record:</p>
+                <div class="bg-gray-50 p-4 rounded border">
+                    <div class="grid grid-cols-3 gap-4 text-sm mb-2">
+                        <div><strong>Type:</strong> TXT</div>
+                        <div><strong>Host:</strong> default._domainkey</div>
+                        <div><strong>TTL:</strong> 3600</div>
+                    </div>
+                    <div class="text-sm">
+                        <strong>Value:</strong> (Your DKIM public key - click "Generate DKIM" button)
+                    </div>
+                </div>
             </div>
+            
             <div>
-                <strong>DMARC Record (_dmarc):</strong>
-                <code class="block mt-1 bg-white p-2 rounded">v=DMARC1; p=none; rua=mailto:dmarc@yourdomain.com</code>
+                <h3 class="font-semibold text-gray-700 mb-2">DMARC Record (TXT):</h3>
+                <p class="text-sm text-gray-600 mb-2">Add this TXT record to protect your domain:</p>
+                <div class="bg-gray-50 p-4 rounded border">
+                    <div class="grid grid-cols-3 gap-4 text-sm mb-2">
+                        <div><strong>Type:</strong> TXT</div>
+                        <div><strong>Host:</strong> _dmarc</div>
+                        <div><strong>TTL:</strong> 3600</div>
+                    </div>
+                    <div class="text-sm">
+                        <strong>Value:</strong>
+                        <code class="block bg-white p-2 rounded mt-1">v=DMARC1; p=none; rua=mailto:dmarc@yourdomain.com</code>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Add Domain Modal -->
-<!-- DNS Records Modal -->
-<div id="dnsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" onclick="if(event.target === this) closeDNSModal()">
-    <div class="relative top-20 mx-auto p-8 border w-full max-w-3xl shadow-lg rounded-lg bg-white">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-gray-900">
-                DNS Records for <span id="modalDomain" class="text-purple-600"></span>
-            </h3>
-            <button onclick="closeDNSModal()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times text-2xl"></i>
-            </button>
-        </div>
-        
-        <div class="space-y-6">
-            <!-- SPF Record -->
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div class="flex justify-between items-start mb-2">
-                    <h4 class="font-semibold text-blue-900 text-lg">1. SPF Record</h4>
-                    <button onclick="copyToClipboard('v=spf1 ip4:156.67.29.186 ~all', this)" 
-                            class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
-                        <i class="fas fa-copy mr-2"></i>Copy
-                    </button>
-                </div>
-                <div class="space-y-2 text-sm">
-                    <div><strong>Type:</strong> <code class="bg-white px-2 py-1 rounded">TXT</code></div>
-                    <div><strong>Name:</strong> <code class="bg-white px-2 py-1 rounded">@</code></div>
-                    <div><strong>Value:</strong></div>
-                    <code class="block bg-white p-3 rounded font-mono text-xs break-all">v=spf1 ip4:156.67.29.186 ~all</code>
-                </div>
+<div id="addModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" onclick="if(event.target===this) hideAddModal()">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <h3 class="text-lg font-bold mb-4">Add New Domain</h3>
+        <form id="addDomainForm" onsubmit="addDomain(event)">
+            <input type="text" 
+                   name="domain_name" 
+                   id="domainInput"
+                   placeholder="yourdomain.com" 
+                   class="w-full px-4 py-2 border rounded mb-4" 
+                   required>
+            <div id="addError" class="hidden mb-4 p-3 bg-red-100 text-red-700 rounded"></div>
+            <div class="flex justify-end space-x-2">
+                <button type="button" 
+                        onclick="hideAddModal()"
+                        class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+                <button type="submit" 
+                        id="addButton"
+                        class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">Add Domain</button>
             </div>
+        </form>
+    </div>
+</div>
 
-            <!-- DKIM Record -->
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div class="flex justify-between items-start mb-2">
-                    <h4 class="font-semibold text-green-900 text-lg">2. DKIM Record</h4>
-                    <button onclick="alert('Contact support for your DKIM public key')" 
-                            class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">
-                        <i class="fas fa-info-circle mr-2"></i>Get Key
-                    </button>
-                </div>
-                <div class="space-y-2 text-sm">
-                    <div><strong>Type:</strong> <code class="bg-white px-2 py-1 rounded">TXT</code></div>
-                    <div><strong>Name:</strong> <code class="bg-white px-2 py-1 rounded">default._domainkey</code></div>
-                    <div><strong>Value:</strong></div>
-                    <code class="block bg-white p-3 rounded font-mono text-xs break-all">v=DKIM1; k=rsa; p=YOUR_PUBLIC_KEY_HERE</code>
-                    <p class="text-green-800 mt-2">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        Contact support or check the "Required DNS Records" section below for your DKIM public key
-                    </p>
-                </div>
-            </div>
-
-            <!-- DMARC Record -->
-            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <div class="flex justify-between items-start mb-2">
-                    <h4 class="font-semibold text-purple-900 text-lg">3. DMARC Record</h4>
-                    <button onclick="copyToClipboard('v=DMARC1; p=none; rua=mailto:' + document.getElementById('modalDmarcEmail').textContent, this)" 
-                            class="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700">
-                        <i class="fas fa-copy mr-2"></i>Copy
-                    </button>
-                </div>
-                <div class="space-y-2 text-sm">
-                    <div><strong>Type:</strong> <code class="bg-white px-2 py-1 rounded">TXT</code></div>
-                    <div><strong>Name:</strong> <code class="bg-white px-2 py-1 rounded">_dmarc</code></div>
-                    <div><strong>Value:</strong></div>
-                    <code class="block bg-white p-3 rounded font-mono text-xs break-all">v=DMARC1; p=none; rua=mailto:<span id="modalDmarcEmail"></span></code>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-6 bg-gray-50 rounded-lg p-4">
-            <p class="text-sm text-gray-700">
-                <i class="fas fa-clock text-gray-500 mr-2"></i>
-                <strong>Note:</strong> DNS changes can take 10-15 minutes to propagate. After adding these records, click "Verify" to check your domain.
-            </p>
-        </div>
-
-        <div class="mt-6 flex justify-end">
-            <button onclick="closeDNSModal()" 
-                    class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
-                Close
-            </button>
+<!-- Success/Error Dialog -->
+<div id="messageDialog" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" onclick="if(event.target===this) hideMessageDialog()">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="text-center">
+            <div id="messageIcon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4"></div>
+            <h3 id="messageTitle" class="text-lg font-bold mb-2"></h3>
+            <p id="messageText" class="text-gray-600 mb-4"></p>
+            <button onclick="hideMessageDialog()" 
+                    class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">OK</button>
         </div>
     </div>
 </div>
 
-<div id="addDomainModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Add New Domain</h3>
-            <form id="addDomainForm">
-                <input type="text" name="domain_name" placeholder="yourdomain.com" required
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 mb-4">
-                <div class="flex justify-end space-x-2">
-                    <button type="button" onclick="hideAddDomainModal()"
-                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                        Add Domain
-                    </button>
-                </div>
-            </form>
+<!-- DNS Details Modal -->
+<div id="dnsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" onclick="if(event.target===this) hideDNSModal()">
+    <div class="relative top-10 mx-auto p-6 border w-3/4 max-w-4xl shadow-lg rounded-md bg-white my-8">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold">DNS Records for <span id="dnsModalDomain" class="text-purple-600"></span></h3>
+            <button onclick="hideDNSModal()" class="text-gray-500 hover:text-gray-700 text-3xl leading-none">&times;</button>
         </div>
+        <div id="dnsContent" class="space-y-6"></div>
     </div>
 </div>
 
 <script>
-function showAddDomainModal() {
-    document.getElementById('addDomainModal').classList.remove('hidden');
+function showAddModal() {
+    document.getElementById('addModal').classList.remove('hidden');
+    document.getElementById('domainInput').focus();
 }
 
-function hideAddDomainModal() {
-    document.getElementById('addDomainModal').classList.add('hidden');
+function hideAddModal() {
+    document.getElementById('addModal').classList.add('hidden');
+    document.getElementById('addDomainForm').reset();
+    document.getElementById('addError').classList.add('hidden');
 }
 
-document.getElementById('addDomainForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
+function showMessage(title, text, isSuccess) {
+    const icon = document.getElementById('messageIcon');
+    icon.className = isSuccess 
+        ? 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4'
+        : 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4';
+    icon.innerHTML = isSuccess ? '✓' : '✕';
+    icon.style.fontSize = '24px';
+    icon.style.color = isSuccess ? '#059669' : '#dc2626';
+    
+    document.getElementById('messageTitle').textContent = title;
+    document.getElementById('messageText').textContent = text;
+    document.getElementById('messageDialog').classList.remove('hidden');
+}
+
+function hideMessageDialog() {
+    document.getElementById('messageDialog').classList.add('hidden');
+}
+
+function addDomain(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const button = document.getElementById('addButton');
+    const errorDiv = document.getElementById('addError');
+    
+    button.disabled = true;
+    button.textContent = 'Adding...';
+    errorDiv.classList.add('hidden');
     
     fetch('/dashboard/domains/add', {
         method: 'POST',
@@ -230,29 +236,66 @@ document.getElementById('addDomainForm').addEventListener('submit', function(e) 
     })
     .then(response => response.json())
     .then(data => {
+        button.disabled = false;
+        button.textContent = 'Add Domain';
+        
         if (data.success) {
-            alert('Domain added successfully!');
-            location.reload();
+            hideAddModal();
+            showMessage('Success!', 'Domain added successfully', true);
+            setTimeout(() => location.reload(), 1500);
         } else {
-            alert('Error: ' + data.error);
+            errorDiv.textContent = data.error || 'Error adding domain';
+            errorDiv.classList.remove('hidden');
         }
+    })
+    .catch(error => {
+        button.disabled = false;
+        button.textContent = 'Add Domain';
+        errorDiv.textContent = 'Network error. Please try again.';
+        errorDiv.classList.remove('hidden');
     });
-});
+}
+
+function generateDKIM(domainId) {
+    fetch(`/dashboard/domains/${domainId}/generate-dkim`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage('DKIM Generated!', 'DKIM keys have been generated successfully. Refresh the page to see the public key.', true);
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showMessage('Error', data.error || 'Failed to generate DKIM keys', false);
+        }
+    })
+    .catch(() => showMessage('Error', 'Network error occurred', false));
+}
 
 function verifyDomain(domainId) {
-    if (!confirm('Have you added the DNS records?')) return;
+    const button = event.target;
+    button.disabled = true;
+    button.textContent = 'Verifying...';
     
     fetch(`/dashboard/domains/${domainId}/verify`, {
         method: 'POST'
     })
     .then(response => response.json())
     .then(data => {
+        button.disabled = false;
+        button.textContent = 'Verify';
+        
         if (data.success) {
-            alert('Domain verified successfully!');
-            location.reload();
+            showMessage('Verified!', 'Domain DNS records verified successfully!', true);
+            setTimeout(() => location.reload(), 1500);
         } else {
-            alert('Error: ' + data.error);
+            showMessage('Verification Failed', data.message || 'DNS records not found. Please check your DNS settings and wait a few minutes for propagation.', false);
         }
+    })
+    .catch(() => {
+        button.disabled = false;
+        button.textContent = 'Verify';
+        showMessage('Error', 'Network error occurred', false);
     });
 }
 
@@ -265,34 +308,64 @@ function deleteDomain(domainId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Domain deleted successfully!');
-            location.reload();
+            showMessage('Deleted', 'Domain deleted successfully', true);
+            setTimeout(() => location.reload(), 1000);
         } else {
-            alert('Error: ' + data.error);
+            showMessage('Error', 'Failed to delete domain', false);
         }
     });
 }
 
-function showDNSRecords(domain) {
-    document.getElementById('modalDomain').textContent = domain;
-    document.getElementById('modalDmarcEmail').textContent = `dmarc@${domain}`;
+function viewDNS(domainId, domainName, dkimKey) {
+    document.getElementById('dnsModalDomain').textContent = domainName;
+    
+    let dnsHTML = `
+        <div class="bg-gray-50 p-4 rounded border">
+            <h4 class="font-semibold mb-3 text-lg">SPF Record</h4>
+            <div class="bg-white p-3 rounded text-sm space-y-2">
+                <div><strong>Type:</strong> TXT</div>
+                <div><strong>Host:</strong> @ (or your domain)</div>
+                <div><strong>Value:</strong> <code class="bg-gray-100 px-2 py-1 rounded">v=spf1 ip4:156.67.29.186 ~all</code></div>
+            </div>
+        </div>
+    `;
+    
+    if (dkimKey) {
+        dnsHTML += `
+            <div class="bg-gray-50 p-4 rounded border">
+                <h4 class="font-semibold mb-3 text-lg">DKIM Record</h4>
+                <div class="bg-white p-3 rounded text-sm space-y-2">
+                    <div><strong>Type:</strong> TXT</div>
+                    <div><strong>Host:</strong> default._domainkey</div>
+                    <div><strong>Value:</strong> <code class="bg-gray-100 px-2 py-1 rounded block break-all">${dkimKey}</code></div>
+                </div>
+            </div>
+        `;
+    } else {
+        dnsHTML += `
+            <div class="bg-yellow-50 p-4 rounded border border-yellow-200">
+                <p class="text-yellow-800">⚠️ DKIM not generated yet. Click "Generate DKIM" button first.</p>
+            </div>
+        `;
+    }
+    
+    dnsHTML += `
+        <div class="bg-gray-50 p-4 rounded border">
+            <h4 class="font-semibold mb-3 text-lg">DMARC Record</h4>
+            <div class="bg-white p-3 rounded text-sm space-y-2">
+                <div><strong>Type:</strong> TXT</div>
+                <div><strong>Host:</strong> _dmarc</div>
+                <div><strong>Value:</strong> <code class="bg-gray-100 px-2 py-1 rounded">v=DMARC1; p=none; rua=mailto:dmarc@${domainName}</code></div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('dnsContent').innerHTML = dnsHTML;
     document.getElementById('dnsModal').classList.remove('hidden');
 }
 
-function closeDNSModal() {
+function hideDNSModal() {
     document.getElementById('dnsModal').classList.add('hidden');
-}
-
-function copyToClipboard(text, button) {
-    navigator.clipboard.writeText(text).then(() => {
-        const originalText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
-        button.classList.add('bg-green-600');
-        setTimeout(() => {
-            button.innerHTML = originalText;
-            button.classList.remove('bg-green-600');
-        }, 2000);
-    });
 }
 </script>
 {% endblock %}

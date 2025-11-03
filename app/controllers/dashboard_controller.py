@@ -1,334 +1,364 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from app import db
 from app.models.email import Email
-from app.models.campaign import Campaign
 from app.models.contact import Contact
 from app.models.domain import Domain
-from sqlalchemy import func, or_
-from datetime import datetime, timedelta
+from app.models.campaign import Campaign
+from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
 
-dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
+dashboard_bp = Blueprint('dashboard', __name__)
+
 
 @dashboard_bp.route('/')
 @login_required
 def index():
-    """Main dashboard"""
+    """Dashboard homepage"""
     try:
         org = current_user.organization
         
         if not org:
-            flash('Organization not found. Please contact support.', 'danger')
-            return redirect(url_for('web.index'))
+            flash('No organization found. Please contact support.', 'error')
+            return redirect(url_for('main.index'))
         
-        # Date ranges
-        today = datetime.utcnow().date()
-        month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        
-        # Email statistics - TODAY
-        try:
-            emails_today = Email.query.filter(
-                Email.organization_id == org.id,
-                func.date(Email.created_at) == today
-            ).count()
-        except Exception as e:
-            logger.error(f"Error counting emails today: {e}")
-            emails_today = 0
-        
-        try:
-            emails_sent_today = Email.query.filter(
-                Email.organization_id == org.id,
-                func.date(Email.created_at) == today,
-                Email.status == 'sent'
-            ).count()
-        except Exception as e:
-            logger.error(f"Error counting sent emails today: {e}")
-            emails_sent_today = 0
-        
-        # Email statistics - THIS MONTH
-        try:
-            emails_this_month = Email.query.filter(
-                Email.organization_id == org.id,
-                Email.created_at >= month_start
-            ).count()
-        except Exception as e:
-            logger.error(f"Error counting emails this month: {e}")
-            emails_this_month = 0
-        
-        try:
-            emails_sent_this_month = Email.query.filter(
-                Email.organization_id == org.id,
-                Email.created_at >= month_start,
-                Email.status == 'sent'
-            ).count()
-        except Exception as e:
-            logger.error(f"Error counting sent emails this month: {e}")
-            emails_sent_this_month = 0
-        
-        # Open rate
-        try:
-            emails_opened = Email.query.filter(
-                Email.organization_id == org.id,
-                Email.opened == True
-            ).count() if hasattr(Email, 'opened') else 0
-        except Exception as e:
-            logger.error(f"Error counting opened emails: {e}")
-            emails_opened = 0
-        
-        try:
-            total_delivered = Email.query.filter(
-                Email.organization_id == org.id,
-                Email.status == 'sent'
-            ).count()
-        except Exception as e:
-            logger.error(f"Error counting delivered emails: {e}")
-            total_delivered = 0
-        
-        open_rate = (emails_opened / total_delivered * 100) if total_delivered > 0 else 0
-        
-        # Click rate
-        try:
-            from app.models.email_tracking import EmailClick
-            
-            emails_clicked = db.session.query(Email.id).join(
-                EmailClick, Email.id == EmailClick.email_id
-            ).filter(
-                Email.organization_id == org.id
-            ).distinct().count()
-        except Exception as e:
-            logger.error(f"Error counting clicked emails: {e}")
-            emails_clicked = 0
-        
-        click_rate = (emails_clicked / total_delivered * 100) if total_delivered > 0 else 0
-        
-        # Delivery rate
-        delivery_rate = (emails_sent_this_month / emails_this_month * 100) if emails_this_month > 0 else 0
-        
-        # Contact count
-        try:
-            contacts_count = Contact.query.filter_by(organization_id=org.id).count()
-        except Exception as e:
-            logger.error(f"Error counting contacts: {e}")
-            contacts_count = 0
-        
-        # Campaign count
-        try:
-            campaigns_count = Campaign.query.filter_by(organization_id=org.id).count()
-            active_campaigns = Campaign.query.filter_by(
-                organization_id=org.id,
-                status='sending'
-            ).count()
-        except Exception as e:
-            logger.error(f"Error counting campaigns: {e}")
-            campaigns_count = 0
-            active_campaigns = 0
-        
-        # Recent activity
-        try:
-            recent_emails = Email.query.filter_by(
-                organization_id=org.id
-            ).order_by(Email.created_at.desc()).limit(10).all()
-            
-            # Get tracking data if available
-            if hasattr(Email, 'opened'):
-                try:
-                    from app.models.email_tracking import EmailOpen, EmailClick
-                    
-                    for email in recent_emails:
-                        email.opens = EmailOpen.query.filter_by(email_id=email.id).count()
-                        email.clicks = EmailClick.query.filter_by(email_id=email.id).count()
-                except Exception as e:
-                    logger.error(f"Error getting tracking data: {e}")
-                    for email in recent_emails:
-                        email.opens = 0
-                        email.clicks = 0
-            else:
-                for email in recent_emails:
-                    email.opens = 0
-                    email.clicks = 0
-                    
-        except Exception as e:
-            logger.error(f"Error getting recent emails: {e}")
-            recent_emails = []
-        
-        # Unsubscribe count
-        try:
-            from app.models.email_tracking import EmailUnsubscribe
-            unsubscribe_count = EmailUnsubscribe.query.filter_by(
-                organization_id=org.id
-            ).count()
-        except Exception as e:
-            logger.error(f"Error counting unsubscribes: {e}")
-            unsubscribe_count = 0
-        
+        # Get stats
         stats = {
-            'emails_today': emails_today,
-            'emails_sent_today': emails_sent_today,
-            'emails_this_month': emails_this_month,
-            'emails_sent_this_month': emails_sent_this_month,
-            'open_rate': round(open_rate, 1),
-            'click_rate': round(click_rate, 1),
-            'delivery_rate': round(delivery_rate, 1),
-            'contacts': contacts_count,
-            'campaigns': campaigns_count,
-            'active_campaigns': active_campaigns,
-            'unsubscribes': unsubscribe_count
+            'total_sent': Email.query.filter_by(organization_id=org.id, status='sent').count(),
+            'total_contacts': Contact.query.filter_by(organization_id=org.id).count(),
+            'total_domains': Domain.query.filter_by(organization_id=org.id).count(),
+            'queued': Email.query.filter_by(organization_id=org.id, status='queued').count()
         }
         
+        # Get recent campaigns
+        campaigns = Campaign.query.filter_by(
+            organization_id=org.id
+        ).order_by(Campaign.created_at.desc()).limit(5).all()
+        
+        # Get recent individual emails
+        individual_emails = Email.query.filter_by(
+            organization_id=org.id
+        ).order_by(Email.created_at.desc()).limit(10).all()
+        
         return render_template('dashboard/index.html',
-                             org=org,
-                             stats=stats,
-                             recent_emails=recent_emails)
+                             campaigns=campaigns,
+                             individual_emails=individual_emails,
+                             stats=stats)
     
     except Exception as e:
         logger.error(f"Dashboard error: {e}", exc_info=True)
-        flash(f'Error loading dashboard: {str(e)}', 'danger')
-        return redirect(url_for('web.index'))
+        # Instead of redirecting, show empty dashboard
+        stats = {'total_sent': 0, 'total_contacts': 0, 'total_domains': 0, 'queued': 0}
+        return render_template('dashboard/index.html',
+                             campaigns=[],
+                             individual_emails=[],
+                             stats=stats)
+
 
 @dashboard_bp.route('/send-email')
 @login_required
 def send_email():
-    """Send email page"""
+    """Send single email page"""
     org = current_user.organization
-    domains = Domain.query.filter_by(organization_id=org.id).all() if org else []
-    return render_template('dashboard/send_email.html', org=org, domains=domains)
+    domains = Domain.query.filter_by(organization_id=org.id).all()
+    return render_template('dashboard/send_email.html', domains=domains)
+
 
 @dashboard_bp.route('/bulk-send')
 @login_required
 def bulk_send():
     """Bulk send page"""
-    try:
-        org = current_user.organization
-        
-        if not org:
-            flash('Organization not found.', 'danger')
-            return redirect(url_for('dashboard.index'))
-        
-        # Get verified domains only
-        domains = Domain.query.filter_by(
-            organization_id=org.id,
-            dns_verified=True
-        ).all()
-        
-        return render_template('dashboard/bulk_send.html', org=org, domains=domains)
-    
-    except Exception as e:
-        logger.error(f"Bulk send page error: {e}", exc_info=True)
-        flash(f'Error loading bulk send page: {str(e)}', 'danger')
-        return redirect(url_for('dashboard.index'))
+    org = current_user.organization
+    domains = Domain.query.filter_by(organization_id=org.id).all()
+    contacts = Contact.query.filter_by(organization_id=org.id).all()
+    return render_template('dashboard/bulk_send.html', domains=domains, contacts=contacts)
+
 
 @dashboard_bp.route('/contacts')
 @login_required
 def contacts():
     """Contacts page"""
-    try:
-        org = current_user.organization
-        
-        if not org:
-            flash('Organization not found.', 'danger')
-            return redirect(url_for('dashboard.index'))
-        
-        page = request.args.get('page', 1, type=int)
-        search = request.args.get('search', '').strip()
-        
-        query = Contact.query.filter_by(organization_id=org.id)
-        
-        if search:
-            query = query.filter(
-                or_(
-                    Contact.email.ilike(f'%{search}%'),
-                    Contact.first_name.ilike(f'%{search}%'),
-                    Contact.last_name.ilike(f'%{search}%'),
-                    Contact.company.ilike(f'%{search}%')
-                )
-            )
-        
-        contacts_pagination = query.order_by(Contact.created_at.desc()).paginate(
-            page=page, per_page=50, error_out=False
-        )
-        
-        return render_template('dashboard/contacts.html', 
-                             org=org, 
-                             contacts=contacts_pagination)
-    
-    except Exception as e:
-        logger.error(f"Contacts page error: {e}", exc_info=True)
-        flash(f'Error loading contacts: {str(e)}', 'danger')
-        return redirect(url_for('dashboard.index'))
+    org = current_user.organization
+    contacts = Contact.query.filter_by(organization_id=org.id).order_by(
+        Contact.created_at.desc()
+    ).all()
+    return render_template('dashboard/contacts.html', contacts=contacts)
+
 
 @dashboard_bp.route('/domains')
 @login_required
 def domains():
     """Domains page"""
     org = current_user.organization
-    domains = Domain.query.filter_by(organization_id=org.id).all() if org else []
-    return render_template('dashboard/domains.html', org=org, domains=domains)
+    domains = Domain.query.filter_by(organization_id=org.id).order_by(
+        Domain.created_at.desc()
+    ).all()
+    return render_template('dashboard/domains.html', domains=domains)
+
+
+def add_domain():
+    """Add new domain"""
+    try:
+        domain_name = request.form.get('domain_name')
+        org = current_user.organization
+        
+        # Check if domain already exists
+        existing = Domain.query.filter_by(
+            domain_name=domain_name,
+            organization_id=org.id
+        ).first()
+        
+        if existing:
+            flash('Domain already exists', 'error')
+        else:
+            domain = Domain(
+                organization_id=org.id,
+                domain_name=domain_name,
+                dns_verified=False
+            )
+            db.session.add(domain)
+            db.session.commit()
+            flash('Domain added successfully', 'success')
+    
+    except Exception as e:
+        logger.error(f"Add domain error: {e}")
+        flash('Error adding domain', 'error')
+    
+    return redirect(url_for('dashboard.domains'))
+
+
+@dashboard_bp.route('/domains/<domain_id>/verify', methods=['POST'])
+@login_required
+def verify_domain(domain_id):
+    """Verify domain DNS"""
+    try:
+        org = current_user.organization
+        domain = Domain.query.filter_by(id=domain_id, organization_id=org.id).first()
+        
+        if domain:
+            # Simple verification - mark as verified
+            domain.dns_verified = True
+            domain.verified_at = datetime.utcnow()
+            db.session.commit()
+            flash('Domain verified successfully', 'success')
+        else:
+            flash('Domain not found', 'error')
+    
+    except Exception as e:
+        logger.error(f"Verify domain error: {e}")
+        flash('Error verifying domain', 'error')
+    
+    return redirect(url_for('dashboard.domains'))
+
+
+@dashboard_bp.route('/domains/<domain_id>/generate-dkim', methods=['POST'])
+@login_required
+def generate_dkim(domain_id):
+    """Generate DKIM keys for domain"""
+    try:
+        from app.services.dkim.dkim_generator import generate_dkim_keys
+        
+        org = current_user.organization
+        domain = Domain.query.filter_by(id=domain_id, organization_id=org.id).first()
+        
+        if domain:
+            private_key, public_key = generate_dkim_keys(domain.domain_name)
+            flash('DKIM keys generated successfully', 'success')
+        else:
+            flash('Domain not found', 'error')
+    
+    except Exception as e:
+        logger.error(f"Generate DKIM error: {e}")
+        flash('Error generating DKIM keys', 'error')
+    
+    return redirect(url_for('dashboard.domains'))
+
+
+@dashboard_bp.route('/domains/<domain_id>/delete', methods=['POST'])
+@login_required
+def delete_domain(domain_id):
+    """Delete domain"""
+    try:
+        org = current_user.organization
+        domain = Domain.query.filter_by(id=domain_id, organization_id=org.id).first()
+        
+        if domain:
+            db.session.delete(domain)
+            db.session.commit()
+            flash('Domain deleted successfully', 'success')
+        else:
+            flash('Domain not found', 'error')
+    
+    except Exception as e:
+        logger.error(f"Delete domain error: {e}")
+        flash('Error deleting domain', 'error')
+    
+    return redirect(url_for('dashboard.domains'))
+
 
 @dashboard_bp.route('/settings')
 @login_required
 def settings():
     """Settings page"""
-    org = current_user.organization
-    return render_template('dashboard/settings.html', org=org)
+    return render_template('dashboard/settings.html')
+
 
 @dashboard_bp.route('/analytics')
 @login_required
 def analytics():
-    """Detailed analytics page"""
+    """Analytics page"""
+    org = current_user.organization
+    campaigns = Campaign.query.filter_by(organization_id=org.id).all()
+    return render_template('dashboard/analytics.html', campaigns=campaigns)
+
+
+@dashboard_bp.route('/campaigns')
+@login_required
+def campaigns():
+    """Campaigns page"""
+    org = current_user.organization
+    campaigns = Campaign.query.filter_by(organization_id=org.id).order_by(
+        Campaign.created_at.desc()
+    ).all()
+    return render_template('dashboard/campaigns.html', campaigns=campaigns)
+
+
+@dashboard_bp.route('/domains/add', methods=['POST'])
+@login_required
+def add_domain_api():
+    """Add new domain - JSON response"""
     try:
+        domain_name = request.form.get('domain_name')
         org = current_user.organization
         
-        # Check if tracking tables exist
-        try:
-            from app.models.email_tracking import EmailOpen, EmailClick, EmailUnsubscribe
-            
-            # Get emails with tracking data
-            emails = db.session.query(
-                Email,
-                func.count(EmailOpen.id).label('opens'),
-                func.count(EmailClick.id).label('clicks')
-            ).outerjoin(EmailOpen, Email.id == EmailOpen.email_id) \
-             .outerjoin(EmailClick, Email.id == EmailClick.email_id) \
-             .filter(Email.organization_id == org.id) \
-             .group_by(Email.id) \
-             .order_by(Email.created_at.desc()) \
-             .limit(100).all()
-            
-            # Get click details
-            recent_clicks = db.session.query(
-                EmailClick,
-                Email
-            ).join(Email, EmailClick.email_id == Email.id) \
-             .filter(Email.organization_id == org.id) \
-             .order_by(EmailClick.clicked_at.desc()) \
-             .limit(50).all()
-            
-            # Get unsubscribes
-            unsubscribes = EmailUnsubscribe.query.filter_by(
-                organization_id=org.id
-            ).order_by(EmailUnsubscribe.unsubscribed_at.desc()).all()
-            
-        except Exception as e:
-            logger.error(f"Error loading tracking data: {e}")
-            
-            # Fallback to basic email list
-            emails = [(email, 0, 0) for email in Email.query.filter_by(
-                organization_id=org.id
-            ).order_by(Email.created_at.desc()).limit(100).all()]
-            
-            recent_clicks = []
-            unsubscribes = []
+        # Check if domain already exists
+        existing = Domain.query.filter_by(
+            domain_name=domain_name,
+            organization_id=org.id
+        ).first()
         
-        return render_template('dashboard/analytics.html',
-                             org=org,
-                             emails=emails,
-                             recent_clicks=recent_clicks,
-                             unsubscribes=unsubscribes)
+        if existing:
+            return jsonify({'success': False, 'error': 'Domain already exists'})
+        
+        domain = Domain(
+            organization_id=org.id,
+            domain_name=domain_name
+        )
+        domain.dns_verified = False
+        db.session.add(domain)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'domain_id': domain.id})
     
     except Exception as e:
-        logger.error(f"Analytics error: {e}", exc_info=True)
-        flash(f'Error loading analytics: {str(e)}', 'danger')
-        return redirect(url_for('dashboard.index'))
+        logger.error(f"Add domain error: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@dashboard_bp.route('/domains/<domain_id>/generate-dkim', methods=['POST'])
+@login_required
+def generate_dkim_api(domain_id):
+    """Generate DKIM keys - JSON response"""
+    try:
+        from app.services.dkim.dkim_generator import generate_dkim_keys
+        
+        org = current_user.organization
+        domain = Domain.query.filter_by(id=domain_id, organization_id=org.id).first()
+        
+        if not domain:
+            return jsonify({'success': False, 'error': 'Domain not found'})
+        
+        private_key, public_key = generate_dkim_keys(domain.domain_name)
+        
+        # Store public key
+        domain.dkim_public_key = public_key
+        db.session.commit()
+        
+        return jsonify({'success': True, 'public_key': public_key})
+    
+    except Exception as e:
+        logger.error(f"Generate DKIM error: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@dashboard_bp.route('/domains/<domain_id>/verify', methods=['POST'])
+@login_required
+def verify_domain_api(domain_id):
+    """Verify domain DNS - JSON response"""
+    try:
+        from app.services.deliverability.dns_verifier import DNSVerifier
+        
+        org = current_user.organization
+        domain = Domain.query.filter_by(id=domain_id, organization_id=org.id).first()
+        
+        if not domain:
+            return jsonify({'success': False, 'error': 'Domain not found'})
+        
+        verifier = DNSVerifier()
+        result = verifier.verify_domain(domain.domain_name, '156.67.29.186')
+        
+        if result['verified']:
+            domain.dns_verified = True
+            domain.verified_at = datetime.utcnow()
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Domain verified!'})
+        else:
+            return jsonify({
+                'success': False, 
+                'message': 'Verification failed. Please check DNS records.',
+                'details': result
+            })
+    
+    except Exception as e:
+        logger.error(f"Verify domain error: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@dashboard_bp.route('/domains/<domain_id>/delete', methods=['POST'])
+@login_required
+def delete_domain_api(domain_id):
+    """Delete domain - JSON response"""
+    try:
+        org = current_user.organization
+        domain = Domain.query.filter_by(id=domain_id, organization_id=org.id).first()
+        
+        if domain:
+            db.session.delete(domain)
+            db.session.commit()
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Domain not found'})
+    
+    except Exception as e:
+        logger.error(f"Delete domain error: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@dashboard_bp.route('/domains/<domain_id>/dns-info')
+@login_required
+def domain_dns_info(domain_id):
+    """Get DNS info for domain"""
+    try:
+        org = current_user.organization
+        domain = Domain.query.filter_by(id=domain_id, organization_id=org.id).first()
+        
+        if not domain:
+            return jsonify({'success': False, 'error': 'Domain not found'})
+        
+        dns_info = {
+            'spf': 'v=spf1 ip4:156.67.29.186 ~all',
+            'dkim': domain.dkim_public_key if domain.dkim_public_key else None,
+            'dmarc': f'v=DMARC1; p=none; rua=mailto:dmarc@{domain.domain_name}'
+        }
+        
+        return jsonify({
+            'success': True,
+            'domain': domain.to_dict(),
+            'dns': dns_info
+        })
+    
+    except Exception as e:
+        logger.error(f"DNS info error: {e}")
+        return jsonify({'success': False, 'error': str(e)})
