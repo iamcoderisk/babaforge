@@ -1,29 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}SendBaba - Professional Email Marketing Platform{% endblock %}
+{% block title %}SendBaba - Email Marketing Made Simple{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
-<div class="bg-gradient-to-br from-purple-600 via-purple-700 to-blue-600 text-white">
-    <div class="max-w-7xl mx-auto px-4 py-20 md:py-32">
+<div class="relative bg-gradient-to-br from-purple-600 via-purple-500 to-blue-500 text-white overflow-hidden">
+    <div class="absolute inset-0 bg-black opacity-10"></div>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
         <div class="text-center">
-            <h1 class="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6">
                 Email Marketing Made Simple
             </h1>
             <p class="text-xl md:text-2xl mb-8 text-purple-100 max-w-3xl mx-auto">
                 Send beautiful, personalized emails at scale. Track every click, open, and conversion with advanced analytics.
             </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <a href="{{ url_for('auth.signup') }}" 
-                   class="px-8 py-4 bg-white text-purple-600 rounded-lg font-bold text-lg hover:bg-gray-100 transition shadow-xl">
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+                <a href="{{ url_for('auth.signup') }}" class="bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
                     Start Free Trial
                 </a>
-                <a href="{{ url_for('main.pricing') }}" 
-                   class="px-8 py-4 bg-purple-800 text-white rounded-lg font-bold text-lg hover:bg-purple-900 transition border-2 border-purple-500">
+                <a href="{{ url_for('main.pricing') }}" class="bg-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-purple-800 transition border-2 border-purple-400">
                     View Pricing
                 </a>
             </div>
-            <p class="mt-6 text-purple-200">
+            <p class="text-purple-100 text-sm">
                 ✨ No credit card required • 14-day free trial • Cancel anytime
             </p>
         </div>
@@ -31,23 +30,23 @@
 </div>
 
 <!-- Stats Section -->
-<div class="bg-white py-12 border-b">
-    <div class="max-w-7xl mx-auto px-4">
+<div class="bg-white py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-                <div class="text-4xl font-bold text-purple-600 mb-2">2B+</div>
+                <div class="text-4xl md:text-5xl font-bold text-purple-600 mb-2">2B+</div>
                 <div class="text-gray-600">Emails Delivered</div>
             </div>
             <div>
-                <div class="text-4xl font-bold text-purple-600 mb-2">99.9%</div>
+                <div class="text-4xl md:text-5xl font-bold text-purple-600 mb-2">99.9%</div>
                 <div class="text-gray-600">Uptime SLA</div>
             </div>
             <div>
-                <div class="text-4xl font-bold text-purple-600 mb-2">10K+</div>
+                <div class="text-4xl md:text-5xl font-bold text-purple-600 mb-2">10K+</div>
                 <div class="text-gray-600">Active Users</div>
             </div>
             <div>
-                <div class="text-4xl font-bold text-purple-600 mb-2">24/7</div>
+                <div class="text-4xl md:text-5xl font-bold text-purple-600 mb-2">24/7</div>
                 <div class="text-gray-600">Support</div>
             </div>
         </div>
@@ -55,247 +54,169 @@
 </div>
 
 <!-- Features Section -->
-<div class="py-20 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4">
+<div class="bg-gray-50 py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h2 class="text-4xl font-bold text-gray-900 mb-4">Everything You Need to Succeed</h2>
-            <p class="text-xl text-gray-600">Powerful features to grow your business</p>
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Everything You Need to Succeed
+            </h2>
+            <p class="text-xl text-gray-600">
+                Powerful features to grow your business
+            </p>
         </div>
         
         <div class="grid md:grid-cols-3 gap-8">
-            <!-- Feature 1 -->
-            <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
-                <div class="text-5xl mb-4">📧</div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-3">Beautiful Templates</h3>
-                <p class="text-gray-600 mb-4">
-                    Choose from 5+ professional email templates or create your own with our drag-and-drop editor.
-                </p>
-                <ul class="space-y-2 text-sm text-gray-600">
-                    <li>✓ Mobile-responsive designs</li>
-                    <li>✓ Personalization variables</li>
-                    <li>✓ Custom branding</li>
-                </ul>
-            </div>
-            
-            <!-- Feature 2 -->
-            <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
-                <div class="text-5xl mb-4">📊</div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-3">Advanced Analytics</h3>
-                <p class="text-gray-600 mb-4">
-                    Track opens, clicks, and conversions in real-time with detailed engagement metrics.
-                </p>
-                <ul class="space-y-2 text-sm text-gray-600">
-                    <li>✓ Real-time tracking</li>
-                    <li>✓ Engagement heatmaps</li>
-                    <li>✓ A/B testing</li>
-                </ul>
-            </div>
-            
-            <!-- Feature 3 -->
-            <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
-                <div class="text-5xl mb-4">🚀</div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-3">Bulk Sending</h3>
-                <p class="text-gray-600 mb-4">
-                    Upload CSV files and send personalized emails to thousands of contacts in minutes.
-                </p>
-                <ul class="space-y-2 text-sm text-gray-600">
-                    <li>✓ CSV/Excel upload</li>
-                    <li>✓ Variable personalization</li>
-                    <li>✓ Smart scheduling</li>
-                </ul>
-            </div>
-            
-            <!-- Feature 4 -->
-            <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
-                <div class="text-5xl mb-4">🔒</div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-3">Domain Security</h3>
-                <p class="text-gray-600 mb-4">
-                    Verify your domains with DKIM, SPF, and DMARC for maximum deliverability.
-                </p>
-                <ul class="space-y-2 text-sm text-gray-600">
-                    <li>✓ Automatic setup wizard</li>
-                    <li>✓ Multiple domains</li>
-                    <li>✓ Dedicated IPs available</li>
-                </ul>
-            </div>
-            
-            <!-- Feature 5 -->
-            <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
-                <div class="text-5xl mb-4">📇</div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-3">Contact Management</h3>
-                <p class="text-gray-600 mb-4">
-                    Organize contacts with tags, lists, and segments for targeted campaigns.
-                </p>
-                <ul class="space-y-2 text-sm text-gray-600">
-                    <li>✓ Unlimited contacts</li>
-                    <li>✓ Smart segmentation</li>
-                    <li>✓ Suppression lists</li>
-                </ul>
-            </div>
-            
-            <!-- Feature 6 -->
-            <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
-                <div class="text-5xl mb-4">⚡</div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-3">Powerful API</h3>
-                <p class="text-gray-600 mb-4">
-                    Integrate seamlessly with our RESTful API and webhooks for custom workflows.
-                </p>
-                <ul class="space-y-2 text-sm text-gray-600">
-                    <li>✓ RESTful API</li>
-                    <li>✓ Real-time webhooks</li>
-                    <li>✓ Comprehensive docs</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- How It Works -->
-<div class="py-20 bg-white">
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="text-center mb-16">
-            <h2 class="text-4xl font-bold text-gray-900 mb-4">Get Started in Minutes</h2>
-            <p class="text-xl text-gray-600">Three simple steps to your first campaign</p>
-        </div>
-        
-        <div class="grid md:grid-cols-3 gap-12">
-            <div class="text-center">
-                <div class="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
-                <h3 class="text-xl font-bold text-gray-900 mb-2">Sign Up & Verify Domain</h3>
-                <p class="text-gray-600">Create your account and verify your sending domain with our guided setup wizard.</p>
-            </div>
-            
-            <div class="text-center">
-                <div class="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">2</div>
-                <h3 class="text-xl font-bold text-gray-900 mb-2">Upload Your Contacts</h3>
-                <p class="text-gray-600">Import contacts via CSV or add them manually. Organize with tags and segments.</p>
-            </div>
-            
-            <div class="text-center">
-                <div class="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">3</div>
-                <h3 class="text-xl font-bold text-gray-900 mb-2">Send Your Campaign</h3>
-                <p class="text-gray-600">Choose a template, personalize your message, and send to thousands in seconds.</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Pricing Preview -->
-<div class="py-20 bg-gradient-to-br from-purple-50 to-blue-50">
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="text-center mb-16">
-            <h2 class="text-4xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
-            <p class="text-xl text-gray-600">Choose the plan that fits your needs</p>
-        </div>
-        
-        <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div class="bg-white rounded-xl p-8 shadow-lg">
-                <h3 class="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
-                <div class="text-4xl font-bold text-purple-600 mb-4">$149<span class="text-lg text-gray-600">/mo</span></div>
-                <p class="text-gray-600 mb-6">100,000 emails/month</p>
-                <a href="{{ url_for('main.pricing') }}" class="block w-full text-center py-3 bg-gray-100 text-gray-900 rounded-lg font-semibold hover:bg-gray-200 transition">
-                    Learn More
-                </a>
-            </div>
-            
-            <div class="bg-white rounded-xl p-8 shadow-xl ring-4 ring-purple-500 relative">
-                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <span class="bg-purple-500 text-white px-4 py-1 rounded-full text-sm font-bold">POPULAR</span>
+            <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-paper-plane text-purple-600 text-xl"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
-                <div class="text-4xl font-bold text-purple-600 mb-4">$349<span class="text-lg text-gray-600">/mo</span></div>
-                <p class="text-gray-600 mb-6">500,000 emails/month</p>
-                <a href="{{ url_for('main.pricing') }}" class="block w-full text-center py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition">
-                    Get Started
-                </a>
+                <h3 class="text-xl font-semibold mb-3">Campaign Builder</h3>
+                <p class="text-gray-600">Create stunning email campaigns with our intuitive drag-and-drop editor. No coding required.</p>
             </div>
             
-            <div class="bg-white rounded-xl p-8 shadow-lg">
-                <h3 class="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
-                <div class="text-4xl font-bold text-purple-600 mb-4">$800<span class="text-lg text-gray-600">/mo</span></div>
-                <p class="text-gray-600 mb-6">2,000,000 emails/month</p>
-                <a href="{{ url_for('main.pricing') }}" class="block w-full text-center py-3 bg-gray-100 text-gray-900 rounded-lg font-semibold hover:bg-gray-200 transition">
-                    Learn More
-                </a>
+            <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-chart-line text-blue-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Advanced Analytics</h3>
+                <p class="text-gray-600">Track opens, clicks, and conversions in real-time. Make data-driven decisions.</p>
             </div>
-        </div>
-        
-        <div class="text-center mt-12">
-            <a href="{{ url_for('main.pricing') }}" class="text-purple-600 hover:text-purple-700 font-semibold text-lg">
-                View Full Pricing & Features →
-            </a>
+            
+            <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-users text-green-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Contact Management</h3>
+                <p class="text-gray-600">Organize your contacts, segment your audience, and personalize every message.</p>
+            </div>
+            
+            <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
+                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-bolt text-orange-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Automation</h3>
+                <p class="text-gray-600">Set up automated email sequences that engage your audience at the right time.</p>
+            </div>
+            
+            <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
+                <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-mobile-alt text-red-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Mobile Optimized</h3>
+                <p class="text-gray-600">Your emails look perfect on any device. Responsive design built-in.</p>
+            </div>
+            
+            <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-code text-purple-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Developer API</h3>
+                <p class="text-gray-600">Integrate SendBaba into your applications with our powerful REST API.</p>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Testimonials -->
-<div class="py-20 bg-white">
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="text-center mb-16">
-            <h2 class="text-4xl font-bold text-gray-900 mb-4">Loved by Marketing Teams</h2>
-            <p class="text-xl text-gray-600">See what our customers say</p>
+<!-- Support Section -->
+<div class="bg-gradient-to-br from-green-100 to-blue-100 py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Customer Support is Always Here to Help You
+            </h2>
+            <p class="text-xl text-gray-700">
+                We work around the clock to assist you. Drop us a message any time.
+            </p>
         </div>
         
-        <div class="grid md:grid-cols-3 gap-8">
-            <div class="bg-gray-50 rounded-xl p-8">
-                <div class="text-yellow-400 text-2xl mb-4">★★★★★</div>
-                <p class="text-gray-700 mb-4">"SendBaba helped us scale our email marketing from 10K to 500K emails per month. The analytics are incredible!"</p>
-                <div class="font-semibold text-gray-900">Sarah Johnson</div>
-                <div class="text-sm text-gray-600">Marketing Director, TechCorp</div>
+        <div class="grid md:grid-cols-3 gap-8 text-center">
+            <div>
+                <div class="text-5xl font-bold text-gray-900 mb-2">24/7</div>
+                <div class="text-gray-600">Always Available</div>
             </div>
-            
-            <div class="bg-gray-50 rounded-xl p-8">
-                <div class="text-yellow-400 text-2xl mb-4">★★★★★</div>
-                <p class="text-gray-700 mb-4">"Best email platform we've used. The bulk upload feature saves us hours every week."</p>
-                <div class="font-semibold text-gray-900">Michael Chen</div>
-                <div class="text-sm text-gray-600">CEO, GrowthHub</div>
+            <div>
+                <div class="text-5xl font-bold text-gray-900 mb-2">97%</div>
+                <div class="text-gray-600">Satisfaction Rate</div>
             </div>
-            
-            <div class="bg-gray-50 rounded-xl p-8">
-                <div class="text-yellow-400 text-2xl mb-4">★★★★★</div>
-                <p class="text-gray-700 mb-4">"The API integration was seamless. We automated our entire customer onboarding flow."</p>
-                <div class="font-semibold text-gray-900">Emily Rodriguez</div>
-                <div class="text-sm text-gray-600">CTO, DataFlow</div>
+            <div>
+                <div class="text-5xl font-bold text-gray-900 mb-2">5 min</div>
+                <div class="text-gray-600">Avg Response Time</div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- CTA Section -->
-<div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-20">
-    <div class="max-w-4xl mx-auto px-4 text-center">
-        <h2 class="text-4xl md:text-5xl font-bold mb-6">Ready to Transform Your Email Marketing?</h2>
-        <p class="text-xl mb-8 text-purple-100">Join thousands of businesses sending better emails with SendBaba</p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="{{ url_for('auth.signup') }}" 
-               class="px-8 py-4 bg-white text-purple-600 rounded-lg font-bold text-lg hover:bg-gray-100 transition shadow-xl">
-                Start Your Free Trial
-            </a>
-            <a href="{{ url_for('main.pricing') }}" 
-               class="px-8 py-4 bg-purple-700 text-white rounded-lg font-bold text-lg hover:bg-purple-800 transition border-2 border-purple-400">
-                View Pricing
-            </a>
-        </div>
-        <p class="mt-6 text-purple-200">
-            No credit card required • Cancel anytime • 24/7 support
+<div class="bg-purple-600 text-white py-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl md:text-4xl font-bold mb-6">
+            Ready to Transform Your Email Marketing?
+        </h2>
+        <p class="text-xl text-purple-100 mb-8">
+            Join thousands of businesses using SendBaba to grow their audience.
         </p>
+        <a href="{{ url_for('auth.signup') }}" class="inline-block bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
+            Get Started Free
+        </a>
     </div>
 </div>
 
-<style>
-@keyframes fade-in {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.animate-fade-in {
-    animation: fade-in 1s ease-out;
-}
-</style>
+<!-- Footer -->
+<footer class="bg-white border-t border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+            <div>
+                <h3 class="font-semibold text-gray-900 mb-4">Product</h3>
+                <ul class="space-y-2">
+                    <li><a href="{{ url_for('main.features') }}" class="text-gray-600 hover:text-purple-600">Email Marketing</a></li>
+                    <li><a href="{{ url_for('main.features') }}" class="text-gray-600 hover:text-purple-600">Automations</a></li>
+                    <li><a href="{{ url_for('main.features') }}" class="text-gray-600 hover:text-purple-600">Analytics</a></li>
+                    <li><a href="{{ url_for('main.pricing') }}" class="text-gray-600 hover:text-purple-600">Pricing</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="font-semibold text-gray-900 mb-4">Support</h3>
+                <ul class="space-y-2">
+                    <li><a href="{{ url_for('main.docs') }}" class="text-gray-600 hover:text-purple-600">Knowledge Base</a></li>
+                    <li><a href="{{ url_for('main.docs') }}" class="text-gray-600 hover:text-purple-600">API Documentation</a></li>
+                    <li><a href="#" class="text-gray-600 hover:text-purple-600">Contact Support</a></li>
+                    <li><a href="#" class="text-gray-600 hover:text-purple-600">System Status</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="font-semibold text-gray-900 mb-4">Company</h3>
+                <ul class="space-y-2">
+                    <li><a href="{{ url_for('main.about') }}" class="text-gray-600 hover:text-purple-600">About Us</a></li>
+                    <li><a href="#" class="text-gray-600 hover:text-purple-600">Blog</a></li>
+                    <li><a href="#" class="text-gray-600 hover:text-purple-600">Careers</a></li>
+                    <li><a href="#" class="text-gray-600 hover:text-purple-600">Contact</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="font-semibold text-gray-900 mb-4">Legal</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-gray-600 hover:text-purple-600">Privacy Policy</a></li>
+                    <li><a href="#" class="text-gray-600 hover:text-purple-600">Terms of Service</a></li>
+                    <li><a href="#" class="text-gray-600 hover:text-purple-600">Cookie Policy</a></li>
+                    <li><a href="#" class="text-gray-600 hover:text-purple-600">GDPR</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p class="text-gray-500 text-sm mb-4 md:mb-0">
+                © 2025 SendBaba. All rights reserved.
+            </p>
+            <div class="flex space-x-6">
+                <a href="#" class="text-gray-400 hover:text-purple-600"><i class="fab fa-twitter text-xl"></i></a>
+                <a href="#" class="text-gray-400 hover:text-purple-600"><i class="fab fa-facebook text-xl"></i></a>
+                <a href="#" class="text-gray-400 hover:text-purple-600"><i class="fab fa-linkedin text-xl"></i></a>
+                <a href="#" class="text-gray-400 hover:text-purple-600"><i class="fab fa-github text-xl"></i></a>
+            </div>
+        </div>
+    </div>
+</footer>
 {% endblock %}

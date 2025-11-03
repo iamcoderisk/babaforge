@@ -615,3 +615,32 @@ def send_email_api():
         logger.error(f"Bulk send error: {e}", exc_info=True)
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@api_bp.route('/settings/generate-api-key', methods=['POST'])
+@login_required
+def generate_api_key():
+    """Generate new API key for organization"""
+    try:
+        org = current_user.organization
+        
+        # Generate a new API key
+        import secrets
+        api_key = f"sk_live_{secrets.token_urlsafe(32)}"
+        
+        # Store it in the organization (you may want to hash this)
+        org.api_key = api_key
+        db.session.commit()
+        
+        logger.info(f"Generated new API key for org {org.id}")
+        
+        return jsonify({
+            'success': True,
+            'api_key': api_key
+        })
+    
+    except Exception as e:
+        logger.error(f"Error generating API key: {e}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500

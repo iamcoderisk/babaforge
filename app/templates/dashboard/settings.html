@@ -3,200 +3,212 @@
 {% block title %}Settings - SendBaba{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">Settings</h1>
-    
-    <!-- API Keys Section -->
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 class="text-xl font-semibold mb-4">API Credentials</h2>
-        <p class="text-gray-600 mb-6">Use these credentials to authenticate API requests</p>
-        
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    API Key
-                    <span class="text-red-500">*</span>
-                </label>
-                <div class="flex">
-                    <input type="password" id="apiKey" value="{{ org.api_key }}" readonly 
-                           class="flex-1 px-4 py-2 border border-gray-300 rounded-l-md bg-gray-50 font-mono text-sm">
-                    <button onclick="toggleVisibility('apiKey')" 
-                            class="px-4 py-2 bg-gray-100 border-t border-b border-gray-300 hover:bg-gray-200">
-                        <i class="fas fa-eye" id="apiKey-icon"></i>
-                    </button>
-                    <button onclick="copyToClipboard('{{ org.api_key }}', 'apiKeyCopy')" 
-                            id="apiKeyCopy"
-                            class="px-4 py-2 bg-purple-600 text-white rounded-r-md hover:bg-purple-700">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                </div>
-                <p class="mt-2 text-xs text-gray-500">Keep this secret! Use it in the X-API-Key header</p>
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    API Secret
-                </label>
-                <div class="flex">
-                    <input type="password" id="apiSecret" value="{{ org.api_secret }}" readonly 
-                           class="flex-1 px-4 py-2 border border-gray-300 rounded-l-md bg-gray-50 font-mono text-sm">
-                    <button onclick="toggleVisibility('apiSecret')" 
-                            class="px-4 py-2 bg-gray-100 border-t border-b border-gray-300 hover:bg-gray-200">
-                        <i class="fas fa-eye" id="apiSecret-icon"></i>
-                    </button>
-                    <button onclick="copyToClipboard('{{ org.api_secret }}', 'apiSecretCopy')" 
-                            id="apiSecretCopy"
-                            class="px-4 py-2 bg-purple-600 text-white rounded-r-md hover:bg-purple-700">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-exclamation-triangle text-yellow-600"></i>
-                </div>
-                <div class="ml-3">
-                    <h3 class="text-sm font-medium text-yellow-800">Security Warning</h3>
-                    <p class="mt-2 text-sm text-yellow-700">
-                        Never share your API credentials or commit them to version control. 
-                        If compromised, regenerate them immediately.
-                    </p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="mt-4">
-            <button onclick="regenerateAPIKey()" 
-                    class="text-sm text-red-600 hover:text-red-700 font-medium">
-                <i class="fas fa-sync-alt mr-1"></i>Regenerate API Keys
-            </button>
-        </div>
+<div class="p-6 md:p-8">
+    <div class="mb-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Settings</h1>
+        <p class="text-gray-600 mt-1">Manage your account and organization settings</p>
     </div>
     
-    <!-- Account Information -->
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 class="text-xl font-semibold mb-4">Account Information</h2>
-        <dl class="grid grid-cols-1 gap-4">
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Email</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ user.email }}</dd>
-            </div>
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Full Name</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ user.first_name }} {{ user.last_name }}</dd>
-            </div>
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Organization</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ org.name }}</dd>
-            </div>
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Organization ID</dt>
-                <dd class="mt-1 text-sm text-gray-900 font-mono">{{ org.id }}</dd>
-            </div>
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Member Since</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ user.created_at.strftime('%B %d, %Y') }}</dd>
-            </div>
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Account Status</dt>
-                <dd class="mt-1">
-                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                        Active
-                    </span>
-                </dd>
-            </div>
-        </dl>
-    </div>
-    
-    <!-- Webhook Configuration -->
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 class="text-xl font-semibold mb-4">Webhook Configuration</h2>
-        <p class="text-gray-600 mb-4">Receive real-time notifications for email events</p>
-        
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Webhook URL
-            </label>
-            <input type="url" 
-                   value="{{ org.webhook_url or '' }}"
-                   placeholder="https://your-app.com/webhooks/sendbaba"
-                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-            <p class="mt-1 text-xs text-gray-500">We'll send POST requests to this URL for email events</p>
-        </div>
-        
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Webhook Secret
-            </label>
-            <input type="password" 
-                   value="{{ org.webhook_secret or '' }}" readonly
-                   class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 font-mono text-sm">
-            <p class="mt-1 text-xs text-gray-500">Use this to verify webhook signatures</p>
-        </div>
-        
-        <button class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
-            Save Webhook Settings
-        </button>
-    </div>
-    
-    <!-- Danger Zone -->
-    <div class="bg-white rounded-lg shadow p-6 border-2 border-red-200">
-        <h2 class="text-xl font-semibold text-red-600 mb-4">Danger Zone</h2>
-        
-        <div class="space-y-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-sm font-medium text-gray-900">Delete Account</h3>
-                    <p class="text-sm text-gray-500">Permanently delete your account and all data</p>
-                </div>
-                <button class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-                    Delete Account
+    <!-- Settings Tabs -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="border-b border-gray-200">
+            <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                <button onclick="switchTab('account')" id="accountTab"
+                        class="settings-tab border-b-2 border-purple-600 py-4 px-1 text-sm font-medium text-purple-600">
+                    Account
                 </button>
+                <button onclick="switchTab('organization')" id="organizationTab"
+                        class="settings-tab border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
+                    Organization
+                </button>
+                <button onclick="switchTab('api')" id="apiTab"
+                        class="settings-tab border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
+                    API Keys
+                </button>
+            </nav>
+        </div>
+        
+        <!-- Account Settings -->
+        <div id="accountContent" class="p-6">
+            <div class="max-w-2xl">
+                <h2 class="text-lg font-semibold mb-4">Account Information</h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <input type="email" value="{{ current_user.email }}" disabled 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+                        <p class="text-sm text-gray-500 mt-1">Your email address cannot be changed</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Account Created</label>
+                        <input type="text" value="{{ current_user.created_at.strftime('%B %d, %Y') if current_user.created_at else 'N/A' }}" disabled 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">Change Password</h3>
+                        <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                            Change Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Organization Settings -->
+        <div id="organizationContent" class="p-6 hidden">
+            <div class="max-w-2xl">
+                <h2 class="text-lg font-semibold mb-4">Organization Settings</h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Organization Name</label>
+                        <input type="text" value="{{ organization.name if organization else 'N/A' }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Organization ID</label>
+                        <input type="text" value="{{ organization.id if organization else 'N/A' }}" disabled 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+                    </div>
+                    
+                    <div>
+                        <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- API Settings -->
+        <div id="apiContent" class="p-6 hidden">
+            <div class="max-w-2xl">
+                <h2 class="text-lg font-semibold mb-4">API Keys</h2>
+                
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-start">
+                        <i class="fas fa-info-circle text-blue-600 mt-1"></i>
+                        <div class="ml-3">
+                            <p class="text-sm text-blue-800">Use API keys to authenticate your applications with SendBaba's API.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+                        <div class="flex gap-2">
+                            <input type="password" id="apiKeyInput" value="{{ organization.api_key if organization and organization.api_key else 'No API key generated yet' }}" disabled 
+                                   class="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 font-mono text-sm">
+                            <button onclick="toggleApiKey()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                <i class="fas fa-eye" id="toggleIcon"></i>
+                            </button>
+                            <button onclick="copyApiKey()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium" title="Copy">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <button onclick="generateApiKey()" id="generateBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                            <i class="fas fa-key mr-2"></i>Generate New API Key
+                        </button>
+                        <p class="text-sm text-gray-500 mt-2">⚠️ Generating a new key will invalidate the old one.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-function toggleVisibility(fieldId) {
-    const field = document.getElementById(fieldId);
-    const icon = document.getElementById(fieldId + '-icon');
+function switchTab(tab) {
+    document.getElementById('accountContent').classList.add('hidden');
+    document.getElementById('organizationContent').classList.add('hidden');
+    document.getElementById('apiContent').classList.add('hidden');
     
-    if (field.type === 'password') {
-        field.type = 'text';
+    document.querySelectorAll('.settings-tab').forEach(btn => {
+        btn.classList.remove('border-purple-600', 'text-purple-600');
+        btn.classList.add('border-transparent', 'text-gray-500');
+    });
+    
+    if (tab === 'account') {
+        document.getElementById('accountContent').classList.remove('hidden');
+        document.getElementById('accountTab').classList.add('border-purple-600', 'text-purple-600');
+        document.getElementById('accountTab').classList.remove('border-transparent', 'text-gray-500');
+    } else if (tab === 'organization') {
+        document.getElementById('organizationContent').classList.remove('hidden');
+        document.getElementById('organizationTab').classList.add('border-purple-600', 'text-purple-600');
+        document.getElementById('organizationTab').classList.remove('border-transparent', 'text-gray-500');
+    } else if (tab === 'api') {
+        document.getElementById('apiContent').classList.remove('hidden');
+        document.getElementById('apiTab').classList.add('border-purple-600', 'text-purple-600');
+        document.getElementById('apiTab').classList.remove('border-transparent', 'text-gray-500');
+    }
+}
+
+function toggleApiKey() {
+    const input = document.getElementById('apiKeyInput');
+    const icon = document.getElementById('toggleIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
         icon.classList.remove('fa-eye');
         icon.classList.add('fa-eye-slash');
     } else {
-        field.type = 'password';
+        input.type = 'password';
         icon.classList.remove('fa-eye-slash');
         icon.classList.add('fa-eye');
     }
 }
 
-function copyToClipboard(text, btnId) {
-    navigator.clipboard.writeText(text).then(() => {
-        const btn = document.getElementById(btnId);
-        const originalHTML = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i>';
-        btn.classList.add('bg-green-600');
-        btn.classList.remove('bg-purple-600');
-        
-        setTimeout(() => {
-            btn.innerHTML = originalHTML;
-            btn.classList.remove('bg-green-600');
-            btn.classList.add('bg-purple-600');
-        }, 2000);
-    });
+function copyApiKey() {
+    const input = document.getElementById('apiKeyInput');
+    const tempInput = document.createElement('input');
+    tempInput.value = input.value;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    document.execCommand('copy');
+    document.body.removeChild(tempInput);
+    
+    alert('API key copied to clipboard!');
 }
 
-function regenerateAPIKey() {
-    if (confirm('⚠️ WARNING: This will invalidate your current API keys. All existing integrations will stop working until you update them with the new keys.\n\nAre you sure you want to continue?')) {
-        // TODO: Implement API key regeneration
-        alert('API key regeneration will be implemented in the next update.');
+function generateApiKey() {
+    if (!confirm('Are you sure? This will invalidate your current API key.')) {
+        return;
     }
+    
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+    
+    fetch('/api/settings/generate-api-key', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('apiKeyInput').value = data.api_key;
+            alert('New API key generated successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Failed to generate API key'));
+        }
+    })
+    .catch(err => {
+        alert('Network error: ' + err.message);
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-key mr-2"></i>Generate New API Key';
+    });
 }
 </script>
 {% endblock %}
