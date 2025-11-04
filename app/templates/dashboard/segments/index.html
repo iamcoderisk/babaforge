@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Segments{% endblock %}
+{% block content %}
+<div class="p-8">
+    <h1 class="text-3xl font-bold mb-4">🎯 Segments</h1>
+    <p class="text-gray-600 mb-8">Create targeted contact groups</p>
+    
+    <div class="grid md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-green-500 text-white rounded-lg p-6">
+            <div class="text-4xl mb-3">⭐</div>
+            <h3 class="font-bold text-lg">Highly Engaged</h3>
+            <p class="text-sm opacity-90">Opens 80%+ emails</p>
+        </div>
+        <div class="bg-red-500 text-white rounded-lg p-6">
+            <div class="text-4xl mb-3">😴</div>
+            <h3 class="font-bold text-lg">Inactive</h3>
+            <p class="text-sm opacity-90">No activity 30+ days</p>
+        </div>
+        <div class="bg-blue-500 text-white rounded-lg p-6">
+            <div class="text-4xl mb-3">🆕</div>
+            <h3 class="font-bold text-lg">New Subscribers</h3>
+            <p class="text-sm opacity-90">Joined last 7 days</p>
+        </div>
+        <div class="bg-purple-500 text-white rounded-lg p-6">
+            <div class="text-4xl mb-3">💎</div>
+            <h3 class="font-bold text-lg">VIP Customers</h3>
+            <p class="text-sm opacity-90">High value</p>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg p-8 text-center">
+        <div class="text-6xl mb-4">🎯</div>
+        <h3 class="text-xl font-bold mb-2">No segments yet</h3>
+        <p class="text-gray-600">Create your first segment to target specific contacts</p>
+    </div>
+</div>
+{% endblock %}

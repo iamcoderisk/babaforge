@@ -1,0 +1,89 @@
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+from flask_migrate import Migrate
+import redis
+import logging
+import os
+
+db = SQLAlchemy()
+login_manager = LoginManager()
+migrate = Migrate()
+
+# Initialize Redis client
+redis_client = redis.Redis(
+    host=os.getenv('REDIS_HOST', 'localhost'),
+    port=int(os.getenv('REDIS_PORT', 6379)),
+    decode_responses=True
+)
+
+logger = logging.getLogger(__name__)
+
+def create_app():
+    app = Flask(__name__)
+    
+    # Configuration
+    from app.config.settings import Config
+    app.config.from_object(Config)
+    
+    # Initialize extensions
+    db.init_app(app)
+    login_manager.init_app(app)
+    migrate.init_app(app, db)
+    
+    login_manager.login_view = 'auth.login'
+    
+    # Import models
+    from app.models.user import User
+    from app.models.organization import Organization
+    from app.models.domain import Domain
+    from app.models.email import Email
+    from app.models.contact import Contact
+    from app.models.campaign import Campaign
+    
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(user_id)
+    
+    # Register blueprints
+    from app.controllers.auth_controller import auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    
+    from app.controllers.dashboard_controller import dashboard_bp
+    from app.controllers.reply_controller import reply_bp
+    from app.controllers.segment_controller import segment_bp
+    from app.controllers.template_controller import template_bp
+    from app.controllers.integration_controller import integration_bp
+    from app.controllers.warmup_controller import warmup_bp
+    from app.controllers.validation_controller import validation_bp
+    from app.controllers.form_controller import form_bp
+    from app.controllers.workflow_controller import workflow_bp
+    app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
+    
+    from app.controllers.api_controller import api_bp
+    app.register_blueprint(api_bp, url_prefix='/api')
+    
+    from app.controllers.main_controller import main_bp
+    app.register_blueprint(main_bp)
+    
+    # Also register as 'web' for backward compatibility
+    app.register_blueprint(main_bp, url_prefix='', name='web')
+    
+    try:
+        from app.controllers.tracking_controller import tracking_bp
+        app.register_blueprint(tracking_bp, url_prefix='/t')
+    app.register_blueprint(segment_bp)
+    app.register_blueprint(workflow_bp)
+    app.register_blueprint(form_bp)
+    app.register_blueprint(template_bp)
+    app.register_blueprint(validation_bp)
+    app.register_blueprint(warmup_bp)
+    app.register_blueprint(integration_bp)
+    app.register_blueprint(reply_bp)
+        logger.info("✅ Tracking blueprint registered")
+    except Exception as e:
+        logger.warning(f"⚠️ Tracking blueprint not registered: {e}")
+    
+    logger.info("✅ Flask app initialized successfully")
+    
+    return app

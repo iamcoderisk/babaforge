@@ -1,161 +1,77 @@
-{% extends "base.html" %}
-
-{% block title %}Pricing - SendBaba{% endblock %}
-
-{% block content %}
-<div class="bg-gradient-to-br from-purple-50 to-blue-50 py-16">
-    <div class="max-w-7xl mx-auto px-4">
-        <!-- Header -->
-        <div class="text-center mb-16">
-            <h1 class="text-5xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h1>
-            <p class="text-xl text-gray-600">Choose the plan that fits your needs. No hidden fees.</p>
-        </div>
-
-        <!-- Pricing Cards -->
-        <div class="grid md:grid-cols-3 gap-8 mb-12">
-            {% for plan in plans %}
-            <div class="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-transform duration-300 {% if plan.is_popular %}ring-4 ring-purple-500{% endif %}">
-                {% if plan.is_popular %}
-                <div class="bg-purple-500 text-white text-center py-2 font-bold">
-                    ⭐ MOST POPULAR
-                </div>
-                {% endif %}
-                
-                <div class="p-8">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ plan.name }}</h3>
-                    <div class="mb-6">
-                        <span class="text-5xl font-bold text-gray-900">${{ plan.price|int }}</span>
-                        <span class="text-gray-600">/month</span>
-                    </div>
-                    
-                    <p class="text-gray-600 mb-6 font-medium">
-                        {{ "{:,}".format(plan.emails_included) }} emails/month
-                    </p>
-                    
-                    <ul class="space-y-4 mb-8">
-                        {% for feature in plan.features %}
-                        <li class="flex items-start">
-                            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <span class="text-gray-700">{{ feature }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    
-                    <a href="{{ url_for('auth.signup') }}?plan={{ plan.slug }}" 
-                       class="block w-full text-center py-3 px-6 rounded-lg font-semibold transition
-                              {% if plan.is_popular %}
-                              bg-purple-600 text-white hover:bg-purple-700
-                              {% else %}
-                              bg-gray-100 text-gray-900 hover:bg-gray-200
-                              {% endif %}">
-                        Get Started
-                    </a>
-                </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - SendBaba</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold text-purple-600"><i class="fas fa-paper-plane mr-2"></i>SendBaba</a>
+            <div class="hidden md:flex space-x-8">
+                <a href="/features" class="text-gray-700 hover:text-red-600">Features</a>
+                <a href="/pricing" class="text-red-600 font-semibold">Pricing</a>
+                <a href="/docs" class="text-gray-700 hover:text-red-600">Docs</a>
             </div>
-            {% endfor %}
-        </div>
-
-        <!-- Add-ons -->
-        <div class="bg-white rounded-2xl shadow-xl p-8 mb-12">
-            <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Add-ons</h2>
-            <div class="grid md:grid-cols-2 gap-6">
-                <div class="border-2 border-gray-200 rounded-xl p-6">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Dedicated IP Address</h3>
-                    <p class="text-gray-600 mb-4">Improve deliverability with your own dedicated IP</p>
-                    <p class="text-3xl font-bold text-purple-600">+$55<span class="text-lg text-gray-600">/month</span></p>
-                </div>
-                
-                <div class="border-2 border-gray-200 rounded-xl p-6">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Extra Sending Domains</h3>
-                    <p class="text-gray-600 mb-4">Add more verified domains to your account</p>
-                    <p class="text-3xl font-bold text-purple-600">+$20<span class="text-lg text-gray-600">/domain/month</span></p>
-                </div>
+            <div class="flex space-x-4">
+                <a href="/login" class="text-gray-700">Log in</a>
+                <a href="/signup" class="bg-red-600 text-white px-6 py-2 rounded-lg">Sign up</a>
             </div>
         </div>
+    </nav>
 
-        <!-- Feature Comparison -->
-        <div class="bg-white rounded-2xl shadow-xl p-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Feature Comparison</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr class="border-b-2 border-gray-200">
-                            <th class="text-left py-4 px-4 font-semibold text-gray-900">Feature</th>
-                            <th class="text-center py-4 px-4 font-semibold text-gray-900">Starter</th>
-                            <th class="text-center py-4 px-4 font-semibold text-gray-900 bg-purple-50">Professional</th>
-                            <th class="text-center py-4 px-4 font-semibold text-gray-900">Enterprise</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        <tr>
-                            <td class="py-4 px-4 text-gray-700">Monthly Emails</td>
-                            <td class="py-4 px-4 text-center">100,000</td>
-                            <td class="py-4 px-4 text-center bg-purple-50">500,000</td>
-                            <td class="py-4 px-4 text-center">2,000,000</td>
-                        </tr>
-                        <tr>
-                            <td class="py-4 px-4 text-gray-700">Open Tracking</td>
-                            <td class="py-4 px-4 text-center">✅</td>
-                            <td class="py-4 px-4 text-center bg-purple-50">✅</td>
-                            <td class="py-4 px-4 text-center">✅</td>
-                        </tr>
-                        <tr>
-                            <td class="py-4 px-4 text-gray-700">Click Tracking</td>
-                            <td class="py-4 px-4 text-center">❌</td>
-                            <td class="py-4 px-4 text-center bg-purple-50">✅</td>
-                            <td class="py-4 px-4 text-center">✅</td>
-                        </tr>
-                        <tr>
-                            <td class="py-4 px-4 text-gray-700">Advanced Analytics</td>
-                            <td class="py-4 px-4 text-center">❌</td>
-                            <td class="py-4 px-4 text-center bg-purple-50">✅</td>
-                            <td class="py-4 px-4 text-center">✅</td>
-                        </tr>
-                        <tr>
-                            <td class="py-4 px-4 text-gray-700">Webhooks</td>
-                            <td class="py-4 px-4 text-center">❌</td>
-                            <td class="py-4 px-4 text-center bg-purple-50">✅</td>
-                            <td class="py-4 px-4 text-center">✅</td>
-                        </tr>
-                        <tr>
-                            <td class="py-4 px-4 text-gray-700">Suppression Lists</td>
-                            <td class="py-4 px-4 text-center">❌</td>
-                            <td class="py-4 px-4 text-center bg-purple-50">❌</td>
-                            <td class="py-4 px-4 text-center">✅</td>
-                        </tr>
-                        <tr>
-                            <td class="py-4 px-4 text-gray-700">Bounce Handling</td>
-                            <td class="py-4 px-4 text-center">Basic</td>
-                            <td class="py-4 px-4 text-center bg-purple-50">Standard</td>
-                            <td class="py-4 px-4 text-center">Advanced</td>
-                        </tr>
-                        <tr>
-                            <td class="py-4 px-4 text-gray-700">Sending Domains</td>
-                            <td class="py-4 px-4 text-center">2</td>
-                            <td class="py-4 px-4 text-center bg-purple-50">5</td>
-                            <td class="py-4 px-4 text-center">5</td>
-                        </tr>
-                        <tr>
-                            <td class="py-4 px-4 text-gray-700">Support</td>
-                            <td class="py-4 px-4 text-center">Email</td>
-                            <td class="py-4 px-4 text-center bg-purple-50">Priority</td>
-                            <td class="py-4 px-4 text-center">24/7</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+    <div class="py-20 px-4">
+        <div class="max-w-7xl mx-auto text-center mb-12">
+            <h1 class="text-5xl font-bold mb-4">Simple, Transparent Pricing</h1>
+            <p class="text-xl text-gray-600">Choose the plan that's right for you</p>
         </div>
 
-        <!-- FAQ -->
-        <div class="mt-16 text-center">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">Questions?</h2>
-            <p class="text-gray-600 mb-6">Contact our sales team for custom enterprise plans</p>
-            <a href="mailto:sales@sendbaba.com" class="inline-block px-8 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition">
-                Contact Sales
-            </a>
+        <div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-8 px-4">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h3 class="text-2xl font-bold mb-4">Starter</h3>
+                <div class="mb-6"><span class="text-5xl font-bold">$29</span><span class="text-gray-600">/mo</span></div>
+                <ul class="space-y-3 mb-8">
+                    <li><i class="fas fa-check text-green-600 mr-2"></i>10,000 emails/month</li>
+                    <li><i class="fas fa-check text-green-600 mr-2"></i>5,000 contacts</li>
+                    <li><i class="fas fa-check text-green-600 mr-2"></i>Email support</li>
+                </ul>
+                <a href="/signup?plan=starter" class="block text-center border-2 border-red-600 text-red-600 py-3 rounded-lg font-bold hover:bg-red-50">Get Started</a>
+            </div>
+
+            <div class="bg-gradient-to-br from-red-600 to-purple-600 rounded-xl shadow-xl p-8 text-white transform scale-105">
+                <div class="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full inline-block mb-4">POPULAR</div>
+                <h3 class="text-2xl font-bold mb-4">Business</h3>
+                <div class="mb-6"><span class="text-5xl font-bold">$99</span><span>/mo</span></div>
+                <ul class="space-y-3 mb-8">
+                    <li><i class="fas fa-check mr-2"></i>100,000 emails/month</li>
+                    <li><i class="fas fa-check mr-2"></i>50,000 contacts</li>
+                    <li><i class="fas fa-check mr-2"></i>24/7 support</li>
+                    <li><i class="fas fa-check mr-2"></i>AI features</li>
+                </ul>
+                <a href="/signup?plan=business" class="block text-center bg-white text-red-600 py-3 rounded-lg font-bold hover:bg-gray-100">Start Free Trial</a>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h3 class="text-2xl font-bold mb-4">Enterprise</h3>
+                <div class="mb-6"><span class="text-5xl font-bold">Custom</span></div>
+                <ul class="space-y-3 mb-8">
+                    <li><i class="fas fa-check text-green-600 mr-2"></i>Unlimited emails</li>
+                    <li><i class="fas fa-check text-green-600 mr-2"></i>Unlimited contacts</li>
+                    <li><i class="fas fa-check text-green-600 mr-2"></i>Dedicated support</li>
+                    <li><i class="fas fa-check text-green-600 mr-2"></i>Self-hosted</li>
+                </ul>
+                <a href="/contact" class="block text-center border-2 border-red-600 text-red-600 py-3 rounded-lg font-bold hover:bg-red-50">Contact Sales</a>
+            </div>
         </div>
     </div>
-</div>
-{% endblock %}
+
+    <footer class="bg-gray-900 text-gray-300 py-12 mt-20">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p>&copy; 2025 SendBaba. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

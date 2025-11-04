@@ -1,222 +1,408 @@
-{% extends "base.html" %}
-
-{% block title %}SendBaba - Email Marketing Made Simple{% endblock %}
-
-{% block content %}
-<!-- Hero Section -->
-<div class="relative bg-gradient-to-br from-purple-600 via-purple-500 to-blue-500 text-white overflow-hidden">
-    <div class="absolute inset-0 bg-black opacity-10"></div>
-    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
-        <div class="text-center">
-            <h1 class="text-4xl md:text-6xl font-bold mb-6">
-                Email Marketing Made Simple
-            </h1>
-            <p class="text-xl md:text-2xl mb-8 text-purple-100 max-w-3xl mx-auto">
-                Send beautiful, personalized emails at scale. Track every click, open, and conversion with advanced analytics.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-                <a href="{{ url_for('auth.signup') }}" class="bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
-                    Start Free Trial
-                </a>
-                <a href="{{ url_for('main.pricing') }}" class="bg-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-purple-800 transition border-2 border-purple-400">
-                    View Pricing
-                </a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SendBaba - Advanced Email Marketing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-cream">
+    <!-- Mobile Menu Overlay -->
+    <div id="menuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="toggleMenu()"></div>
+    
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="mobile-menu fixed top-0 left-0 h-full w-80 bg-white z-50 shadow-2xl">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center">
+                    <svg width="40" height="40" viewBox="0 0 220 129" fill="none">
+                        <circle cx="55" cy="64" r="55" fill="#E84142"/>
+                        <circle cx="165" cy="64" r="55" fill="#E84142"/>
+                        <path d="M85 35L95 65L105 35" stroke="white" stroke-width="8" stroke-linecap="round"/>
+                        <path d="M100 40L110 70" stroke="white" stroke-width="8" stroke-linecap="round"/>
+                    </svg>
+                    <span class="text-2xl font-bold text-gray-900 ml-3">SendBaba</span>
+                </div>
+                <button onclick="toggleMenu()" class="text-gray-600">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
             </div>
-            <p class="text-purple-100 text-sm">
-                ✨ No credit card required • 14-day free trial • Cancel anytime
-            </p>
+            
+            <nav class="space-y-4">
+                <a href="#home" onclick="toggleMenu()" class="block text-lg font-semibold text-gray-900 hover:text-sendbaba-red transition">Home</a>
+                <a href="#about" onclick="toggleMenu()" class="block text-lg text-gray-600 hover:text-sendbaba-red transition">About Us</a>
+                <a href="#features" onclick="toggleMenu()" class="block text-lg text-gray-600 hover:text-sendbaba-red transition">Features</a>
+                <a href="/pricing" onclick="toggleMenu()" class="block text-lg text-gray-600 hover:text-sendbaba-red transition">Products</a>
+                <a href="/docs" onclick="toggleMenu()" class="block text-lg text-gray-600 hover:text-sendbaba-red transition">Blog</a>
+                <div class="pt-6 space-y-3">
+                    <a href="/login" class="block w-full text-center text-gray-900 border-2 border-gray-900 px-6 py-3 rounded-full font-semibold">Sign In</a>
+                    <a href="/signup" class="block w-full text-center bg-gray-900 text-white px-6 py-3 rounded-full font-semibold">Sign up free</a>
+                </div>
+            </nav>
         </div>
     </div>
-</div>
 
-<!-- Stats Section -->
-<div class="bg-white py-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-                <div class="text-4xl md:text-5xl font-bold text-purple-600 mb-2">2B+</div>
-                <div class="text-gray-600">Emails Delivered</div>
-            </div>
-            <div>
-                <div class="text-4xl md:text-5xl font-bold text-purple-600 mb-2">99.9%</div>
-                <div class="text-gray-600">Uptime SLA</div>
-            </div>
-            <div>
-                <div class="text-4xl md:text-5xl font-bold text-purple-600 mb-2">10K+</div>
-                <div class="text-gray-600">Active Users</div>
-            </div>
-            <div>
-                <div class="text-4xl md:text-5xl font-bold text-purple-600 mb-2">24/7</div>
-                <div class="text-gray-600">Support</div>
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-30 bg-cream/90 backdrop-blur-md border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center">
+                    <button onclick="toggleMenu()" class="md:hidden mr-4 text-gray-900">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                    <a href="/" class="flex items-center">
+                        <svg width="50" height="50" viewBox="0 0 220 129" fill="none" class="mr-3">
+                            <circle cx="55" cy="64" r="55" fill="#E84142"/>
+                            <circle cx="165" cy="64" r="55" fill="#E84142"/>
+                            <path d="M85 35L95 65L105 35" stroke="white" stroke-width="8" stroke-linecap="round"/>
+                            <path d="M100 40L110 70" stroke="white" stroke-width="8" stroke-linecap="round"/>
+                        </svg>
+                        <span class="text-2xl font-bold text-gray-900">SendBaba</span>
+                    </a>
+                    <div class="hidden md:flex items-center space-x-8 ml-12">
+                        <a href="#home" class="text-gray-900 hover:text-sendbaba-red font-medium transition">Home</a>
+                        <a href="#about" class="text-gray-600 hover:text-sendbaba-red font-medium transition">About Us</a>
+                        <a href="#features" class="text-gray-600 hover:text-sendbaba-red font-medium transition">Features</a>
+                        <a href="/pricing" class="text-gray-600 hover:text-sendbaba-red font-medium transition">Products</a>
+                        <a href="/docs" class="text-gray-600 hover:text-sendbaba-red font-medium transition">Blog</a>
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="/login" class="text-gray-900 hover:text-sendbaba-red font-medium transition">Sign In</a>
+                    <a href="/signup" class="bg-gray-900 text-white px-6 py-3 rounded-full hover:bg-gray-800 font-medium transition">Sign up free</a>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+    </nav>
 
-<!-- Features Section -->
-<div class="bg-gray-50 py-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Everything You Need to Succeed
-            </h2>
-            <p class="text-xl text-gray-600">
-                Powerful features to grow your business
-            </p>
-        </div>
-        
-        <div class="grid md:grid-cols-3 gap-8">
-            <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
-                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                    <i class="fas fa-paper-plane text-purple-600 text-xl"></i>
+    <!-- Hero Section -->
+    <section id="home" class="pt-32 pb-20 px-4 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center max-w-4xl mx-auto relative">
+                <!-- Floating Elements -->
+                <div class="hidden lg:block absolute -left-20 top-0 float-animation">
+                    <div class="bg-white rounded-2xl shadow-lg p-4 flex items-center space-x-3">
+                        <img src="https://cdn.pixabay.com/photo/2017/01/10/03/54/icon-1968272_960_720.png" class="w-8 h-8" alt="Delivered" />
+                        <span class="font-semibold">Delivered</span>
+                    </div>
                 </div>
-                <h3 class="text-xl font-semibold mb-3">Campaign Builder</h3>
-                <p class="text-gray-600">Create stunning email campaigns with our intuitive drag-and-drop editor. No coding required.</p>
-            </div>
-            
-            <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
-                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                    <i class="fas fa-chart-line text-blue-600 text-xl"></i>
+                <div class="hidden lg:block absolute -right-20 top-20 float-animation" style="animation-delay: 1s;">
+                    <div class="bg-white rounded-2xl shadow-lg p-4 flex items-center space-x-3">
+                        <img src="https://cdn.pixabay.com/photo/2016/06/13/17/30/mail-1454731_960_720.png" class="w-8 h-8" alt="Sending" />
+                        <span class="font-semibold">Sending</span>
+                    </div>
                 </div>
-                <h3 class="text-xl font-semibold mb-3">Advanced Analytics</h3>
-                <p class="text-gray-600">Track opens, clicks, and conversions in real-time. Make data-driven decisions.</p>
-            </div>
-            
-            <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
-                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                    <i class="fas fa-users text-green-600 text-xl"></i>
+                
+                <!-- Email Card -->
+                <div class="mb-8">
+                    <div class="inline-block bg-white rounded-3xl p-6 md:p-8 shadow-xl mb-8 max-w-md mx-auto">
+                        <div class="flex items-center justify-between space-x-4 text-xs md:text-sm text-gray-500 mb-4">
+                            <span>From:</span>
+                            <span>Subject:</span>
+                            <span>To:</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="h-3 bg-gray-200 rounded-full w-full"></div>
+                            <div class="h-3 bg-gray-200 rounded-full w-4/5"></div>
+                            <div class="h-3 bg-gray-200 rounded-full w-3/5"></div>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="text-xl font-semibold mb-3">Contact Management</h3>
-                <p class="text-gray-600">Organize your contacts, segment your audience, and personalize every message.</p>
-            </div>
-            
-            <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
-                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                    <i class="fas fa-bolt text-orange-600 text-xl"></i>
+                
+                <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+                    Advanced Email<br/>
+                    <span class="gradient-text">Marketing</span>
+                </h1>
+                <p class="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto px-4">
+                    Industry's #1 business email platform for smarter email/SMS campaigns, reliable infrastructure, and tools that move you forward faster.
+                </p>
+                
+                <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4 mb-12">
+                    <img src="https://cdn.pixabay.com/photo/2017/01/13/04/28/star-1976258_960_720.png" class="w-12 h-12" alt="Star" />
+                    <span class="text-3xl md:text-4xl font-bold text-gray-900">4.8</span>
+                    <div class="text-center md:text-left text-sm">
+                        <div class="font-semibold text-gray-900">from 500,000+ reviews</div>
+                        <div class="text-gray-500">on G2, Trustpilot & Capterra</div>
+                    </div>
                 </div>
-                <h3 class="text-xl font-semibold mb-3">Automation</h3>
-                <p class="text-gray-600">Set up automated email sequences that engage your audience at the right time.</p>
-            </div>
-            
-            <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
-                <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                    <i class="fas fa-mobile-alt text-red-600 text-xl"></i>
-                </div>
-                <h3 class="text-xl font-semibold mb-3">Mobile Optimized</h3>
-                <p class="text-gray-600">Your emails look perfect on any device. Responsive design built-in.</p>
-            </div>
-            
-            <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
-                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                    <i class="fas fa-code text-purple-600 text-xl"></i>
-                </div>
-                <h3 class="text-xl font-semibold mb-3">Developer API</h3>
-                <p class="text-gray-600">Integrate SendBaba into your applications with our powerful REST API.</p>
             </div>
         </div>
-    </div>
-</div>
+    </section>
 
-<!-- Support Section -->
-<div class="bg-gradient-to-br from-green-100 to-blue-100 py-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Customer Support is Always Here to Help You
-            </h2>
-            <p class="text-xl text-gray-700">
-                We work around the clock to assist you. Drop us a message any time.
-            </p>
-        </div>
-        
-        <div class="grid md:grid-cols-3 gap-8 text-center">
-            <div>
-                <div class="text-5xl font-bold text-gray-900 mb-2">24/7</div>
-                <div class="text-gray-600">Always Available</div>
-            </div>
-            <div>
-                <div class="text-5xl font-bold text-gray-900 mb-2">97%</div>
-                <div class="text-gray-600">Satisfaction Rate</div>
-            </div>
-            <div>
-                <div class="text-5xl font-bold text-gray-900 mb-2">5 min</div>
-                <div class="text-gray-600">Avg Response Time</div>
-            </div>
-        </div>
-    </div>
-</div>
+    <!-- Feature Cards -->
+    <section id="features" class="py-12 md:py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-2 gap-6 md:gap-8 mb-12">
+                <div class="bg-gray-900 rounded-3xl p-8 md:p-12 text-white hover-lift">
+                    <h3 class="text-2xl md:text-3xl font-bold mb-4">Easily Customizable<br/>& Manage Your Team</h3>
+                    <p class="text-gray-300 mb-6 text-sm md:text-base">SendBaba facilitates Businesses with Features to Control Team Access, Multi-User Collaboration, Easily Customizable Tools for Enhanced Productivity.</p>
+                    <div class="bg-white/10 rounded-2xl p-6">
+                        <img src="https://cdn.pixabay.com/photo/2016/11/19/14/00/code-1839406_960_720.jpg" alt="Dashboard" class="rounded-xl w-full" />
+                    </div>
+                </div>
 
-<!-- CTA Section -->
-<div class="bg-purple-600 text-white py-20">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Transform Your Email Marketing?
-        </h2>
-        <p class="text-xl text-purple-100 mb-8">
-            Join thousands of businesses using SendBaba to grow their audience.
-        </p>
-        <a href="{{ url_for('auth.signup') }}" class="inline-block bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
-            Get Started Free
-        </a>
-    </div>
-</div>
+                <div class="bg-white rounded-3xl p-8 md:p-12 hover-lift">
+                    <div class="flex items-center justify-between mb-8">
+                        <button class="text-gray-900 font-semibold flex items-center space-x-2">
+                            <span>See All</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <h2 class="text-3xl md:text-5xl font-bold text-gray-900 mb-4">3,583 Customers<br/>Are Using SendBaba</h2>
+                    <div class="mt-8 bg-gray-50 rounded-2xl p-6">
+                        <img src="https://cdn.pixabay.com/photo/2015/01/09/11/08/startup-594090_960_720.jpg" alt="Customers" class="rounded-xl w-full" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-<!-- Footer -->
-<footer class="bg-white border-t border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-            <div>
-                <h3 class="font-semibold text-gray-900 mb-4">Product</h3>
-                <ul class="space-y-2">
-                    <li><a href="{{ url_for('main.features') }}" class="text-gray-600 hover:text-purple-600">Email Marketing</a></li>
-                    <li><a href="{{ url_for('main.features') }}" class="text-gray-600 hover:text-purple-600">Automations</a></li>
-                    <li><a href="{{ url_for('main.features') }}" class="text-gray-600 hover:text-purple-600">Analytics</a></li>
-                    <li><a href="{{ url_for('main.pricing') }}" class="text-gray-600 hover:text-purple-600">Pricing</a></li>
-                </ul>
+    <!-- Services -->
+    <section class="py-12 md:py-20 px-4 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-8">
+                <div class="text-3xl md:text-6xl font-light text-gray-200 mb-8">Email + Business + Marketing + Software</div>
             </div>
             
-            <div>
-                <h3 class="font-semibold text-gray-900 mb-4">Support</h3>
-                <ul class="space-y-2">
-                    <li><a href="{{ url_for('main.docs') }}" class="text-gray-600 hover:text-purple-600">Knowledge Base</a></li>
-                    <li><a href="{{ url_for('main.docs') }}" class="text-gray-600 hover:text-purple-600">API Documentation</a></li>
-                    <li><a href="#" class="text-gray-600 hover:text-purple-600">Contact Support</a></li>
-                    <li><a href="#" class="text-gray-600 hover:text-purple-600">System Status</a></li>
-                </ul>
-            </div>
-            
-            <div>
-                <h3 class="font-semibold text-gray-900 mb-4">Company</h3>
-                <ul class="space-y-2">
-                    <li><a href="{{ url_for('main.about') }}" class="text-gray-600 hover:text-purple-600">About Us</a></li>
-                    <li><a href="#" class="text-gray-600 hover:text-purple-600">Blog</a></li>
-                    <li><a href="#" class="text-gray-600 hover:text-purple-600">Careers</a></li>
-                    <li><a href="#" class="text-gray-600 hover:text-purple-600">Contact</a></li>
-                </ul>
-            </div>
-            
-            <div>
-                <h3 class="font-semibold text-gray-900 mb-4">Legal</h3>
-                <ul class="space-y-2">
-                    <li><a href="#" class="text-gray-600 hover:text-purple-600">Privacy Policy</a></li>
-                    <li><a href="#" class="text-gray-600 hover:text-purple-600">Terms of Service</a></li>
-                    <li><a href="#" class="text-gray-600 hover:text-purple-600">Cookie Policy</a></li>
-                    <li><a href="#" class="text-gray-600 hover:text-purple-600">GDPR</a></li>
-                </ul>
+            <div class="grid md:grid-cols-3 gap-6 md:gap-8">
+                <div class="hover-lift">
+                    <div class="bg-gray-50 rounded-2xl p-6 mb-4 flex items-center justify-center h-48">
+                        <img src="https://cdn.pixabay.com/photo/2017/07/10/11/28/bullion-2489548_960_720.jpg" class="w-full h-full object-cover rounded-xl" alt="Secure" />
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-2">Secured Payments</h4>
+                    <p class="text-gray-600">PCI compliant checkout for accepting payments and secure web wallet.</p>
+                </div>
+
+                <div class="hover-lift bg-blue-50 rounded-2xl p-8 text-center">
+                    <img src="https://cdn.pixabay.com/photo/2015/12/04/14/05/code-1076536_960_720.jpg" class="w-full h-32 object-cover rounded-xl mb-4" alt="Developers" />
+                    <h4 class="text-xl font-bold text-gray-900 mb-2">Made For Developers</h4>
+                    <p class="text-gray-600 mb-4">Powerful APIs to customize your email flows.</p>
+                    <a href="/api" class="sendbaba-red font-semibold">Learn More →</a>
+                </div>
+
+                <div class="hover-lift bg-purple-50 rounded-2xl p-8">
+                    <img src="https://cdn.pixabay.com/photo/2016/11/29/03/53/video-1867196_960_720.jpg" class="w-full h-32 object-cover rounded-xl mb-4" alt="Video" />
+                    <h4 class="text-xl font-bold text-gray-900 mb-4">Video Tutorials</h4>
+                    <p class="text-gray-600 mb-4">Master SendBaba with our curated tutorials.</p>
+                    <a href="/docs" class="sendbaba-red font-semibold">Learn More →</a>
+                </div>
             </div>
         </div>
-        
-        <div class="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p class="text-gray-500 text-sm mb-4 md:mb-0">
-                © 2025 SendBaba. All rights reserved.
-            </p>
-            <div class="flex space-x-6">
-                <a href="#" class="text-gray-400 hover:text-purple-600"><i class="fab fa-twitter text-xl"></i></a>
-                <a href="#" class="text-gray-400 hover:text-purple-600"><i class="fab fa-facebook text-xl"></i></a>
-                <a href="#" class="text-gray-400 hover:text-purple-600"><i class="fab fa-linkedin text-xl"></i></a>
-                <a href="#" class="text-gray-400 hover:text-purple-600"><i class="fab fa-github text-xl"></i></a>
+    </section>
+
+    <!-- Growth Section -->
+    <section class="py-12 md:py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl md:text-5xl font-bold text-gray-900 mb-8">Grow Sales Using<br/>Email Marketing</h2>
+                    
+                    <div class="space-y-6">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-10 h-10 bg-sendbaba-red rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                                <i class="fas fa-check text-white"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg md:text-xl font-bold text-gray-900 mb-2">Simply Copy & Paste</h4>
+                                <p class="text-gray-600 text-sm md:text-base">Integrate SendBaba in minutes with simple embed codes.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start space-x-4">
+                            <div class="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                                <i class="fas fa-palette text-white"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg md:text-xl font-bold text-gray-900 mb-2">Easy To Customize</h4>
+                                <p class="text-gray-600 text-sm md:text-base">Drag and drop builder with unlimited options.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-purple-50 rounded-3xl p-6 md:p-8">
+                    <div class="bg-white rounded-2xl p-6 shadow-lg mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-gray-500 text-sm">Last 30 days</span>
+                            <span class="text-2xl md:text-3xl font-bold text-gray-900">$1,348</span>
+                        </div>
+                        <div class="h-32 md:h-40 bg-gradient-to-br from-purple-200 to-pink-200 rounded-xl flex items-end p-4">
+                            <div class="text-xl md:text-2xl font-bold text-gray-900">$348</div>
+                        </div>
+                        <button class="w-full bg-sendbaba-red text-white py-3 rounded-xl mt-4 font-semibold hover:bg-red-600 transition">
+                            AI Report Summary →
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</footer>
-{% endblock %}
+    </section>
+
+    <!-- Stats -->
+    <section class="py-12 md:py-20 px-4 bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 text-center hover-lift">
+                    <div class="w-16 h-16 bg-sendbaba-red/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-robot sendbaba-red text-2xl"></i>
+                    </div>
+                    <div class="text-3xl md:text-4xl font-bold mb-2">110+</div>
+                    <p class="text-gray-300 text-xs md:text-sm">Automation templates</p>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 text-center hover-lift">
+                    <div class="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check-circle text-blue-400 text-2xl"></i>
+                    </div>
+                    <div class="text-3xl md:text-4xl font-bold mb-2">100%</div>
+                    <p class="text-gray-300 text-xs md:text-sm">Delivery rate</p>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 text-center hover-lift">
+                    <div class="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-users text-purple-400 text-2xl"></i>
+                    </div>
+                    <div class="text-3xl md:text-4xl font-bold mb-2">5M</div>
+                    <p class="text-gray-300 text-xs md:text-sm">Happy customers</p>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 text-center hover-lift">
+                    <div class="w-16 h-16 bg-gray-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-list text-gray-400 text-2xl"></i>
+                    </div>
+                    <div class="text-3xl md:text-4xl font-bold mb-2">∞</div>
+                    <p class="text-gray-300 text-xs md:text-sm">Segment options</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section id="about" class="py-12 md:py-20 px-4 bg-cream">
+        <div class="max-w-7xl mx-auto text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Clients Acknowledge</h2>
+            <h3 class="text-2xl md:text-3xl font-light text-gray-600 mb-12 md:mb-16">The Value We Deliver</h3>
+            
+            <div class="grid md:grid-cols-3 gap-6 md:gap-8">
+                <div class="bg-white rounded-3xl p-6 md:p-8 hover-lift text-left">
+                    <div class="flex items-center space-x-4 mb-6">
+                        <img src="https://i.pravatar.cc/150?img=12" alt="Avatar" class="w-12 h-12 rounded-full" />
+                        <div>
+                            <div class="font-bold text-gray-900">Ronald Richards</div>
+                            <div class="text-sm text-gray-500">CEO Sales Brothers</div>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4 text-sm md:text-base">"It was a pleasure working with the Coca team. They understood the brief correctly and delivered great designs."</p>
+                    <div class="flex text-yellow-400">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl p-6 md:p-8 hover-lift text-left">
+                    <div class="flex items-center space-x-4 mb-6">
+                        <img src="https://i.pravatar.cc/150?img=32" alt="Avatar" class="w-12 h-12 rounded-full" />
+                        <div>
+                            <div class="font-bold text-gray-900">Rakabuming Suhu</div>
+                            <div class="text-sm text-gray-500">CEO Sare Brothers</div>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4 text-sm md:text-base">"It was a pleasure working with the Coca team. They understood the brief correctly and delivered great designs."</p>
+                    <div class="flex text-yellow-400">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl p-6 md:p-8 hover-lift text-left">
+                    <div class="flex items-center space-x-4 mb-6">
+                        <img src="https://i.pravatar.cc/150?img=47" alt="Avatar" class="w-12 h-12 rounded-full" />
+                        <div>
+                            <div class="font-bold text-gray-900">Jerome Bell</div>
+                            <div class="text-sm text-gray-500">CEO Sare Brothers</div>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4 text-sm md:text-base">"It was a pleasure working with the Coca team. They understood the brief correctly and delivered great designs."</p>
+                    <div class="flex text-yellow-400">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-center space-x-4 mt-8 md:mt-12">
+                <button class="w-12 h-12 bg-gray-900 text-white rounded-full hover:bg-gray-800 transition">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <button class="w-12 h-12 bg-sendbaba-red text-white rounded-full hover:bg-red-600 transition">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-12 md:py-20 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="mb-8">
+                <div class="w-16 h-16 md:w-20 md:h-20 bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-8 transform rotate-12">
+                    <i class="fas fa-bolt sendbaba-red text-3xl md:text-4xl transform -rotate-12"></i>
+                </div>
+            </div>
+            <h2 class="text-3xl md:text-5xl font-bold text-gray-900 mb-6">Are You Ready To<br/>Get Started?</h2>
+            <p class="text-lg md:text-xl text-gray-600 mb-8 px-4">With lots of unique blocks, you can easily build a page without coding.</p>
+            <a href="/signup" class="inline-block bg-sendbaba-red text-white px-8 md:px-12 py-3 md:py-4 rounded-full text-base md:text-lg font-semibold hover:bg-red-600 transition shadow-xl">
+                Get our 14 days free trial <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-cream border-t border-gray-200 py-8 md:py-12 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center pb-8 space-y-4 md:space-y-0">
+                <div class="flex items-center">
+                    <svg width="40" height="40" viewBox="0 0 220 129" fill="none" class="mr-3">
+                        <circle cx="55" cy="64" r="55" fill="#E84142"/>
+                        <circle cx="165" cy="64" r="55" fill="#E84142"/>
+                        <path d="M85 35L95 65L105 35" stroke="white" stroke-width="8" stroke-linecap="round"/>
+                        <path d="M100 40L110 70" stroke="white" stroke-width="8" stroke-linecap="round"/>
+                    </svg>
+                    <span class="text-2xl font-bold text-gray-900">SendBaba</span>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-600 hover:text-gray-900 transition"><i class="fab fa-youtube text-xl"></i></a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900 transition"><i class="fab fa-tiktok text-xl"></i></a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900 transition"><i class="fab fa-linkedin text-xl"></i></a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900 transition"><i class="fab fa-instagram text-xl"></i></a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900 transition"><i class="fab fa-facebook text-xl"></i></a>
+                </div>
+            </div>
+            <div class="text-center text-gray-500 text-sm">
+                © 2024 Copyright By Saratoo - Blumail
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('menuOverlay');
+            menu.classList.toggle('open');
+            overlay.classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>

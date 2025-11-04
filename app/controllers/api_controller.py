@@ -644,3 +644,123 @@ def generate_api_key():
             'success': False,
             'error': str(e)
         }), 500
+
+@api_bp.route('/templates', methods=['GET'])
+@login_required
+def get_templates():
+    """Get all templates"""
+    try:
+        from app.models.email_template import EmailTemplate
+        org = current_user.organization
+        
+        templates = EmailTemplate.query.filter(
+            (EmailTemplate.organization_id == org.id) | (EmailTemplate.is_system == True)
+        ).all()
+        
+        return jsonify({
+            'success': True,
+            'templates': [{
+                'id': t.id,
+                'name': t.name,
+                'category': t.category,
+                'thumbnail': t.thumbnail,
+                'is_system': t.is_system
+            } for t in templates]
+        })
+    except Exception as e:
+        logger.error(f"Error getting templates: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@api_bp.route('/templates', methods=['POST'])
+@login_required
+def create_template():
+    """Create new template"""
+    try:
+        from app.models.email_template import EmailTemplate
+        org = current_user.organization
+        
+        data = request.get_json()
+        
+        template = EmailTemplate(
+            organization_id=org.id,
+            name=data.get('name', 'Untitled'),
+            category=data.get('category'),
+            html_content=data.get('html_content'),
+            json_structure=data.get('json_structure')
+        )
+        
+        db.session.add(template)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'template_id': template.id
+        })
+    except Exception as e:
+        logger.error(f"Error creating template: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@api_bp.route('/templates/<int:template_id>', methods=['GET'])
+@login_required
+def get_template(template_id):
+    """Get template by ID"""
+    try:
+        from app.models.email_template import EmailTemplate
+        org = current_user.organization
+        
+        template = EmailTemplate.query.filter_by(id=template_id).first()
+        
+        if not template:
+            return jsonify({'success': False, 'error': 'Template not found'}), 404
+            
+        if template.organization_id != org.id and not template.is_system:
+            return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+        
+        return jsonify({
+            'success': True,
+            'template': {
+                'id': template.id,
+                'name': template.name,
+                'html_content': template.html_content,
+                'json_structure': template.json_structure
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error getting template: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@api_bp.route('/upload/image', methods=['POST'])
+@login_required
+def upload_image():
+    """Upload image for email builder"""
+    try:
+        if 'files' not in request.files:
+            return jsonify({'success': False, 'error': 'No file provided'}), 400
+        
+        file = request.files['files']
+        
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+        
+        # Save file
+        import os
+        from werkzeug.utils import secure_filename
+        
+        upload_folder = '/opt/sendbaba-smtp/app/static/uploads'
+        os.makedirs(upload_folder, exist_ok=True)
+        
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(upload_folder, filename)
+        file.save(filepath)
+        
+        # Return URL
+        url = f'/static/uploads/{filename}'
+        
+        return jsonify({
+            'success': True,
+            'data': [url]
+        })
+    except Exception as e:
+        logger.error(f"Error uploading image: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500

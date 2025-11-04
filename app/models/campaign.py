@@ -2,47 +2,6 @@ from app import db
 from datetime import datetime
 import uuid
 
-class EmailTemplate(db.Model):
-    __tablename__ = 'email_templates'
-    
-    id = db.Column(db.String(36), primary_key=True)
-    organization_id = db.Column(db.String(36), db.ForeignKey('organizations.id'), nullable=False, index=True)
-    
-    name = db.Column(db.String(200), nullable=False)
-    subject = db.Column(db.String(500))
-    html_body = db.Column(db.Text)
-    text_body = db.Column(db.Text)
-    
-    # Template variables
-    variables = db.Column(db.JSON, default=list)  # List of variable names like ['first_name', 'company']
-    
-    # Status
-    is_active = db.Column(db.Boolean, default=True)
-    
-    # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    def __init__(self, organization_id, name, subject=None, html_body=None):
-        self.id = str(uuid.uuid4())
-        self.organization_id = organization_id
-        self.name = name
-        self.subject = subject
-        self.html_body = html_body
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'subject': self.subject,
-            'html_body': self.html_body,
-            'text_body': self.text_body,
-            'variables': self.variables or [],
-            'is_active': self.is_active,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
-        }
-
 class Campaign(db.Model):
     __tablename__ = 'campaigns'
     
