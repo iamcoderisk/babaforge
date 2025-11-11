@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'sendbaba-flask',
-      script: './venv/bin/python',
+      script: 'venv/bin/python',
       args: 'run.py',
       cwd: '/opt/sendbaba-smtp',
       instances: 1,
@@ -10,38 +10,29 @@ module.exports = {
       watch: false,
       max_memory_restart: '1G',
       env: {
-        FLASK_APP: 'run.py',
         FLASK_ENV: 'production',
-        PYTHONUNBUFFERED: '1'
-      },
-      error_file: '/opt/sendbaba-smtp/logs/flask-error.log',
-      out_file: '/opt/sendbaba-smtp/logs/flask-out.log',
-      log_date_format: 'YYYY-MM-DD HH:mm:ss'
+        PORT: 5000
+      }
     },
     {
       name: 'sendbaba-worker',
-      script: './venv/bin/python',
-      args: 'worker.py',
+      script: 'venv/bin/python',
+      args: '-m app.workers.email_worker 1',
       cwd: '/opt/sendbaba-smtp',
-      instances: 2,
+      instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: '500M',
-      env: {
-        PYTHONUNBUFFERED: '1'
-      }
+      max_memory_restart: '1G'
     },
     {
-      name: 'sendbaba-reply-catcher',
-      script: './venv/bin/python',
-      args: 'reply_catcher_worker.py',
+      name: 'sendbaba-worker-2',
+      script: 'venv/bin/python',
+      args: '-m app.workers.email_worker 2',
       cwd: '/opt/sendbaba-smtp',
+      instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: '500M',
-      env: {
-        PYTHONUNBUFFERED: '1'
-      }
+      max_memory_restart: '1G'
     }
   ]
 };
