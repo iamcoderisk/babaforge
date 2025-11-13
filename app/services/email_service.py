@@ -1,3 +1,8 @@
+import asyncio
+import logging
+from app.smtp.relay_server import send_via_relay
+
+logger = logging.getLogger(__name__)
 
 def generate_reply_address(campaign_id, contact_id, organization_id):
     """Generate unique reply-to address for tracking"""
@@ -10,28 +15,38 @@ def generate_reply_address(campaign_id, contact_id, organization_id):
 
 def send_email(to_email, subject, body, from_email=None, from_name=None, organization_id=None):
     """
-    Send email via SMTP
-    Simple wrapper function for reply controller
+    Send email using SendBaba's SMTP relay engine
+    Sends directly to recipient's MX server
     """
-    import smtplib
-    from email.mime.text import MIMEText
-    from email.mime.multipart import MIMEMultipart
-    
     try:
-        # Create message
-        msg = MIMEMultipart()
-        msg['From'] = from_email or 'noreply@sendbaba.com'
-        msg['To'] = to_email
-        msg['Subject'] = subject
+        from_email = from_email or 'noreply@sendbaba.com'
+        from_name = from_name or 'SendBaba'
         
-        # Add body
-        msg.attach(MIMEText(body, 'plain'))
+        # Prepare email data for SendBaba's relay
+        email_data = {
+            'from': from_email,
+            'to': to_email,
+            'subject': subject,
+            'html_body': body,
+            'text_body': '',
+            'id': f'sendbaba-{hash(to_email)}'
+        }
         
-        # Send via localhost SMTP
-        with smtplib.SMTP('localhost', 2525) as server:
-            server.send_message(msg)
+        logger.info(f"📧 Sending email to {to_email} via SendBaba SMTP relay")
         
-        return True
+        # Send via SendBaba's relay (runs async)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        result = loop.run_until_complete(send_via_relay(email_data))
+        loop.close()
+        
+        if result.get('success'):
+            logger.info(f"✅ Email sent to {to_email} via {result.get('mx_server')}")
+            return True
+        else:
+            logger.error(f"❌ Failed to send to {to_email}: {result.get('message')}")
+            return False
+        
     except Exception as e:
-        print(f"Error sending email: {e}")
+        logger.error(f"❌ Email send error: {str(e)}")
         return False

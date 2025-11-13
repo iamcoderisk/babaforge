@@ -12,54 +12,97 @@
     
     <!-- Stats -->
     <div class="grid md:grid-cols-4 gap-6 mb-8">
+        <!-- Emails Sent This Month -->
         <div class="bg-white rounded-lg p-6 shadow-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="bg-purple-100 p-3 rounded-lg">
-                    <i class="fas fa-envelope text-purple-600 text-xl"></i>
+                    <i class="fas fa-paper-plane text-purple-600 text-xl"></i>
                 </div>
-                <span class="text-sm text-gray-500">This Month</span>
             </div>
-            <div class="text-3xl font-bold mb-1">{{ stats.emails_sent if stats else 17 }}</div>
+            <div class="text-3xl font-bold mb-1">{{ stats.emails_sent }}</div>
             <div class="text-sm text-gray-600">Emails Sent</div>
+            <div class="text-xs text-gray-400 mt-1">This month</div>
         </div>
         
+        <!-- Total Contacts -->
         <div class="bg-white rounded-lg p-6 shadow-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="bg-blue-100 p-3 rounded-lg">
                     <i class="fas fa-users text-blue-600 text-xl"></i>
                 </div>
-                <span class="text-sm text-gray-500">Total</span>
             </div>
-            <div class="text-3xl font-bold mb-1">{{ stats.total_contacts if stats else 7 }}</div>
+            <div class="text-3xl font-bold mb-1">{{ stats.total_contacts }}</div>
             <div class="text-sm text-gray-600">Total Contacts</div>
+            <div class="text-xs text-gray-400 mt-1">All lists</div>
         </div>
         
+        <!-- Domains -->
         <div class="bg-white rounded-lg p-6 shadow-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="bg-green-100 p-3 rounded-lg">
                     <i class="fas fa-globe text-green-600 text-xl"></i>
                 </div>
-                <span class="text-sm text-gray-500">Active</span>
             </div>
-            <div class="text-3xl font-bold mb-1">{{ stats.domains if stats else 1 }}</div>
+            <div class="text-3xl font-bold mb-1">{{ stats.domains }}</div>
             <div class="text-sm text-gray-600">Domains</div>
+            <div class="text-xs text-gray-400 mt-1">
+                <a href="/dashboard/domains" class="text-green-600 hover:text-green-700">Manage →</a>
+            </div>
         </div>
         
+        <!-- Queued Emails -->
         <div class="bg-white rounded-lg p-6 shadow-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="bg-orange-100 p-3 rounded-lg">
                     <i class="fas fa-clock text-orange-600 text-xl"></i>
                 </div>
-                <span class="text-sm text-gray-500">Pending</span>
             </div>
-            <div class="text-3xl font-bold mb-1">{{ stats.queued if stats else 7 }}</div>
+            <div class="text-3xl font-bold mb-1">{{ stats.queued }}</div>
             <div class="text-sm text-gray-600">Queued</div>
+            <div class="text-xs text-gray-400 mt-1">Pending delivery</div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-lg p-6 shadow-sm mb-8">
+        <h2 class="text-xl font-bold mb-6">Quick Actions</h2>
+        
+        <div class="grid md:grid-cols-3 gap-6">
+            <a href="/dashboard/send-email" class="border-2 border-purple-200 rounded-lg p-6 hover:border-purple-400 hover:bg-purple-50 transition">
+                <div class="flex items-center mb-3">
+                    <div class="bg-purple-100 p-3 rounded-lg mr-4">
+                        <i class="fas fa-envelope text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-lg">Send Email</h3>
+                </div>
+                <p class="text-sm text-gray-600">Send a single email with templates</p>
+            </a>
+            
+            <a href="/dashboard/campaigns/create" class="border-2 border-blue-200 rounded-lg p-6 hover:border-blue-400 hover:bg-blue-50 transition">
+                <div class="flex items-center mb-3">
+                    <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                        <i class="fas fa-bullhorn text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-lg">Create Campaign</h3>
+                </div>
+                <p class="text-sm text-gray-600">Send to multiple contacts</p>
+            </a>
+            
+            <a href="/dashboard/contacts" class="border-2 border-green-200 rounded-lg p-6 hover:border-green-400 hover:bg-green-50 transition">
+                <div class="flex items-center mb-3">
+                    <div class="bg-green-100 p-3 rounded-lg mr-4">
+                        <i class="fas fa-users text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-lg">Manage Contacts</h3>
+                </div>
+                <p class="text-sm text-gray-600">Import and organize contacts</p>
+            </a>
         </div>
     </div>
     
     <!-- New Features - The 8 Critical Features! -->
     <div class="mb-8">
-        <h2 class="text-2xl font-bold mb-4">🚀 New Features</h2>
+        <h2 class="text-2xl font-bold mb-4">🚀 Advanced Features</h2>
         
         <div class="grid md:grid-cols-4 gap-6">
             <!-- Workflows -->
@@ -120,43 +163,6 @@
         </div>
     </div>
     
-    <!-- Quick Actions -->
-    <div class="bg-white rounded-lg p-6 shadow-sm mb-8">
-        <h2 class="text-xl font-bold mb-6">Quick Actions</h2>
-        
-        <div class="grid md:grid-cols-3 gap-6">
-            <a href="/dashboard/campaigns/create" class="border-2 border-purple-200 rounded-lg p-6 hover:border-purple-400 hover:bg-purple-50 transition">
-                <div class="flex items-center mb-3">
-                    <div class="bg-purple-100 p-3 rounded-lg mr-4">
-                        <i class="fas fa-envelope text-purple-600 text-2xl"></i>
-                    </div>
-                    <h3 class="font-semibold text-lg">Send Email</h3>
-                </div>
-                <p class="text-sm text-gray-600">Send a single email</p>
-            </a>
-            
-            <a href="/dashboard/campaigns/create" class="border-2 border-blue-200 rounded-lg p-6 hover:border-blue-400 hover:bg-blue-50 transition">
-                <div class="flex items-center mb-3">
-                    <div class="bg-blue-100 p-3 rounded-lg mr-4">
-                        <i class="fas fa-bullhorn text-blue-600 text-2xl"></i>
-                    </div>
-                    <h3 class="font-semibold text-lg">Bulk Campaign</h3>
-                </div>
-                <p class="text-sm text-gray-600">Send to multiple contacts</p>
-            </a>
-            
-            <a href="/dashboard/contacts" class="border-2 border-green-200 rounded-lg p-6 hover:border-green-400 hover:bg-green-50 transition">
-                <div class="flex items-center mb-3">
-                    <div class="bg-green-100 p-3 rounded-lg mr-4">
-                        <i class="fas fa-users text-green-600 text-2xl"></i>
-                    </div>
-                    <h3 class="font-semibold text-lg">Manage Contacts</h3>
-                </div>
-                <p class="text-sm text-gray-600">View and import contacts</p>
-            </a>
-        </div>
-    </div>
-    
     <!-- Recent Campaigns -->
     <div class="bg-white rounded-lg p-6 shadow-sm">
         <div class="flex justify-between items-center mb-6">
@@ -193,8 +199,8 @@
             <div class="text-6xl mb-4">📧</div>
             <h3 class="text-xl font-semibold mb-2">No campaigns yet</h3>
             <p class="text-gray-600 mb-6">Create your first email campaign</p>
-            <a href="/dashboard/campaigns/create" class="inline-block bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700">
-                Create Campaign
+            <a href="/dashboard/send-email" class="inline-block bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700">
+                Send Your First Email
             </a>
         </div>
         {% endif %}
