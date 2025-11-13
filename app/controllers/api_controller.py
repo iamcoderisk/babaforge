@@ -1,92 +1,88 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
 from app import db, redis_client
 from sqlalchemy import text
 import json
 import uuid
 import logging
-from datetime import datetime
+from functools import wraps
 
 logger = logging.getLogger(__name__)
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
+# API Key Authentication Decorator
+def require_api_key(f):
+    """Decorator for API key authentication"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        api_key = request.headers.get('X-API-Key')
+        
+        if not api_key:
+            return jsonify({'success': False, 'error': 'API key required'}), 401
+        
+        try:
+            result = db.session.execute(
+                text("SELECT id, name FROM organizations WHERE api_key = :api_key"),
+                {'api_key': api_key}
+            )
+            org = result.fetchone()
+            
+            if not org:
+                return jsonify({'success': False, 'error': 'Invalid API key'}), 401
+            
+            request.org_id = org[0]
+            request.org_name = org[1]
+            
+            return f(*args, **kwargs)
+            
+        except Exception as e:
+            logger.error(f"API auth error: {e}")
+            return jsonify({'success': False, 'error': 'Authentication failed'}), 500
+    
+    return decorated_function
+
+# ============= DASHBOARD API ENDPOINTS (Login Required) =============
+
 @api_bp.route('/emails/send', methods=['POST'])
 @login_required
 def send_email():
-    """Send email and track in database"""
+    """Send email from dashboard"""
     try:
-        # Get form data
         from_name = request.form.get('from_name', 'noreply')
         from_domain = request.form.get('from_domain')
         to_email = request.form.get('to_email')
         subject = request.form.get('subject')
         html_body = request.form.get('html_body', '')
-        is_test = request.form.get('is_test', 'false').lower() == 'true'
         
         if not to_email or not subject:
             return jsonify({'success': False, 'error': 'Missing required fields'}), 400
         
-        # Build from email
         from_email = f"{from_name}@{from_domain}" if from_domain else f"{from_name}@sendbaba.com"
-        
-        # Generate email ID
         email_id = str(uuid.uuid4())
         
-        # Create campaign if not a test
-        campaign_id = None
-        if not is_test:
-            campaign_id = str(uuid.uuid4())
-            
-            # Insert campaign
-            db.session.execute(
-                text("""
-                    INSERT INTO campaigns (
-                        id, organization_id, name, subject, from_email,
-                        status, emails_sent, sent_count, total_recipients,
-                        created_at, started_at
-                    )
-                    VALUES (
-                        :id, :org_id, :name, :subject, :from_email,
-                        'sending', 0, 0, 1, NOW(), NOW()
-                    )
-                """),
-                {
-                    'id': campaign_id,
-                    'org_id': current_user.organization_id,
-                    'name': f'Email to {to_email}',
-                    'subject': subject,
-                    'from_email': from_email
-                }
-            )
-        
-        # Save to emails table
+        # Save to database
         db.session.execute(
             text("""
                 INSERT INTO emails (
-                    id, organization_id, campaign_id, from_email, to_email,
+                    id, organization_id, sender, recipient,
                     subject, html_body, status, created_at
                 )
-                VALUES (
-                    :id, :org_id, :campaign_id, :from_email, :to_email,
-                    :subject, :html_body, 'queued', NOW()
-                )
+                VALUES (:id, :org_id, :sender, :recipient, :subject, :html_body, 'queued', NOW())
             """),
             {
                 'id': email_id,
                 'org_id': current_user.organization_id,
-                'campaign_id': campaign_id,
-                'from_email': from_email,
-                'to_email': to_email,
+                'sender': from_email,
+                'recipient': to_email,
                 'subject': subject,
                 'html_body': html_body
             }
         )
         
-        # Queue email for sending
+        # Queue for sending
         email_data = {
             'id': email_id,
-            'campaign_id': campaign_id,
             'org_id': current_user.organization_id,
             'from': from_email,
             'to': to_email,
@@ -96,16 +92,12 @@ def send_email():
             'priority': 10
         }
         
-        if redis_client:
-            redis_client.lpush('outgoing_10', json.dumps(email_data))
-            logger.info(f"Email {email_id} queued for {to_email}")
-        
+        redis_client.lpush('outgoing_10', json.dumps(email_data))
         db.session.commit()
         
         return jsonify({
             'success': True,
             'email_id': email_id,
-            'campaign_id': campaign_id,
             'message': 'Email queued successfully'
         })
         
@@ -120,15 +112,15 @@ def import_contacts():
     """Import contacts from CSV"""
     try:
         if 'file' not in request.files:
-            return jsonify({'success': False, 'error': 'No file uploaded'}), 400
+            flash('No file uploaded', 'error')
+            return redirect(url_for('contacts.list_contacts'))
         
         file = request.files['file']
         if not file.filename.endswith('.csv'):
-            return jsonify({'success': False, 'error': 'Only CSV files allowed'}), 400
+            flash('Only CSV files allowed', 'error')
+            return redirect(url_for('contacts.list_contacts'))
         
-        # Process CSV
-        import csv
-        import io
+        import csv, io
         
         stream = io.StringIO(file.stream.read().decode("UTF8"), newline=None)
         csv_reader = csv.DictReader(stream)
@@ -150,29 +142,21 @@ def import_contacts():
                         VALUES (:id, :org_id, :email, :name, NOW())
                         ON CONFLICT DO NOTHING
                     """),
-                    {
-                        'id': contact_id,
-                        'org_id': current_user.organization_id,
-                        'email': email,
-                        'name': name
-                    }
+                    {'id': contact_id, 'org_id': current_user.organization_id, 'email': email, 'name': name}
                 )
                 imported += 1
             except:
                 continue
         
         db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'imported': imported,
-            'message': f'{imported} contacts imported'
-        })
+        flash(f'{imported} contacts imported', 'success')
+        return redirect(url_for('contacts.list_contacts'))
         
     except Exception as e:
         db.session.rollback()
         logger.error(f"Import error: {e}", exc_info=True)
-        return jsonify({'success': False, 'error': str(e)}), 500
+        flash('Import failed', 'error')
+        return redirect(url_for('contacts.list_contacts'))
 
 @api_bp.route('/contacts/<contact_id>/delete', methods=['POST'])
 @login_required
@@ -184,7 +168,228 @@ def delete_contact(contact_id):
             {'id': contact_id, 'org_id': current_user.organization_id}
         )
         db.session.commit()
-        return jsonify({'success': True})
+        flash('Contact deleted', 'success')
+        return redirect(url_for('contacts.list_contacts'))
     except Exception as e:
         db.session.rollback()
+        flash('Delete failed', 'error')
+        return redirect(url_for('contacts.list_contacts'))
+
+
+# ============= PUBLIC API v1 ENDPOINTS (API Key Required) =============
+
+@api_bp.route('/v1/send', methods=['POST'])
+@require_api_key
+def api_v1_send():
+    """API v1 - Send single email"""
+    try:
+        data = request.get_json()
+        
+        to_email = data.get('to')
+        from_email = data.get('from')
+        subject = data.get('subject')
+        html_body = data.get('html_body', '')
+        text_body = data.get('text_body', '')
+        
+        if not all([to_email, from_email, subject]):
+            return jsonify({'success': False, 'error': 'Missing required fields: to, from, subject'}), 400
+        
+        email_id = str(uuid.uuid4())
+        
+        # Save to database
+        db.session.execute(
+            text("""
+                INSERT INTO emails (
+                    id, organization_id, sender, recipient,
+                    subject, html_body, status, created_at
+                )
+                VALUES (:id, :org_id, :sender, :recipient, :subject, :html_body, 'queued', NOW())
+            """),
+            {
+                'id': email_id,
+                'org_id': request.org_id,
+                'sender': from_email,
+                'recipient': to_email,
+                'subject': subject,
+                'html_body': html_body
+            }
+        )
+        
+        # Queue for sending
+        email_data = {
+            'id': email_id,
+            'org_id': request.org_id,
+            'from': from_email,
+            'to': to_email,
+            'subject': subject,
+            'html_body': html_body,
+            'text_body': text_body,
+            'priority': 10
+        }
+        
+        redis_client.lpush('outgoing_10', json.dumps(email_data))
+        db.session.commit()
+        
+        logger.info(f"API: Email {email_id} queued for {to_email}")
+        
+        return jsonify({
+            'success': True,
+            'email_id': email_id,
+            'message': 'Email queued successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"API v1 send error: {e}", exc_info=True)
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@api_bp.route('/v1/send/bulk', methods=['POST'])
+@require_api_key
+def api_v1_bulk_send():
+    """API v1 - Send bulk emails"""
+    try:
+        data = request.get_json()
+        emails = data.get('emails', [])
+        
+        if not emails:
+            return jsonify({'success': False, 'error': 'No emails provided'}), 400
+        
+        if len(emails) > 10000:
+            return jsonify({'success': False, 'error': 'Maximum 10,000 emails per request'}), 400
+        
+        queued_ids = []
+        
+        for email in emails:
+            email_id = str(uuid.uuid4())
+            
+            db.session.execute(
+                text("""
+                    INSERT INTO emails (
+                        id, organization_id, sender, recipient,
+                        subject, html_body, status, created_at
+                    )
+                    VALUES (:id, :org_id, :sender, :recipient, :subject, :html_body, 'queued', NOW())
+                """),
+                {
+                    'id': email_id,
+                    'org_id': request.org_id,
+                    'sender': email.get('from'),
+                    'recipient': email.get('to'),
+                    'subject': email.get('subject'),
+                    'html_body': email.get('html_body', '')
+                }
+            )
+            
+            email_data = {
+                'id': email_id,
+                'org_id': request.org_id,
+                'from': email.get('from'),
+                'to': email.get('to'),
+                'subject': email.get('subject'),
+                'html_body': email.get('html_body', ''),
+                'text_body': email.get('text_body', ''),
+                'priority': 5
+            }
+            
+            redis_client.lpush('outgoing_5', json.dumps(email_data))
+            queued_ids.append(email_id)
+        
+        db.session.commit()
+        
+        logger.info(f"API: Bulk queued {len(queued_ids)} emails")
+        
+        return jsonify({
+            'success': True,
+            'queued': len(queued_ids),
+            'email_ids': queued_ids
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"API v1 bulk send error: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@api_bp.route('/v1/usage', methods=['GET'])
+@require_api_key
+def api_v1_usage():
+    """API v1 - Get usage stats"""
+    try:
+        result = db.session.execute(
+            text("""
+                SELECT 
+                    COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE) as today_sent,
+                    COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') as month_sent
+                FROM emails
+                WHERE organization_id = :org_id AND status = 'sent'
+            """),
+            {'org_id': request.org_id}
+        )
+        
+        row = result.fetchone()
+        
+        return jsonify({
+            'success': True,
+            'usage': {
+                'today': {'sent': row[0] or 0, 'failed': 0},
+                'last_30_days': {'sent': row[1] or 0, 'failed': 0}
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"API v1 usage error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@api_bp.route('/v1/contacts', methods=['GET', 'POST'])
+@require_api_key
+def api_v1_contacts():
+    """API v1 - List or add contacts"""
+    if request.method == 'GET':
+        try:
+            page = request.args.get('page', 1, type=int)
+            per_page = min(request.args.get('per_page', 50, type=int), 100)
+            
+            result = db.session.execute(
+                text("""
+                    SELECT id, email, name, created_at
+                    FROM contacts
+                    WHERE organization_id = :org_id
+                    ORDER BY created_at DESC
+                    LIMIT :limit OFFSET :offset
+                """),
+                {'org_id': request.org_id, 'limit': per_page, 'offset': (page - 1) * per_page}
+            )
+            
+            contacts = [{'id': r[0], 'email': r[1], 'name': r[2], 'created_at': r[3].isoformat()} for r in result]
+            
+            return jsonify({'success': True, 'contacts': contacts})
+            
+        except Exception as e:
+            logger.error(f"API v1 list contacts error: {e}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    else:  # POST
+        try:
+            data = request.get_json()
+            contact_id = str(uuid.uuid4())
+            
+            db.session.execute(
+                text("""
+                    INSERT INTO contacts (id, organization_id, email, name, created_at)
+                    VALUES (:id, :org_id, :email, :name, NOW())
+                """),
+                {
+                    'id': contact_id,
+                    'org_id': request.org_id,
+                    'email': data.get('email'),
+                    'name': f"{data.get('first_name', '')} {data.get('last_name', '')}".strip()
+                }
+            )
+            
+            db.session.commit()
+            
+            return jsonify({'success': True, 'contact_id': contact_id})
+            
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"API v1 add contact error: {e}")
+            return jsonify({'success': False, 'error': str(e)}), 500
