@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block title %}Email List - sendbaba.com{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-list"></i> Email List</h2>
+        <p class="lead">View and manage sent emails</p>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label>Filter by Status:</label>
+                        <select class="form-select" id="status-filter">
+                            <option value="">All</option>
+                            <option value="queued">Queued</option>
+                            <option value="sent">Sent</option>
+                            <option value="failed">Failed</option>
+                            <option value="bounced">Bounced</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary form-control" id="filter-btn">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-success form-control" onclick="window.location.href='/'">
+                            <i class="fas fa-plus"></i> Send New Email
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Emails</h5>
+            </div>
+            <div class="card-body">
+                <div id="loading" class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Loading emails...</p>
+                </div>
+                
+                <div id="email-list" style="display:none;">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Recipient</th>
+                                    <th>Subject</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="email-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <nav>
+                        <ul class="pagination" id="pagination">
+                        </ul>
+                    </nav>
+                </div>
+                
+                <div id="no-emails" style="display:none;" class="text-center py-5">
+                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                    <h5>No Emails Found</h5>
+                    <p class="text-muted">Send your first email to get started!</p>
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Send Email
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Detail Modal -->
+<div class="modal fade" id="emailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Email Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="email-details">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+let currentStatus = '';
+
+function loadEmails(page = 1, status = '') {
+    $('#loading').show();
+    $('#email-list').hide();
+    $('#no-emails').hide();
+    
+    let url = `/emails/list?page=${page}&per_page=50`;
+    if (status) {
+        url += `&status=${status}`;
+    }
+    
+    $.get(url, function(data) {
+        $('#loading').hide();
+        
+        if (data.success && data.emails.length > 0) {
+            $('#email-list').show();
+            renderEmails(data.emails);
+            renderPagination(data.current_page, data.pages);
+        } else {
+            $('#no-emails').show();
+        }
+    }).fail(function() {
+        $('#loading').hide();
+        $('#email-list').html('<div class="alert alert-danger">Error loading emails</div>').show();
+    });
+}
+
+function renderEmails(emails) {
+    let html = '';
+    
+    emails.forEach(function(email) {
+        let statusBadge = getStatusBadge(email.status);
+        let priorityBadge = getPriorityBadge(email.priority);
+        
+        html += `
+            <tr>
+                <td><small><code>${email.id.substring(0, 8)}</code></small></td>
+                <td>${email.recipient}</td>
+                <td>${email.subject || '(no subject)'}</td>
+                <td>${statusBadge}</td>
+                <td>${priorityBadge}</td>
+                <td><small>${formatDate(email.created_at)}</small></td>
+                <td>
+                    <button class="btn btn-sm btn-info" onclick="viewEmail('${email.id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    $('#email-table-body').html(html);
+}
+
+function getStatusBadge(status) {
+    const badges = {
+        'queued': '<span class="badge bg-warning">Queued</span>',
+        'sent': '<span class="badge bg-success">Sent</span>',
+        'failed': '<span class="badge bg-danger">Failed</span>',
+        'bounced': '<span class="badge bg-danger">Bounced</span>'
+    };
+    return badges[status] || '<span class="badge bg-secondary">Unknown</span>';
+}
+
+function getPriorityBadge(priority) {
+    if (priority <= 3) {
+        return `<span class="badge bg-danger">${priority}</span>`;
+    } else if (priority <= 7) {
+        return `<span class="badge bg-warning">${priority}</span>`;
+    } else {
+        return `<span class="badge bg-secondary">${priority}</span>`;
+    }
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    return date.toLocaleString();
+}
+
+function renderPagination(current, total) {
+    if (total <= 1) {
+        $('#pagination').hide();
+        return;
+    }
+    
+    $('#pagination').show();
+    let html = '';
+    
+    // Previous
+    html += `<li class="page-item ${current === 1 ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="loadEmails(${current - 1}, '${currentStatus}'); return false;">Previous</a>
+    </li>`;
+    
+    // Pages
+    for (let i = 1; i <= Math.min(total, 10); i++) {
+        html += `<li class="page-item ${i === current ? 'active' : ''}">
+            <a class="page-link" href="#" onclick="loadEmails(${i}, '${currentStatus}'); return false;">${i}</a>
+        </li>`;
+    }
+    
+    // Next
+    html += `<li class="page-item ${current === total ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="loadEmails(${current + 1}, '${currentStatus}'); return false;">Next</a>
+    </li>`;
+    
+    $('#pagination').html(html);
+}
+
+function viewEmail(emailId) {
+    $('#emailModal').modal('show');
+    $('#email-details').html('<div class="text-center"><div class="spinner-border text-primary"></div></div>');
+    
+    $.get(`/emails/${emailId}`, function(data) {
+        if (data.success) {
+            let email = data.email;
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Email ID:</strong><br>
+                        <code>${email.id}</code>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Status:</strong><br>
+                        ${getStatusBadge(email.status)}
+                    </div>
+                </div>
+                <hr>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <strong>From:</strong><br>
+                        ${email.sender}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>To:</strong><br>
+                        ${email.recipient}
+                    </div>
+                </div>
+                <hr>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <strong>Subject:</strong><br>
+                        ${email.subject || '(no subject)'}
+                    </div>
+                </div>
+                <hr>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <strong>Priority:</strong><br>
+                        ${getPriorityBadge(email.priority)}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Created:</strong><br>
+                        <small>${formatDate(email.created_at)}</small>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Sent:</strong><br>
+                        <small>${formatDate(email.sent_at)}</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <strong>Opened:</strong><br>
+                        ${email.opened ? '✓ Yes' : '✗ No'}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Clicked:</strong><br>
+                        ${email.clicked ? '✓ Yes' : '✗ No'}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Bounced:</strong><br>
+                        ${email.bounced ? '✓ Yes' : '✗ No'}
+                    </div>
+                </div>
+            `;
+            
+            $('#email-details').html(html);
+        } else {
+            $('#email-details').html('<div class="alert alert-danger">Error loading email details</div>');
+        }
+    }).fail(function() {
+        $('#email-details').html('<div class="alert alert-danger">Error loading email details</div>');
+    });
+}
+
+// Filter button
+$('#filter-btn').click(function() {
+    currentStatus = $('#status-filter').val();
+    loadEmails(1, currentStatus);
+});
+
+// Load emails on page load
+$(document).ready(function() {
+    loadEmails();
+});
+</script>
+{% endblock %}

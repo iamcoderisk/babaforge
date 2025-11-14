@@ -124,10 +124,7 @@ def create_app():
         except Exception as e:
             logger.error(f"❌ Forms: {e}")
         
-        try:
-            from app.controllers.template_controller import template_bp
-            app.register_blueprint(template_bp)
-            logger.info("✅ Templates")
+        try:            logger.info("✅ Templates")
         except Exception as e:
             logger.error(f"❌ Templates: {e}")
         
@@ -169,5 +166,11 @@ def create_app():
                 return User.query.get(int(user_id))
             except:
                 return None
+    
+
+    # Register template blueprints
+    from app.controllers.template_controller import template_bp, template_api_bp
+    app.register_blueprint(template_bp)
+    app.register_blueprint(template_api_bp)
     
     return app

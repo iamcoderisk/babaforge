@@ -1,0 +1,101 @@
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+import redis
+import os
+
+db = SQLAlchemy()
+migrate = Migrate()
+
+# Initialize Redis client
+redis_client = redis.Redis(
+    host=os.environ.get('REDIS_HOST', 'localhost'),
+    port=int(os.environ.get('REDIS_PORT', 6379)),
+    db=int(os.environ.get('REDIS_DB', 0)),
+    decode_responses=True
+)
+
+# Initialize rate limiter
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri=f"redis://{os.environ.get('REDIS_HOST', 'localhost')}:{os.environ.get('REDIS_PORT', 6379)}"
+)
+
+def create_app():
+    app = Flask(__name__)
+    
+    # Force PostgreSQL configuration
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+        'DATABASE_URL',
+        'postgresql://emailer:SecurePassword123@localhost:5432/emailer'
+    )
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+    
+    # Redis config
+    app.config['REDIS_HOST'] = os.environ.get('REDIS_HOST', 'localhost')
+    app.config['REDIS_PORT'] = int(os.environ.get('REDIS_PORT', 6379))
+    
+    # Initialize extensions
+    db.init_app(app)
+    migrate.init_app(app, db)
+    limiter.init_app(app)
+    
+    # Register blueprints
+    with app.app_context():
+        # Import and register controllers
+        try:
+            from app.controllers.api_controller import api_bp
+            app.register_blueprint(api_bp, url_prefix='/api/v1')
+            print("✅ Registered api_controller")
+        except Exception as e:
+            print(f"❌ Could not register api_controller: {e}")
+        
+        try:
+            from app.controllers.email_controller import email_bp
+            app.register_blueprint(email_bp)
+            print("✅ Registered email_controller")
+        except Exception as e:
+            print(f"❌ Could not register email_controller: {e}")
+        
+        try:
+            from app.controllers.dashboard_controller import dashboard_bp
+            app.register_blueprint(dashboard_bp)
+            print("✅ Registered dashboard_controller")
+        except Exception as e:
+            print(f"❌ Could not register dashboard_controller: {e}")
+        
+        try:
+            from app.controllers.main_controller import main_bp
+            app.register_blueprint(main_bp)
+            print("✅ Registered main_controller")
+        except Exception as e:
+            print(f"❌ Could not register main_controller: {e}")
+        
+        # Health check route
+        @app.route('/health')
+        def health():
+            try:
+                # Check database
+                db.session.execute('SELECT 1')
+                db_status = 'connected'
+            except:
+                db_status = 'disconnected'
+            
+            try:
+                # Check Redis
+                redis_client.ping()
+                redis_status = 'connected'
+            except:
+                redis_status = 'disconnected'
+            
+            return {
+                'status': 'healthy',
+                'database': db_status,
+                'redis': redis_status
+            }, 200
+        
+    return app

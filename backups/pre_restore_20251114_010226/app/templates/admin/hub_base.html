@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Hub - SendBaba{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100">
+    <!-- Top Navigation -->
+    <nav class="bg-gray-800 border-b border-gray-700">
+        <div class="max-w-full mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center space-x-8">
+                    <a href="{{ url_for('admin.index') }}" class="text-2xl font-bold text-purple-400">
+                        🎛️ Admin Hub
+                    </a>
+                    <div class="hidden md:flex space-x-1">
+                        <a href="{{ url_for('admin.index') }}" class="px-4 py-2 rounded-lg {% if request.endpoint == 'admin.index' %}bg-purple-600 text-white{% else %}text-gray-300 hover:bg-gray-700{% endif %}">
+                            Dashboard
+                        </a>
+                        <a href="{{ url_for('admin.users') }}" class="px-4 py-2 rounded-lg {% if request.endpoint == 'admin.users' %}bg-purple-600 text-white{% else %}text-gray-300 hover:bg-gray-700{% endif %}">
+                            Users
+                        </a>
+                        <a href="{{ url_for('admin.sales') }}" class="px-4 py-2 rounded-lg {% if request.endpoint == 'admin.sales' %}bg-purple-600 text-white{% else %}text-gray-300 hover:bg-gray-700{% endif %}">
+                            Sales
+                        </a>
+                        <a href="{{ url_for('admin.delivery') }}" class="px-4 py-2 rounded-lg {% if request.endpoint == 'admin.delivery' %}bg-purple-600 text-white{% else %}text-gray-300 hover:bg-gray-700{% endif %}">
+                            Delivery
+                        </a>
+                        <a href="{{ url_for('admin.analytics') }}" class="px-4 py-2 rounded-lg {% if request.endpoint == 'admin.analytics' %}bg-purple-600 text-white{% else %}text-gray-300 hover:bg-gray-700{% endif %}">
+                            Analytics
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm">
+                        <span class="text-gray-400">Logged in as:</span>
+                        <span class="text-purple-400 font-semibold">{{ current_user.email }}</span>
+                    </div>
+                    <a href="{{ url_for('dashboard.index') }}" class="text-gray-300 hover:text-white">
+                        <i class="fas fa-home"></i> User View
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="text-red-400 hover:text-red-300">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="max-w-full mx-auto px-4 mt-4">
+                {% for category, message in messages %}
+                    <div class="rounded-lg p-4 mb-4 {% if category == 'success' %}bg-green-900 text-green-100{% elif category == 'danger' %}bg-red-900 text-red-100{% else %}bg-blue-900 text-blue-100{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="max-w-full mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

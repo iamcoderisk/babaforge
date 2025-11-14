@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Email Templates{% endblock %}
+{% block content %}
+<div class="p-8">
+    <h1 class="text-3xl font-bold mb-4">🎨 Email Templates</h1>
+    <p class="text-gray-600 mb-8">Professional templates ready to use</p>
+    
+    <h2 class="text-2xl font-bold mb-6">Business Templates</h2>
+    <div class="grid md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition cursor-pointer">
+            <div class="bg-gradient-to-br from-purple-100 to-blue-100 h-48 flex items-center justify-center"><div class="text-6xl">📧</div></div>
+            <div class="p-6">
+                <h3 class="font-bold text-lg mb-2">Newsletter</h3>
+                <p class="text-sm text-gray-600 mb-4">Professional monthly newsletter</p>
+                <button class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700">Use Template</button>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition cursor-pointer">
+            <div class="bg-gradient-to-br from-green-100 to-teal-100 h-48 flex items-center justify-center"><div class="text-6xl">👋</div></div>
+            <div class="p-6">
+                <h3 class="font-bold text-lg mb-2">Welcome Email</h3>
+                <p class="text-sm text-gray-600 mb-4">Warm welcome for subscribers</p>
+                <button class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Use Template</button>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition cursor-pointer">
+            <div class="bg-gradient-to-br from-pink-100 to-red-100 h-48 flex items-center justify-center"><div class="text-6xl">🎉</div></div>
+            <div class="p-6">
+                <h3 class="font-bold text-lg mb-2">Promotional</h3>
+                <p class="text-sm text-gray-600 mb-4">Eye-catching promotion</p>
+                <button class="w-full bg-pink-600 text-white py-2 rounded-lg hover:bg-pink-700">Use Template</button>
+            </div>
+        </div>
+    </div>
+    
+    <h2 class="text-2xl font-bold mb-6">E-commerce Templates</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition cursor-pointer">
+            <div class="bg-gradient-to-br from-orange-100 to-yellow-100 h-48 flex items-center justify-center"><div class="text-6xl">🛒</div></div>
+            <div class="p-6">
+                <h3 class="font-bold text-lg mb-2">Abandoned Cart</h3>
+                <p class="text-sm text-gray-600 mb-4">Recover lost sales</p>
+                <button class="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700">Use Template</button>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition cursor-pointer">
+            <div class="bg-gradient-to-br from-blue-100 to-indigo-100 h-48 flex items-center justify-center"><div class="text-6xl">✅</div></div>
+            <div class="p-6">
+                <h3 class="font-bold text-lg mb-2">Order Confirmation</h3>
+                <p class="text-sm text-gray-600 mb-4">Purchase confirmation</p>
+                <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Use Template</button>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition cursor-pointer">
+            <div class="bg-gradient-to-br from-red-100 to-pink-100 h-48 flex items-center justify-center"><div class="text-6xl">🔥</div></div>
+            <div class="p-6">
+                <h3 class="font-bold text-lg mb-2">Sale Announcement</h3>
+                <p class="text-sm text-gray-600 mb-4">Promote your sales</p>
+                <button class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">Use Template</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

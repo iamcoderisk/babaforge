@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, flash, redirect, url_for
+from datetime import datetime
 from flask_login import login_required, current_user
 from app import db, redis_client
 from sqlalchemy import text
@@ -47,6 +48,84 @@ def require_api_key(f):
 @api_bp.route('/emails/send', methods=['POST'])
 @login_required
 def send_email():
+    """Send email via worker queue"""
+    try:
+        from_name = request.form.get('from_name', 'noreply')
+        from_domain = request.form.get('from_domain')
+        to_email = request.form.get('to_email')
+        subject = request.form.get('subject')
+        html_body = request.form.get('html_body', '')
+        
+        logger.info(f"📧 Email request: {from_name}@{from_domain} -> {to_email}")
+        
+        if not to_email or not subject or not from_domain:
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        from_email = f"{from_name}@{from_domain}"
+        email_id = str(uuid.uuid4())
+        
+        # Save to database
+        try:
+            db.session.execute(
+                text("""
+                    INSERT INTO emails (
+                        id, organization_id, sender, recipient,
+                        subject, html_body, status, created_at
+                    )
+                    VALUES (:id, :org_id, :sender, :recipient, :subject, :html_body, 'queued', NOW())
+                """),
+                {
+                    'id': email_id,
+                    'org_id': current_user.organization_id,
+                    'sender': from_email,
+                    'recipient': to_email,
+                    'subject': subject,
+                    'html_body': html_body
+                }
+            )
+            db.session.commit()
+            logger.info(f"✅ Email saved: {email_id}")
+        except Exception as db_error:
+            logger.error(f"❌ DB error: {db_error}")
+            db.session.rollback()
+            return jsonify({'success': False, 'error': 'Database error'}), 500
+        
+        # Queue for worker
+        try:
+            email_data = {
+                'id': email_id,
+                'from': from_email,
+                'to': to_email,
+                'subject': subject,
+                'html_body': html_body,
+                'text_body': '',
+                'priority': 10
+            }
+            
+            redis_client.lpush('outgoing_10', json.dumps(email_data))
+            logger.info(f"✅ Queued: {email_id}")
+            
+            return jsonify({
+                'success': True,
+                'email_id': email_id,
+                'message': 'Email queued successfully'
+            })
+            
+        except Exception as queue_error:
+            logger.error(f"❌ Queue error: {queue_error}")
+            db.session.execute(
+                text("UPDATE emails SET status = 'failed' WHERE id = :id"),
+                {'id': email_id}
+            )
+            db.session.commit()
+            return jsonify({'success': False, 'error': 'Queue error'}), 500
+        
+    except Exception as e:
+        logger.error(f"❌ Error: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+def send_email():
     """Send email from dashboard"""
     try:
         from_name = request.form.get('from_name', 'noreply')
@@ -55,57 +134,95 @@ def send_email():
         subject = request.form.get('subject')
         html_body = request.form.get('html_body', '')
         
-        if not to_email or not subject:
+        logger.info(f"📧 Email request: {from_name}@{from_domain} -> {to_email}")
+        
+        if not to_email or not subject or not from_domain:
             return jsonify({'success': False, 'error': 'Missing required fields'}), 400
         
-        from_email = f"{from_name}@{from_domain}" if from_domain else f"{from_name}@sendbaba.com"
+        from_email = f"{from_name}@{from_domain}"
         email_id = str(uuid.uuid4())
         
         # Save to database
-        db.session.execute(
-            text("""
-                INSERT INTO emails (
-                    id, organization_id, sender, recipient,
-                    subject, html_body, status, created_at
+        try:
+            db.session.execute(
+                text("""
+                    INSERT INTO emails (
+                        id, organization_id, sender, recipient,
+                        subject, html_body, status, created_at
+                    )
+                    VALUES (:id, :org_id, :sender, :recipient, :subject, :html_body, 'sending', NOW())
+                """),
+                {
+                    'id': email_id,
+                    'org_id': current_user.organization_id,
+                    'sender': from_email,
+                    'recipient': to_email,
+                    'subject': subject,
+                    'html_body': html_body
+                }
+            )
+            db.session.commit()
+            logger.info(f"✅ Email saved to DB: {email_id}")
+        except Exception as db_error:
+            logger.error(f"❌ DB error: {db_error}")
+            db.session.rollback()
+        
+        # Send directly via SMTP
+        try:
+            import smtplib
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
+            
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = subject
+            msg['From'] = from_email
+            msg['To'] = to_email
+            msg['Message-ID'] = f"<{email_id}@{from_domain}>"
+            
+            html_part = MIMEText(html_body, 'html')
+            msg.attach(html_part)
+            
+            # Send via localhost Postfix
+            logger.info(f"📤 Sending via SMTP to {to_email}...")
+            with smtplib.SMTP('localhost', 25, timeout=10) as server:
+                server.send_message(msg)
+            
+            # Update status
+            db.session.execute(
+                text("UPDATE emails SET status = 'sent', updated_at = NOW() WHERE id = :id"),
+                {'id': email_id}
+            )
+            db.session.commit()
+            
+            logger.info(f"✅ Email sent successfully: {email_id}")
+            
+            return jsonify({
+                'success': True,
+                'email_id': email_id,
+                'message': 'Email sent successfully!'
+            })
+            
+        except Exception as smtp_error:
+            logger.error(f"❌ SMTP error: {smtp_error}", exc_info=True)
+            
+            # Update status
+            try:
+                db.session.execute(
+                    text("UPDATE emails SET status = 'failed', updated_at = NOW() WHERE id = :id"),
+                    {'id': email_id}
                 )
-                VALUES (:id, :org_id, :sender, :recipient, :subject, :html_body, 'queued', NOW())
-            """),
-            {
-                'id': email_id,
-                'org_id': current_user.organization_id,
-                'sender': from_email,
-                'recipient': to_email,
-                'subject': subject,
-                'html_body': html_body
-            }
-        )
-        
-        # Queue for sending
-        email_data = {
-            'id': email_id,
-            'org_id': current_user.organization_id,
-            'from': from_email,
-            'to': to_email,
-            'subject': subject,
-            'html_body': html_body,
-            'text_body': '',
-            'priority': 10
-        }
-        
-        redis_client.lpush('outgoing_10', json.dumps(email_data))
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'email_id': email_id,
-            'message': 'Email queued successfully'
-        })
+                db.session.commit()
+            except:
+                pass
+            
+            return jsonify({
+                'success': False,
+                'error': f'Failed to send: {str(smtp_error)}'
+            }), 500
         
     except Exception as e:
-        db.session.rollback()
-        logger.error(f"Send email error: {e}", exc_info=True)
+        logger.error(f"❌ Send email error: {e}", exc_info=True)
         return jsonify({'success': False, 'error': str(e)}), 500
-
 @api_bp.route('/contacts/import', methods=['POST'])
 @login_required
 def import_contacts():

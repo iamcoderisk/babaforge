@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Contacts - SendBaba{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Contacts</h1>
+        <button onclick="document.getElementById('importModal').classList.remove('hidden')"
+                class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">
+            Import Contacts
+        </button>
+    </div>
+    
+    {% if contacts and contacts|length > 0 %}
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Added</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for contact in contacts %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ contact.email }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ contact.name or '-' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ contact.created_at.strftime('%Y-%m-%d') if contact.created_at else 'N/A' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <form method="POST" action="{{ url_for('api.delete_contact', contact_id=contact.id) }}" class="inline">
+                            <button type="submit" class="text-red-600 hover:text-red-900" 
+                                    onclick="return confirm('Delete this contact?')">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="bg-white shadow rounded-lg p-12 text-center">
+        <p class="text-gray-500 mb-4">No contacts yet</p>
+        <button onclick="document.getElementById('importModal').classList.remove('hidden')"
+                class="inline-block bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg">
+            Import Your First Contacts
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Import Modal -->
+<div id="importModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <h3 class="text-lg font-bold mb-4">Import Contacts</h3>
+        <form action="{{ url_for('api.import_contacts') }}" method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".csv" class="mb-4 w-full" required>
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')"
+                        class="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded">Import</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

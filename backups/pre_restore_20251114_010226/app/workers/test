@@ -1,0 +1,11 @@
+redis-cli LPUSH email_queue '{"id":"test-tls-001","from":"hello@sendbaba.com","to":"ekeminyd@gmail.com","subject":"TLS Test Email","text_body":"Testing TLS encryption"}'
+
+
+curl -X POST https://sendbaba.com/api/v1/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "ekeminyd@gmail.com",
+    "from": "ekemini@sendbaba.com",
+    "subject": "Test Email",
+    "text_body": "Hello from sendbaba.com! and Ekemini"
+  }'

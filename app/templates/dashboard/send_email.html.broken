@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+
+{% block title %}Send Email{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">📧 Send Email</h1>
+        
+        <!-- Tabs -->
+        <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+            <!-- Tab Headers -->
+            <div class="flex border-b">
+                <button onclick="switchTab('single')" id="singleTab" 
+                    class="flex-1 px-6 py-4 font-semibold text-center border-b-2 border-red-500 text-red-500 bg-red-50">
+                    📧 Single Send
+                </button>
+                <button onclick="switchTab('bulk')" id="bulkTab" 
+                    class="flex-1 px-6 py-4 font-semibold text-center border-b-2 border-transparent text-gray-600 hover:text-gray-900">
+                    📬 Bulk Send
+                </button>
+            </div>
+            
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- Single Send Tab -->
+                <div id="singleContent">
+                    <form method="POST" action="{{ url_for('dashboard.send_email') }}">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <!-- To Email -->
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">
+                                    To Email *
+                                </label>
+                                <input type="email" name="to_email" required 
+                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    placeholder="recipient@example.com">
+                            </div>
+                            
+                            <!-- Subject -->
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">
+                                    Subject *
+                                </label>
+                                <input type="text" name="subject" required
+                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    placeholder="Email subject">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <!-- From Name - Domain Dropdown -->
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">
+                                    From Name (Domain) *
+                                </label>
+                                {% if domains %}
+                                <select name="from_domain" required
+                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                                    {% for domain in domains %}
+                                    <option value="{{ domain.domain_name }}">
+                                        {{ domain.domain_name }}
+                                        {% if domain.dns_verified %}✅{% else %}⚠️{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                    <option value="sendbaba.com">sendbaba.com ✅</option>
+                                </select>
+                                {% else %}
+                                <select name="from_domain" required
+                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                                    <option value="sendbaba.com">sendbaba.com ✅</option>
+                                </select>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    <a href="/dashboard/domains" class="text-red-500 hover:text-red-700">
+                                        Add your domain →
+                                    </a>
+                                </p>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- From Email - Text Input -->
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">
+                                    From Email *
+                                </label>
+                                <input type="text" name="from_email" required value="noreply"
+                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    placeholder="noreply">
+                                <p class="text-xs text-gray-500 mt-1">Will be: from_email@domain</p>
+                            </div>
+                        </div>
+                        
+                        <!-- HTML Templates Quick Select -->
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-semibold mb-2">
+                                📝 Quick Templates
+                            </label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                <button type="button" onclick="useTemplate('welcome')" 
+                                    class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-lg text-sm">
+                                    Welcome Email
+                                </button>
+                                <button type="button" onclick="useTemplate('newsletter')" 
+                                    class="px-4 py-2 bg-green-100 hover:bg-green-200 rounded-lg text-sm">
+                                    Newsletter
+                                </button>
+                                <button type="button" onclick="useTemplate('promo')" 
+                                    class="px-4 py-2 bg-purple-100 hover:bg-purple-200 rounded-lg text-sm">
+                                    Promotional
+                                </button>
+                                <button type="button" onclick="useTemplate('plain')" 
+                                    class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm">
+                                    Plain Text
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Message -->
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">
+                                Message (HTML) *
+                            </label>
+                            <textarea id="messageEditor" name="message" required rows="15"
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 font-mono text-sm"
+                                placeholder="Write your HTML message here..."></textarea>
+                            
+                            <div class="mt-2 flex items-center justify-between text-sm text-gray-600">
+                                <span>💡 You can use HTML tags for formatting</span>
+                                <button type="button" onclick="togglePreview()" 
+                                    class="text-blue-500 hover:text-blue-700">
+                                    👁️ Preview
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Preview Area (Hidden by default) -->
+                        <div id="previewArea" class="hidden mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">
+                                Preview
+                            </label>
+                            <div id="previewContent" class="border rounded-lg p-4 bg-gray-50 min-h-32">
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <button type="submit" 
+                            class="w-full bg-red-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-600 transition">
+                            📧 Send Email Now
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Bulk Send Tab -->
+                <div id="bulkContent" class="hidden">
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">📬</div>
+                        <h3 class="text-2xl font-bold mb-2">Bulk Send Coming Soon!</h3>
+                        <p class="text-gray-600 mb-6">Send emails to multiple contacts from your lists</p>
+                        <div class="max-w-2xl mx-auto text-left bg-blue-50 p-6 rounded-lg">
+                            <h4 class="font-bold mb-3">📋 What you'll be able to do:</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li>✅ Select multiple contact lists</li>
+                                <li>✅ Personalize emails with {{first_name}}, {{last_name}}</li>
+                                <li>✅ Preview recipients before sending</li>
+                                <li>✅ Track delivery and opens</li>
+                                <li>✅ Schedule sends for later</li>
+                            </ul>
+                        </div>
+                        <a href="/dashboard/contacts" 
+                            class="inline-block mt-6 bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600">
+                            Manage Contacts First →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Tab Switching
+function switchTab(tab) {
+    const singleTab = document.getElementById('singleTab');
+    const bulkTab = document.getElementById('bulkTab');
+    const singleContent = document.getElementById('singleContent');
+    const bulkContent = document.getElementById('bulkContent');
+    
+    if (tab === 'single') {
+        singleTab.classList.add('border-red-500', 'text-red-500', 'bg-red-50');
+        singleTab.classList.remove('border-transparent', 'text-gray-600');
+        bulkTab.classList.remove('border-red-500', 'text-red-500', 'bg-red-50');
+        bulkTab.classList.add('border-transparent', 'text-gray-600');
+        singleContent.classList.remove('hidden');
+        bulkContent.classList.add('hidden');
+    } else {
+        bulkTab.classList.add('border-red-500', 'text-red-500', 'bg-red-50');
+        bulkTab.classList.remove('border-transparent', 'text-gray-600');
+        singleTab.classList.remove('border-red-500', 'text-red-500', 'bg-red-50');
+        singleTab.classList.add('border-transparent', 'text-gray-600');
+        bulkContent.classList.remove('hidden');
+        singleContent.classList.add('hidden');
+    }
+}
+
+// HTML Templates
+const templates = {
+    welcome: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                    <tr>
+                        <td style="background-color: #E84142; padding: 40px 20px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 32px;">Welcome! 🎉</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <h2 style="color: #333; margin-top: 0;">Hello there!</h2>
+                            <p style="color: #666; font-size: 16px; line-height: 1.6;">
+                                Welcome to our community! We're excited to have you on board.
+                            </p>
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="#" style="background-color: #E84142; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                                    Get Started
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #f8f8f8; padding: 20px; text-align: center; color: #999; font-size: 12px;">
+                            <p>Sent with ❤️ by SendBaba</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`,
+
+    newsletter: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f9f9f9;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td align="center" style="padding: 20px;">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff;">
+                    <tr>
+                        <td style="padding: 30px; background: linear-gradient(135deg, #E84142 0%, #FF6B6B 100%);">
+                            <h1 style="color: #ffffff; margin: 0; text-align: center;">📰 Newsletter</h1>
+                            <p style="color: #ffffff; text-align: center; margin: 10px 0 0 0;">Your weekly update</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 30px;">
+                            <h2 style="color: #333; margin-top: 0;">Featured Article</h2>
+                            <p style="color: #666; line-height: 1.6;">
+                                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`,
+
+    promo: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td align="center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 50px 20px;">
+                <h1 style="font-size: 48px; margin: 0; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                    🎉 SPECIAL OFFER 🎉
+                </h1>
+                <p style="font-size: 24px; margin: 20px 0; color: white;">Limited Time Only!</p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`,
+
+    plain: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+</head>
+<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #333;">Hello!</h1>
+        <p style="color: #666; line-height: 1.6;">
+            Your message here...
+        </p>
+        <p style="color: #666; line-height: 1.6;">
+            Best regards,<br>
+            Your Name
+        </p>
+    </div>
+</body>
+</html>`
+};
+
+function useTemplate(type) {
+    document.getElementById('messageEditor').value = templates[type];
+}
+
+function togglePreview() {
+    const previewArea = document.getElementById('previewArea');
+    const previewContent = document.getElementById('previewContent');
+    const message = document.getElementById('messageEditor').value;
+    
+    if (previewArea.classList.contains('hidden')) {
+        previewContent.innerHTML = message;
+        previewArea.classList.remove('hidden');
+    } else {
+        previewArea.classList.add('hidden');
+    }
+}
+</script>
+
+// Load template from session storage if coming from template gallery
+document.addEventListener('DOMContentLoaded', function() {
+    const savedTemplate = sessionStorage.getItem('selectedTemplate');
+    const savedTemplateName = sessionStorage.getItem('selectedTemplateName');
+    
+    if (savedTemplate) {
+        const htmlBody = document.getElementById('htmlBody');
+        if (htmlBody) {
+            htmlBody.value = savedTemplate;
+            
+            // Show success notification
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success';
+            alert.innerHTML = `<strong>✅ Template Loaded:</strong> ${savedTemplateName || 'Email template'} loaded successfully!`;
+            
+            const form = document.getElementById('sendEmailForm');
+            if (form) {
+                form.parentElement.insertBefore(alert, form);
+                
+                // Auto-remove after 5 seconds
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            }
+            
+            // Clear session storage
+            sessionStorage.removeItem('selectedTemplate');
+            sessionStorage.removeItem('selectedTemplateName');
+        }
+    }
+});
+
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Email Templates - SendBaba{% endblock %}
+
+{% block content %}
+<div class="p-6 md:p-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">🎨 Email Templates</h1>
+            <p class="text-gray-600">Choose from professional email templates</p>
+        </div>
+        <a href="/dashboard/templates/editor" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 font-semibold">
+            <i class="fas fa-plus mr-2"></i>Create Custom
+        </a>
+    </div>
+    
+    <!-- Category Filters -->
+    <div class="mb-8">
+        <div class="flex flex-wrap gap-3">
+            <button onclick="filterTemplates('all')" class="filter-btn active px-4 py-2 rounded-lg bg-purple-100 text-purple-700 font-medium">
+                All Templates
+            </button>
+            <button onclick="filterTemplates('business')" class="filter-btn px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
+                Business
+            </button>
+            <button onclick="filterTemplates('promotional')" class="filter-btn px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
+                Promotional
+            </button>
+            <button onclick="filterTemplates('newsletter')" class="filter-btn px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
+                Newsletter
+            </button>
+        </div>
+    </div>
+    
+    <!-- Templates Grid -->
+    <div id="templatesGrid" class="grid md:grid-cols-3 gap-6">
+        <!-- Welcome Email -->
+        <div class="template-card bg-white rounded-lg shadow-sm hover:shadow-xl transition" data-category="business">
+            <div class="relative">
+                <div class="bg-gradient-to-br from-purple-500 to-indigo-600 h-48 rounded-t-lg flex items-center justify-center">
+                    <div class="text-white text-center">
+                        <div class="text-5xl mb-2">👋</div>
+                        <h3 class="text-2xl font-bold">Welcome!</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="p-5">
+                <h3 class="font-bold text-lg mb-2">Welcome Email</h3>
+                <p class="text-sm text-gray-600 mb-4">Greet new users warmly</p>
+                <div class="flex space-x-2">
+                    <button onclick="previewTemplate('welcome')" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm">
+                        <i class="fas fa-eye mr-1"></i>Preview
+                    </button>
+                    <button onclick="useTemplate('welcome')" class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm">
+                        Use Template
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Newsletter -->
+        <div class="template-card bg-white rounded-lg shadow-sm hover:shadow-xl transition" data-category="newsletter">
+            <div class="relative">
+                <div class="bg-gradient-to-br from-blue-500 to-cyan-600 h-48 rounded-t-lg flex items-center justify-center">
+                    <div class="text-white text-center">
+                        <div class="text-5xl mb-2">📰</div>
+                        <h3 class="text-2xl font-bold">Newsletter</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="p-5">
+                <h3 class="font-bold text-lg mb-2">Business Newsletter</h3>
+                <p class="text-sm text-gray-600 mb-4">Monthly updates template</p>
+                <div class="flex space-x-2">
+                    <button onclick="previewTemplate('newsletter')" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm">
+                        <i class="fas fa-eye mr-1"></i>Preview
+                    </button>
+                    <button onclick="useTemplate('newsletter')" class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm">
+                        Use Template
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Promotional -->
+        <div class="template-card bg-white rounded-lg shadow-sm hover:shadow-xl transition" data-category="promotional">
+            <div class="relative">
+                <div class="bg-gradient-to-br from-pink-500 to-red-600 h-48 rounded-t-lg flex items-center justify-center">
+                    <div class="text-white text-center">
+                        <div class="text-5xl mb-2">🎁</div>
+                        <h3 class="text-2xl font-bold">50% OFF</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="p-5">
+                <h3 class="font-bold text-lg mb-2">Special Offer</h3>
+                <p class="text-sm text-gray-600 mb-4">Promotional sales template</p>
+                <div class="flex space-x-2">
+                    <button onclick="previewTemplate('promotional')" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm">
+                        <i class="fas fa-eye mr-1"></i>Preview
+                    </button>
+                    <button onclick="useTemplate('promotional')" class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm">
+                        Use Template
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Event Invitation -->
+        <div class="template-card bg-white rounded-lg shadow-sm hover:shadow-xl transition" data-category="business">
+            <div class="relative">
+                <div class="bg-gradient-to-br from-green-500 to-teal-600 h-48 rounded-t-lg flex items-center justify-center">
+                    <div class="text-white text-center">
+                        <div class="text-5xl mb-2">🎉</div>
+                        <h3 class="text-2xl font-bold">Event!</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="p-5">
+                <h3 class="font-bold text-lg mb-2">Event Invitation</h3>
+                <p class="text-sm text-gray-600 mb-4">Beautiful event template</p>
+                <div class="flex space-x-2">
+                    <button onclick="previewTemplate('event')" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm">
+                        <i class="fas fa-eye mr-1"></i>Preview
+                    </button>
+                    <button onclick="useTemplate('event')" class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm">
+                        Use Template
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Receipt -->
+        <div class="template-card bg-white rounded-lg shadow-sm hover:shadow-xl transition" data-category="business">
+            <div class="relative">
+                <div class="bg-gradient-to-br from-gray-700 to-gray-900 h-48 rounded-t-lg flex items-center justify-center">
+                    <div class="text-white text-center">
+                        <div class="text-5xl mb-2">✅</div>
+                        <h3 class="text-2xl font-bold">Receipt</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="p-5">
+                <h3 class="font-bold text-lg mb-2">Payment Receipt</h3>
+                <p class="text-sm text-gray-600 mb-4">Transaction receipt</p>
+                <div class="flex space-x-2">
+                    <button onclick="previewTemplate('receipt')" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm">
+                        <i class="fas fa-eye mr-1"></i>Preview
+                    </button>
+                    <button onclick="useTemplate('receipt')" class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm">
+                        Use Template
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div id="previewModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-auto">
+        <div class="flex justify-between items-center p-4 border-b sticky top-0 bg-white">
+            <h3 class="text-xl font-bold" id="previewTitle">Template Preview</h3>
+            <button onclick="closePreview()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+        <div id="previewContent" class="p-4"></div>
+    </div>
+</div>
+
+<script>
+function filterTemplates(category) {
+    const cards = document.querySelectorAll('.template-card');
+    const btns = document.querySelectorAll('.filter-btn');
+    
+    btns.forEach(btn => btn.classList.remove('active', 'bg-purple-100', 'text-purple-700'));
+    btns.forEach(btn => btn.classList.add('bg-gray-100', 'text-gray-700'));
+    event.target.classList.remove('bg-gray-100', 'text-gray-700');
+    event.target.classList.add('active', 'bg-purple-100', 'text-purple-700');
+    
+    cards.forEach(card => {
+        if (category === 'all' || card.dataset.category === category) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function previewTemplate(templateName) {
+    document.getElementById('previewModal').classList.remove('hidden');
+    document.getElementById('previewTitle').textContent = templateName.charAt(0).toUpperCase() + templateName.slice(1) + ' Template';
+    
+    fetch('/api/templates/preview/' + templateName)
+        .then(r => r.text())
+        .then(html => {
+            document.getElementById('previewContent').innerHTML = '<iframe srcdoc="' + html.replace(/"/g, '&quot;') + '" class="w-full h-96 border rounded"></iframe>';
+        });
+}
+
+function closePreview() {
+    document.getElementById('previewModal').classList.add('hidden');
+}
+
+function useTemplate(templateName) {
+    if (confirm('Use this template for a new campaign?')) {
+        window.location.href = '/dashboard/campaigns/create?template=' + templateName;
+    }
+}
+</script>
+{% endblock %}

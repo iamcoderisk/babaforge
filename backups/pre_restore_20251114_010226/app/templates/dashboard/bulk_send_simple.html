@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Send - SendBaba{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Bulk Email Send</h1>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <p class="text-gray-600 mb-4">Upload contacts and send personalized emails at scale</p>
+        
+        {% if verified_domains %}
+            <div class="bg-green-50 p-4 rounded">
+                <p class="text-green-800">✅ You have {{ verified_domains|length }} verified domain(s)</p>
+            </div>
+        {% else %}
+            <div class="bg-yellow-50 p-4 rounded">
+                <p class="text-yellow-800">⚠️ No verified domains. Please add a domain first.</p>
+            </div>
+        {% endif %}
+        
+        <div class="mt-6">
+            <a href="{{ url_for('dashboard.index') }}" class="text-purple-600 hover:text-purple-700">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

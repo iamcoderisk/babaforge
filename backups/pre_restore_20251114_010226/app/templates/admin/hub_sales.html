@@ -1,0 +1,84 @@
+{% extends "admin/hub_base.html" %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-4xl font-bold text-white mb-2">Sales & Revenue</h1>
+    <p class="text-gray-400">Monitor subscription revenue and sales metrics</p>
+</div>
+
+<!-- Revenue Overview -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-gradient-to-br from-green-600 to-green-700 rounded-lg p-6 text-white">
+        <p class="text-sm opacity-90 mb-2">Monthly Recurring Revenue</p>
+        <p class="text-4xl font-bold">${{ "%.2f"|format(total_mrr) }}</p>
+        <p class="text-sm opacity-75 mt-2">MRR</p>
+    </div>
+    
+    <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-6 text-white">
+        <p class="text-sm opacity-90 mb-2">Annual Recurring Revenue</p>
+        <p class="text-4xl font-bold">${{ "%.2f"|format(total_arr) }}</p>
+        <p class="text-sm opacity-75 mt-2">ARR</p>
+    </div>
+    
+    <div class="bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg p-6 text-white">
+        <p class="text-sm opacity-90 mb-2">Active Subscriptions</p>
+        <p class="text-4xl font-bold">{{ subscriptions|length }}</p>
+        <p class="text-sm opacity-75 mt-2">Paying Customers</p>
+    </div>
+</div>
+
+<!-- Revenue by Plan -->
+<div class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-8">
+    <h3 class="text-lg font-semibold text-white mb-4">Revenue by Plan</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {% for plan in revenue_by_plan %}
+        <div class="bg-gray-900 rounded-lg p-4 border border-gray-700">
+            <h4 class="text-white font-semibold mb-2">{{ plan.name }}</h4>
+            <p class="text-2xl font-bold text-purple-400">${{ "%.2f"|format(plan.revenue) }}</p>
+            <p class="text-sm text-gray-400 mt-2">{{ plan.subscribers }} subscribers × ${{ "%.2f"|format(plan.price) }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Active Subscriptions -->
+<div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+    <div class="p-6 border-b border-gray-700">
+        <h3 class="text-lg font-semibold text-white">Active Subscriptions</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-700">
+            <thead class="bg-gray-900">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Organization</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Contact</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Plan</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Monthly</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Usage</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Since</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700">
+                {% for sub in subscriptions %}
+                <tr>
+                    <td class="px-6 py-4 text-white font-medium">{{ sub.Organization.name }}</td>
+                    <td class="px-6 py-4 text-gray-300">{{ sub.User.email if sub.User else 'N/A' }}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs rounded bg-purple-900 text-purple-300">
+                            {{ sub.PricingPlan.name }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-green-400 font-bold">${{ "%.2f"|format(sub.PricingPlan.price) }}</td>
+                    <td class="px-6 py-4 text-gray-300">
+                        {{ "{:,}".format(sub.Subscription.emails_sent_this_period) }} / {{ "{:,}".format(sub.PricingPlan.emails_included) }}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-400">
+                        {{ sub.Subscription.created_at.strftime('%b %d, %Y') }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

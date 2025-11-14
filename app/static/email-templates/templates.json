@@ -1,0 +1,46 @@
+{
+  "templates": [
+    {
+      "id": "welcome",
+      "name": "Welcome Email",
+      "category": "Marketing",
+      "thumbnail": "/static/email-templates/welcome-thumb.png",
+      "html": "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>body{font-family:Arial,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f4f4f4}.container{max-width:600px;margin:20px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,0.1)}.header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:40px 20px;text-align:center}.header h1{margin:0;font-size:32px}.content{padding:40px 30px}.content h2{color:#667eea;margin-top:0}.button{display:inline-block;background:#667eea;color:#fff;padding:12px 30px;text-decoration:none;border-radius:5px;margin:20px 0}.footer{background:#f8f9fa;padding:20px;text-align:center;font-size:12px;color:#666}</style></head><body><div class=\"container\"><div class=\"header\"><h1>Welcome to Our Platform! 🎉</h1></div><div class=\"content\"><h2>Hello {{name}}!</h2><p>We're thrilled to have you on board. Get started by exploring our amazing features.</p><a href=\"{{action_url}}\" class=\"button\">Get Started</a><p>If you have any questions, feel free to reach out to our support team.</p></div><div class=\"footer\"><p>&copy; 2025 Your Company. All rights reserved.</p><p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a></p></div></div></body></html>"
+    },
+    {
+      "id": "newsletter",
+      "name": "Newsletter",
+      "category": "Marketing",
+      "thumbnail": "/static/email-templates/newsletter-thumb.png",
+      "html": "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f4f4f4}.container{max-width:600px;margin:20px auto;background:#fff}.header{background:#2c3e50;color:#fff;padding:30px;text-align:center}.header h1{margin:0;font-size:28px}.article{padding:30px;border-bottom:1px solid #eee}.article h2{color:#2c3e50;margin-top:0}.article img{max-width:100%;height:auto;border-radius:5px}.read-more{display:inline-block;background:#3498db;color:#fff;padding:10px 25px;text-decoration:none;border-radius:4px;margin-top:15px}.footer{background:#ecf0f1;padding:20px;text-align:center;font-size:12px;color:#666}</style></head><body><div class=\"container\"><div class=\"header\"><h1>📰 Weekly Newsletter</h1><p>Your weekly dose of insights</p></div><div class=\"article\"><h2>{{article_title}}</h2><p>{{article_excerpt}}</p><a href=\"{{article_url}}\" class=\"read-more\">Read More →</a></div><div class=\"footer\"><p>You're receiving this because you subscribed to our newsletter.</p><p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a> | <a href=\"{{preferences_url}}\">Email Preferences</a></p></div></div></body></html>"
+    },
+    {
+      "id": "transaction",
+      "name": "Transaction Receipt",
+      "category": "Transactional",
+      "thumbnail": "/static/email-templates/transaction-thumb.png",
+      "html": "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>body{font-family:Arial,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f4f4f4}.container{max-width:600px;margin:20px auto;background:#fff;border-radius:8px;overflow:hidden}.header{background:#27ae60;color:#fff;padding:30px;text-align:center}.header h1{margin:0;font-size:24px}.content{padding:30px}.receipt{background:#f8f9fa;padding:20px;border-radius:5px;margin:20px 0}.receipt-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #dee2e6}.receipt-row:last-child{border-bottom:none;font-weight:bold;font-size:18px}.footer{background:#f8f9fa;padding:20px;text-align:center;font-size:12px;color:#666}</style></head><body><div class=\"container\"><div class=\"header\"><h1>✅ Payment Successful</h1></div><div class=\"content\"><p>Hi {{customer_name}},</p><p>Thank you for your payment. Here are the details:</p><div class=\"receipt\"><div class=\"receipt-row\"><span>Transaction ID:</span><span>{{transaction_id}}</span></div><div class=\"receipt-row\"><span>Date:</span><span>{{date}}</span></div><div class=\"receipt-row\"><span>Amount:</span><span>${{amount}}</span></div></div><p>If you have any questions, please contact our support team.</p></div><div class=\"footer\"><p>&copy; 2025 Your Company</p></div></div></body></html>"
+    },
+    {
+      "id": "notification",
+      "name": "Notification Alert",
+      "category": "Transactional",
+      "thumbnail": "/static/email-templates/notification-thumb.png",
+      "html": "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>body{font-family:Arial,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f4f4f4}.container{max-width:600px;margin:20px auto;background:#fff;border-radius:8px;overflow:hidden}.header{background:#e74c3c;color:#fff;padding:30px;text-align:center}.header h1{margin:0;font-size:24px}.alert-box{background:#fff3cd;border-left:4px solid #ffc107;padding:20px;margin:30px}.content{padding:30px}.button{display:inline-block;background:#e74c3c;color:#fff;padding:12px 30px;text-decoration:none;border-radius:5px;margin:20px 0}.footer{background:#f8f9fa;padding:20px;text-align:center;font-size:12px;color:#666}</style></head><body><div class=\"container\"><div class=\"header\"><h1>⚠️ Important Notification</h1></div><div class=\"content\"><div class=\"alert-box\"><strong>{{alert_title}}</strong><p>{{alert_message}}</p></div><p>{{description}}</p><a href=\"{{action_url}}\" class=\"button\">Take Action</a></div><div class=\"footer\"><p>This is an automated notification. Please do not reply.</p></div></div></body></html>"
+    },
+    {
+      "id": "invitation",
+      "name": "Event Invitation",
+      "category": "Marketing",
+      "thumbnail": "/static/email-templates/invitation-thumb.png",
+      "html": "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f4f4f4}.container{max-width:600px;margin:20px auto;background:#fff;border-radius:8px;overflow:hidden}.header{background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);color:#fff;padding:50px 20px;text-align:center}.header h1{margin:0;font-size:32px}.event-details{background:#f8f9fa;padding:30px;margin:30px;border-radius:8px;text-align:center}.event-details div{margin:15px 0}.event-details strong{display:block;color:#666;font-size:12px;text-transform:uppercase;margin-bottom:5px}.event-details span{font-size:18px;color:#333}.button{display:inline-block;background:#f5576c;color:#fff;padding:15px 40px;text-decoration:none;border-radius:5px;margin:20px 0;font-weight:bold}.footer{padding:20px;text-align:center;font-size:12px;color:#666}</style></head><body><div class=\"container\"><div class=\"header\"><h1>🎉 You're Invited!</h1></div><div style=\"padding:30px\"><p style=\"font-size:18px\">Hi {{name}},</p><p>We're excited to invite you to our upcoming event:</p><div class=\"event-details\"><div><strong>Event</strong><span>{{event_name}}</span></div><div><strong>Date</strong><span>{{event_date}}</span></div><div><strong>Time</strong><span>{{event_time}}</span></div><div><strong>Location</strong><span>{{event_location}}</span></div></div><div style=\"text-align:center\"><a href=\"{{rsvp_url}}\" class=\"button\">RSVP Now</a></div></div><div class=\"footer\"><p>We hope to see you there!</p></div></div></body></html>"
+    },
+    {
+      "id": "blank",
+      "name": "Blank Template",
+      "category": "Basic",
+      "thumbnail": "/static/email-templates/blank-thumb.png",
+      "html": "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>body{font-family:Arial,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f4f4f4}.container{max-width:600px;margin:20px auto;background:#fff;padding:30px}</style></head><body><div class=\"container\"><p>Start creating your email here...</p></div></body></html>"
+    }
+  ]
+}

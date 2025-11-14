@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Settings - SendBaba{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto p-8">
+    <h1 class="text-3xl font-bold mb-8">⚙️ Settings</h1>
+    
+    <!-- API Key Section -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4">🔑 API Key</h2>
+        <p class="text-gray-600 mb-4">Use this API key to send emails programmatically</p>
+        
+        {% if organization and organization.api_key %}
+        <div class="bg-gray-50 p-4 rounded-lg mb-4">
+            <div class="flex items-center justify-between">
+                <code class="text-sm font-mono" id="apiKey">{{ organization.api_key }}</code>
+                <button onclick="copyApiKey()" class="ml-4 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+                    <i class="fas fa-copy mr-2"></i>Copy
+                </button>
+            </div>
+        </div>
+        
+        <form method="POST" action="{{ url_for('settings.generate_api_key') }}" onsubmit="return confirm('This will invalidate your old API key. Continue?')">
+            <button type="submit" class="px-4 py-2 border border-red-300 text-red-700 rounded hover:bg-red-50">
+                <i class="fas fa-sync mr-2"></i>Regenerate API Key
+            </button>
+        </form>
+        {% else %}
+        <form method="POST" action="{{ url_for('settings.generate_api_key') }}">
+            <button type="submit" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                <i class="fas fa-key mr-2"></i>Generate API Key
+            </button>
+        </form>
+        {% endif %}
+    </div>
+    
+    <!-- API Documentation -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4">📚 API Documentation</h2>
+        
+        <div class="space-y-6">
+            <!-- Base URL -->
+            <div>
+                <h3 class="font-semibold mb-2">Base URL</h3>
+                <code class="bg-gray-100 px-3 py-1 rounded">https://sendbaba.com/api/v1</code>
+            </div>
+            
+            <!-- Authentication -->
+            <div>
+                <h3 class="font-semibold mb-2">Authentication</h3>
+                <p class="text-gray-600 mb-2">Include your API key in the <code class="bg-gray-100 px-2 py-1 rounded">X-API-Key</code> header:</p>
+                <pre class="bg-gray-900 text-green-400 p-4 rounded overflow-x-auto"><code>X-API-Key: {{ organization.api_key if organization and organization.api_key else 'YOUR_API_KEY' }}</code></pre>
+            </div>
+            
+            <!-- Send Single Email -->
+            <div class="border-t pt-4">
+                <h3 class="font-semibold mb-2">POST /send - Send Single Email</h3>
+                <pre class="bg-gray-900 text-green-400 p-4 rounded overflow-x-auto text-sm"><code>curl -X POST https://sendbaba.com/api/v1/send \
+  -H "X-API-Key: {{ organization.api_key if organization and organization.api_key else 'YOUR_API_KEY' }}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "recipient@example.com",
+    "from": "hello@yourdomain.com",
+    "subject": "Test Email",
+    "html_body": "<h1>Hello World!</h1>"
+  }'</code></pre>
+            </div>
+            
+            <!-- Send Bulk -->
+            <div class="border-t pt-4">
+                <h3 class="font-semibold mb-2">POST /send/bulk - Send Bulk Emails</h3>
+                <pre class="bg-gray-900 text-green-400 p-4 rounded overflow-x-auto text-sm"><code>curl -X POST https://sendbaba.com/api/v1/send/bulk \
+  -H "X-API-Key: {{ organization.api_key if organization and organization.api_key else 'YOUR_API_KEY' }}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "emails": [
+      {
+        "to": "user1@example.com",
+        "from": "hello@yourdomain.com",
+        "subject": "Welcome!",
+        "html_body": "<h1>Welcome!</h1>"
+      }
+    ]
+  }'</code></pre>
+            </div>
+            
+            <!-- Python Example -->
+            <div class="border-t pt-4">
+                <h3 class="font-semibold mb-2">🐍 Python Example</h3>
+                <pre class="bg-gray-900 text-green-400 p-4 rounded overflow-x-auto text-sm"><code>import requests
+
+response = requests.post(
+    'https://sendbaba.com/api/v1/send',
+    headers={'X-API-Key': '{{ organization.api_key if organization and organization.api_key else 'YOUR_API_KEY' }}'},
+    json={
+        'to': 'user@example.com',
+        'from': 'hello@yourdomain.com',
+        'subject': 'Hello',
+        'html_body': '<h1>Hi there!</h1>'
+    }
+)
+
+print(response.json())</code></pre>
+            </div>
+            
+            <!-- Node.js Example -->
+            <div class="border-t pt-4">
+                <h3 class="font-semibold mb-2">📦 Node.js Example</h3>
+                <pre class="bg-gray-900 text-green-400 p-4 rounded overflow-x-auto text-sm"><code>const axios = require('axios');
+
+axios.post('https://sendbaba.com/api/v1/send', {
+  to: 'user@example.com',
+  from: 'hello@yourdomain.com',
+  subject: 'Hello',
+  html_body: '<h1>Hi there!</h1>'
+}, {
+  headers: {'X-API-Key': '{{ organization.api_key if organization and organization.api_key else 'YOUR_API_KEY' }}'}
+}).then(res => console.log(res.data));</code></pre>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Account Settings -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">👤 Account Settings</h2>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-2">Organization Name</label>
+                <input type="text" value="{{ organization.name if organization else 'N/A' }}" disabled
+                       class="w-full px-4 py-2 border rounded bg-gray-50">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-2">Email</label>
+                <input type="email" value="{{ user.email }}" disabled
+                       class="w-full px-4 py-2 border rounded bg-gray-50">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyApiKey() {
+    const apiKey = document.getElementById('apiKey').textContent;
+    navigator.clipboard.writeText(apiKey).then(() => {
+        alert('API key copied to clipboard!');
+    });
+}
+</script>
+{% endblock %}

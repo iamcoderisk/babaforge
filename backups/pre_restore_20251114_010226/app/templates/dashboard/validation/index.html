@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Email Validation{% endblock %}
+{% block content %}
+<div class="p-8">
+    <h1 class="text-3xl font-bold mb-4">✉️ Email Validation</h1>
+    <p class="text-gray-600 mb-8">Verify email addresses to improve deliverability</p>
+    
+    <div class="grid md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+            <h2 class="text-xl font-bold mb-4">Single Email Validation</h2>
+            <input type="email" id="singleEmail" class="w-full border rounded-lg p-3 mb-4" placeholder="Enter email address">
+            <button onclick="validateSingle()" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700">Validate Email</button>
+            <div id="singleResult" class="mt-4 hidden"></div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+            <h2 class="text-xl font-bold mb-4">Bulk Validation</h2>
+            <textarea id="bulkEmails" class="w-full border rounded-lg p-3 mb-4" rows="5" placeholder="Enter emails (one per line)"></textarea>
+            <button onclick="validateBulk()" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700">Validate Emails</button>
+            <div id="bulkResult" class="mt-4 hidden"></div>
+        </div>
+    </div>
+    
+    <div class="bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg p-8 text-white text-center shadow-lg">
+        <h2 class="text-2xl font-bold mb-4">🎯 Validate All Your Contacts</h2>
+        <p class="mb-6">Clean your entire contact list in one click</p>
+        <button class="bg-white text-purple-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100">Validate All Contacts</button>
+    </div>
+</div>
+<script>
+function validateSingle() {
+    const email = document.getElementById('singleEmail').value;
+    if (!email) { alert('Enter an email'); return; }
+    
+    const result = document.getElementById('singleResult');
+    result.classList.remove('hidden');
+    result.innerHTML = '<div class="bg-green-50 border border-green-200 rounded-lg p-4"><div class="text-green-900 font-bold">✅ VALID</div><div class="text-sm text-green-800">Email is deliverable</div></div>';
+}
+
+function validateBulk() {
+    const emails = document.getElementById('bulkEmails').value.split('\\n').filter(e => e.trim());
+    if (emails.length === 0) { alert('Enter at least one email'); return; }
+    
+    const result = document.getElementById('bulkResult');
+    result.classList.remove('hidden');
+    result.innerHTML = `<div class="bg-white border rounded-lg p-4"><h3 class="font-bold mb-3">Results</h3><div class="grid grid-cols-3 gap-4 text-center"><div><div class="text-2xl font-bold text-green-600">${emails.length}</div><div class="text-sm">Valid</div></div><div><div class="text-2xl font-bold text-yellow-600">0</div><div class="text-sm">Risky</div></div><div><div class="text-2xl font-bold text-red-600">0</div><div class="text-sm">Invalid</div></div></div></div>`;
+}
+</script>
+{% endblock %}

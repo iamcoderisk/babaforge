@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Campaign - SendBaba{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Bulk Email Campaign</h1>
+    <p class="text-gray-600 mb-8">Send personalized emails to multiple contacts at once</p>
+
+    <form id="bulkForm" onsubmit="sendBulk(event)" class="space-y-8">
+        
+        <!-- Step 1: Select Contacts -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-bold mb-4">Step 1: Select Recipients</h2>
+            
+            <div class="mb-4">
+                <label class="flex items-center space-x-2">
+                    <input type="radio" name="recipient_mode" value="existing" checked onchange="toggleRecipientMode()">
+                    <span class="font-medium">Use Existing Contacts ({{ contacts|length }})</span>
+                </label>
+            </div>
+            
+            <div id="existingContactsSection">
+                {% if contacts and contacts|length > 0 %}
+                <div class="border rounded p-4 max-h-96 overflow-y-auto">
+                    <div class="mb-3 flex justify-between items-center">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            <span class="font-medium">Select All ({{ contacts|length }} contacts)</span>
+                        </label>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {% for contact in contacts %}
+                        <label class="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
+                            <input type="checkbox" name="contacts" value="{{ contact.id }}" class="contact-checkbox">
+                            <span class="text-sm">{{ contact.email }} {% if contact.name %}({{ contact.name }}){% endif %}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="bg-yellow-50 border border-yellow-200 rounded p-4">
+                    <p class="text-yellow-800">No contacts found. Please add contacts first.</p>
+                    <a href="{{ url_for('dashboard.contacts') }}" class="text-blue-600 hover:underline">Go to Contacts →</a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-4">
+                <label class="flex items-center space-x-2">
+                    <input type="radio" name="recipient_mode" value="upload" onchange="toggleRecipientMode()">
+                    <span class="font-medium">Upload New CSV File</span>
+                </label>
+            </div>
+            
+            <div id="uploadSection" class="hidden mt-4">
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <input type="file" id="csvFile" accept=".csv" class="hidden" onchange="handleFileUpload(event)">
+                    <label for="csvFile" class="cursor-pointer">
+                        <div class="text-gray-400 mb-2">📁</div>
+                        <p class="text-sm text-gray-600">Click to upload CSV or Excel file</p>
+                        <p class="text-xs text-gray-500 mt-1">File should include: email, first_name, last_name, company</p>
+                    </label>
+                </div>
+                <div id="uploadPreview" class="hidden mt-4 p-4 bg-gray-50 rounded">
+                    <p class="font-medium">Preview:</p>
+                    <div id="previewContent" class="text-sm mt-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Select Domain -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-bold mb-4">Step 2: Select Sending Domain</h2>
+            {% if domains and domains|length > 0 %}
+            <select name="domain" required class="w-full px-4 py-2 border rounded">
+                {% for domain in domains %}
+                <option value="{{ domain.id }}">{{ domain.domain_name }} {% if domain.dns_verified %}✓ Verified{% endif %}</option>
+                {% endfor %}
+            </select>
+            {% else %}
+            <div class="bg-yellow-50 border border-yellow-200 rounded p-4">
+                <p class="text-yellow-800">No domains configured. Please add a domain first.</p>
+                <a href="{{ url_for('dashboard.domains') }}" class="text-blue-600 hover:underline">Go to Domains →</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Step 3: From Email -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-bold mb-4">Step 3: From Email Address</h2>
+            <div class="flex gap-2">
+                <input type="text" name="from_name" placeholder="Your Name" required 
+                       class="flex-1 px-4 py-2 border rounded">
+                <span class="flex items-center">@</span>
+                <select name="from_domain" required class="flex-1 px-4 py-2 border rounded">
+                    {% for domain in domains %}
+                    <option value="{{ domain.domain_name }}">{{ domain.domain_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <p class="text-sm text-gray-500 mt-2">Example: hello@{{ domains[0].domain_name if domains else 'yourdomain.com' }}</p>
+        </div>
+
+        <!-- Step 4: Campaign Details -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-bold mb-4">Step 4: Campaign Details</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block font-medium mb-2">Campaign Name *</label>
+                    <input type="text" name="campaign_name" required 
+                           placeholder="e.g., Holiday Promotion 2025"
+                           class="w-full px-4 py-2 border rounded">
+                </div>
+                
+                <div>
+                    <label class="block font-medium mb-2">Subject Line *</label>
+                    <input type="text" name="subject" required 
+                           placeholder="Your email subject"
+                           class="w-full px-4 py-2 border rounded">
+                    <p class="text-sm text-gray-500 mt-1">Use variables: {{'{{'}}first_name{{'}}'}}, {{'{{'}}last_name{{'}}'}}, {{'{{'}}company{{'}}'}}</p>
+                </div>
+
+                <div>
+                    <label class="block font-medium mb-2">Email Template</label>
+                    <select name="template" onchange="loadTemplate(this.value)" 
+                            class="w-full px-4 py-2 border rounded mb-2">
+                        <option value="">Custom HTML</option>
+                        <option value="promotional">Promotional</option>
+                        <option value="announcement">Announcement</option>
+                        <option value="newsletter">Newsletter</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-medium mb-2">Email Body *</label>
+                    <textarea name="body" required rows="12" 
+                              class="w-full px-4 py-2 border rounded font-mono text-sm"
+                              placeholder="<html>&#10;<body>&#10;  <h1>Hello {{'{{'}}first_name{{'}}'}}!</h1>&#10;  <p>Your personalized email content here...</p>&#10;</body>&#10;</html>"></textarea>
+                    <p class="text-sm text-gray-500 mt-1">HTML supported. Use variables: {{'{{'}}first_name{{'}}'}}, {{'{{'}}last_name{{'}}'}}, {{'{{'}}company{{'}}'}}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Send -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-bold mb-4">Step 5: Send Options</h2>
+            
+            <div class="mb-4">
+                <label class="flex items-center space-x-2">
+                    <input type="radio" name="send_option" value="immediate" checked>
+                    <span>Send immediately</span>
+                </label>
+            </div>
+            
+            <div id="recipientCount" class="mb-4 p-3 bg-blue-50 rounded">
+                <span class="font-medium">0 recipients selected</span>
+            </div>
+
+            <div class="flex gap-4">
+                <button type="button" onclick="previewEmail()" 
+                        class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    Preview
+                </button>
+                <button type="submit" id="sendBtn"
+                        class="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium">
+                    Send Campaign
+                </button>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<script>
+let uploadedContacts = [];
+
+function toggleRecipientMode() {
+    const mode = document.querySelector('input[name="recipient_mode"]:checked').value;
+    document.getElementById('existingContactsSection').style.display = mode === 'existing' ? 'block' : 'none';
+    document.getElementById('uploadSection').style.display = mode === 'upload' ? 'block' : 'none';
+    updateRecipientCount();
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll').checked;
+    document.querySelectorAll('.contact-checkbox').forEach(cb => cb.checked = selectAll);
+    updateRecipientCount();
+}
+
+function updateRecipientCount() {
+    const mode = document.querySelector('input[name="recipient_mode"]:checked').value;
+    let count = 0;
+    
+    if (mode === 'existing') {
+        count = document.querySelectorAll('.contact-checkbox:checked').length;
+    } else {
+        count = uploadedContacts.length;
+    }
+    
+    document.getElementById('recipientCount').innerHTML = 
+        `<span class="font-medium">${count} recipient${count !== 1 ? 's' : ''} will receive this email</span>`;
+}
+
+document.querySelectorAll('.contact-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateRecipientCount);
+});
+
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    fetch('/api/contacts/parse-csv', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            uploadedContacts = data.contacts;
+            document.getElementById('uploadPreview').classList.remove('hidden');
+            document.getElementById('previewContent').innerHTML = 
+                `<p class="font-medium">${data.contacts.length} contacts found</p>
+                 <p class="text-xs mt-1">${data.contacts.slice(0, 3).map(c => c.email).join(', ')}...</p>`;
+            updateRecipientCount();
+        }
+    });
+}
+
+function sendBulk(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const mode = document.querySelector('input[name="recipient_mode"]:checked').value;
+    
+    // Collect recipients
+    let recipients = [];
+    if (mode === 'existing') {
+        document.querySelectorAll('.contact-checkbox:checked').forEach(cb => {
+            recipients.push(cb.value);
+        });
+        formData.set('contact_ids', JSON.stringify(recipients));
+    } else {
+        formData.set('uploaded_contacts', JSON.stringify(uploadedContacts));
+    }
+    
+    if (recipients.length === 0 && uploadedContacts.length === 0) {
+        alert('Please select at least one recipient');
+        return;
+    }
+    
+    const btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    
+    fetch('/api/campaigns/bulk-send', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Campaign queued successfully! Sending to ${recipients.length || uploadedContacts.length} recipients.`);
+            window.location.href = '/dashboard';
+        } else {
+            alert('Error: ' + (data.error || 'Failed to queue campaign'));
+        }
+        btn.disabled = false;
+        btn.textContent = 'Send Campaign';
+    })
+    .catch(err => {
+        alert('Network error');
+        btn.disabled = false;
+        btn.textContent = 'Send Campaign';
+    });
+}
+
+function previewEmail() {
+    // Show preview modal
+    alert('Preview feature coming soon!');
+}
+
+function loadTemplate(template) {
+    const templates = {
+        'promotional': '<html>\n<body style="font-family: Arial, sans-serif;">\n  <h1>Special Offer for {{first_name}}!</h1>\n  <p>Hi {{first_name}},</p>\n  <p>We have an exclusive offer just for you...</p>\n</body>\n</html>',
+        'announcement': '<html>\n<body style="font-family: Arial, sans-serif;">\n  <h1>Important Update</h1>\n  <p>Dear {{first_name}},</p>\n  <p>We wanted to let you know about...</p>\n</body>\n</html>',
+        'newsletter': '<html>\n<body style="font-family: Arial, sans-serif;">\n  <h1>{{company}} Newsletter</h1>\n  <p>Hello {{first_name}},</p>\n  <p>Here\'s what\'s new this month...</p>\n</body>\n</html>'
+    };
+    
+    if (template && templates[template]) {
+        document.querySelector('textarea[name="body"]').value = templates[template];
+    }
+}
+</script>
+{% endblock %}

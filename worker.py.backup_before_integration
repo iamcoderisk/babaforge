@@ -1,0 +1,238 @@
+#!/usr/bin/env python3
+"""
+SendBaba Email Worker - Processes email queue from Redis
+Uses settings from .env file
+"""
+import os
+import sys
+import time
+import json
+import redis
+import smtplib
+import logging
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - SendBaba Worker - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Redis connection from .env
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+
+# SMTP Configuration from .env
+SMTP_HOST = os.getenv('SMTP_HOST', '0.0.0.0')
+SMTP_PORT = int(os.getenv('SMTP_PORT', 25))
+
+# Database connection (using your exact credentials)
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+    
+    # Parse DATABASE_URL from .env
+    DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://emailer:SecurePassword123@localhost/emailer')
+    
+    db_conn = psycopg2.connect(DATABASE_URL)
+    HAS_DATABASE = True
+    logger.info("✅ Database connected (emailer)")
+except Exception as e:
+    HAS_DATABASE = False
+    db_conn = None
+    logger.warning(f"⚠️  Database not connected (emails will still send): {e}")
+
+def update_email_status(email_id, status):
+    """Update email status in database"""
+    if not HAS_DATABASE or not db_conn:
+        return
+    
+    try:
+        cursor = db_conn.cursor()
+        
+        if status == 'sent':
+            cursor.execute("""
+                UPDATE emails 
+                SET status = %s, 
+                    sent_at = %s,
+                    updated_at = %s
+                WHERE id = %s
+            """, (status, datetime.utcnow(), datetime.utcnow(), email_id))
+        else:
+            cursor.execute("""
+                UPDATE emails 
+                SET status = %s,
+                    updated_at = %s
+                WHERE id = %s
+            """, (status, datetime.utcnow(), email_id))
+        
+        db_conn.commit()
+        cursor.close()
+        
+    except Exception as e:
+        logger.warning(f"DB update failed (non-critical): {e}")
+        try:
+            db_conn.rollback()
+        except:
+            pass
+
+def update_campaign_stats(campaign_id):
+    """Update campaign statistics"""
+    if not HAS_DATABASE or not db_conn or not campaign_id:
+        return
+    
+    try:
+        cursor = db_conn.cursor()
+        cursor.execute("""
+            UPDATE campaigns 
+            SET emails_sent = COALESCE(emails_sent, 0) + 1,
+                sent_count = COALESCE(sent_count, 0) + 1,
+                status = 'sending'
+            WHERE id = %s
+        """, (campaign_id,))
+        db_conn.commit()
+        cursor.close()
+    except Exception as e:
+        logger.warning(f"Campaign update failed: {e}")
+        try:
+            db_conn.rollback()
+        except:
+            pass
+
+def send_email(email_data):
+    """Send email via SMTP"""
+    email_id = email_data.get('id', 'unknown')
+    from_addr = email_data.get('from', email_data.get('from_email', 'noreply@sendbaba.com'))
+    to_addr = email_data.get('to', email_data.get('to_email'))
+    subject = email_data.get('subject', 'No Subject')
+    html_body = email_data.get('html_body', '')
+    text_body = email_data.get('text_body', '')
+    campaign_id = email_data.get('campaign_id')
+    
+    try:
+        logger.info(f"📤 Sending: {from_addr} → {to_addr}")
+        
+        # Create message
+        if html_body and text_body:
+            msg = MIMEMultipart('alternative')
+            msg.attach(MIMEText(text_body, 'plain'))
+            msg.attach(MIMEText(html_body, 'html'))
+        elif html_body:
+            msg = MIMEText(html_body, 'html')
+        else:
+            msg = MIMEText(text_body or 'Empty message', 'plain')
+        
+        msg['From'] = from_addr
+        msg['To'] = to_addr
+        msg['Subject'] = subject
+        msg['Message-ID'] = f"<{email_id}@sendbaba.com>"
+        
+        # Send via SMTP
+        try:
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
+                smtp.set_debuglevel(0)
+                smtp.send_message(msg)
+            
+            logger.info(f"✅ Email {email_id} sent successfully")
+            update_email_status(email_id, 'sent')
+            update_campaign_stats(campaign_id)
+            return True
+            
+        except ConnectionRefusedError:
+            logger.error(f"❌ SMTP server refused connection on {SMTP_HOST}:{SMTP_PORT}")
+            logger.info("💡 Tip: Check if port 25 is blocked or if you need external SMTP relay")
+            update_email_status(email_id, 'failed')
+            return False
+            
+        except Exception as smtp_error:
+            logger.error(f"❌ SMTP error: {smtp_error}")
+            update_email_status(email_id, 'failed')
+            return False
+        
+    except Exception as e:
+        logger.error(f"❌ Error processing email {email_id}: {e}")
+        update_email_status(email_id, 'failed')
+        return False
+
+def worker_loop():
+    """Main worker loop"""
+    logger.info("=" * 60)
+    logger.info("🚀 SendBaba Email Worker Started")
+    logger.info("=" * 60)
+    logger.info(f"📡 Redis: {REDIS_URL}")
+    logger.info(f"📧 SMTP: {SMTP_HOST}:{SMTP_PORT}")
+    logger.info(f"💾 Database: {'Connected' if HAS_DATABASE else 'Not connected (optional)'}")
+    logger.info("=" * 60)
+    
+    processed = 0
+    failed = 0
+    
+    try:
+        while True:
+            try:
+                # Check priority queues (10 = highest priority)
+                email_data = None
+                
+                for priority in range(10, 0, -1):
+                    queue_name = f'outgoing_{priority}'
+                    result = redis_client.brpop(queue_name, timeout=1)
+                    
+                    if result:
+                        _, email_json = result
+                        email_data = json.loads(email_json)
+                        logger.debug(f"📥 Got email from queue: {queue_name}")
+                        break
+                
+                if email_data:
+                    success = send_email(email_data)
+                    
+                    if success:
+                        processed += 1
+                    else:
+                        failed += 1
+                    
+                    # Log stats every 10 emails
+                    if (processed + failed) % 10 == 0:
+                        logger.info(f"📊 Stats: {processed} sent ✅ | {failed} failed ❌")
+                    
+                    # Small delay to prevent overwhelming
+                    time.sleep(0.1)
+                else:
+                    # No emails in queue, wait a bit
+                    time.sleep(1)
+            
+            except KeyboardInterrupt:
+                logger.info("\n👋 Worker stopped by user")
+                break
+            
+            except redis.ConnectionError as e:
+                logger.error(f"❌ Redis connection error: {e}")
+                logger.info("⏳ Retrying in 5 seconds...")
+                time.sleep(5)
+            
+            except Exception as e:
+                logger.error(f"❌ Worker error: {e}", exc_info=True)
+                time.sleep(2)
+    
+    finally:
+        logger.info("=" * 60)
+        logger.info(f"📊 Final Stats: {processed} sent ✅ | {failed} failed ❌")
+        logger.info("👋 Worker stopped")
+        logger.info("=" * 60)
+        
+        if db_conn:
+            db_conn.close()
+
+if __name__ == '__main__':
+    try:
+        worker_loop()
+    except Exception as e:
+        logger.error(f"❌ Fatal error: {e}", exc_info=True)
+        sys.exit(1)

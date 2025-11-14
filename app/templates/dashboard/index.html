@@ -12,54 +12,103 @@
     
     <!-- Stats -->
     <div class="grid md:grid-cols-4 gap-6 mb-8">
-        <!-- Emails Sent This Month -->
         <div class="bg-white rounded-lg p-6 shadow-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="bg-purple-100 p-3 rounded-lg">
-                    <i class="fas fa-paper-plane text-purple-600 text-xl"></i>
+                    <i class="fas fa-envelope text-purple-600 text-xl"></i>
                 </div>
+                <span class="text-sm text-gray-500">This Month</span>
             </div>
             <div class="text-3xl font-bold mb-1">{{ stats.emails_sent }}</div>
             <div class="text-sm text-gray-600">Emails Sent</div>
-            <div class="text-xs text-gray-400 mt-1">This month</div>
         </div>
         
-        <!-- Total Contacts -->
         <div class="bg-white rounded-lg p-6 shadow-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="bg-blue-100 p-3 rounded-lg">
                     <i class="fas fa-users text-blue-600 text-xl"></i>
                 </div>
+                <span class="text-sm text-gray-500">Total</span>
             </div>
             <div class="text-3xl font-bold mb-1">{{ stats.total_contacts }}</div>
             <div class="text-sm text-gray-600">Total Contacts</div>
-            <div class="text-xs text-gray-400 mt-1">All lists</div>
         </div>
         
-        <!-- Domains -->
         <div class="bg-white rounded-lg p-6 shadow-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="bg-green-100 p-3 rounded-lg">
                     <i class="fas fa-globe text-green-600 text-xl"></i>
                 </div>
+                <span class="text-sm text-gray-500">Active</span>
             </div>
             <div class="text-3xl font-bold mb-1">{{ stats.domains }}</div>
             <div class="text-sm text-gray-600">Domains</div>
-            <div class="text-xs text-gray-400 mt-1">
-                <a href="/dashboard/domains" class="text-green-600 hover:text-green-700">Manage →</a>
-            </div>
         </div>
         
-        <!-- Queued Emails -->
         <div class="bg-white rounded-lg p-6 shadow-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="bg-orange-100 p-3 rounded-lg">
                     <i class="fas fa-clock text-orange-600 text-xl"></i>
                 </div>
+                <span class="text-sm text-gray-500">Pending</span>
             </div>
             <div class="text-3xl font-bold mb-1">{{ stats.queued }}</div>
             <div class="text-sm text-gray-600">Queued</div>
-            <div class="text-xs text-gray-400 mt-1">Pending delivery</div>
+        </div>
+    </div>
+    
+    <!-- New Features -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold mb-4">🚀 New Features</h2>
+        
+        <div class="grid md:grid-cols-4 gap-6">
+            <a href="/dashboard/workflows" class="bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
+                <div class="text-4xl mb-3">🔄</div>
+                <h3 class="font-bold text-lg mb-2">Workflows</h3>
+                <p class="text-sm opacity-90">Automate email sequences</p>
+            </a>
+            
+            <a href="/dashboard/forms" class="bg-gradient-to-br from-green-500 to-teal-500 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
+                <div class="text-4xl mb-3">📝</div>
+                <h3 class="font-bold text-lg mb-2">Signup Forms</h3>
+                <p class="text-sm opacity-90">Create beautiful forms</p>
+            </a>
+            
+            <a href="/dashboard/templates" class="bg-gradient-to-br from-pink-500 to-red-500 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
+                <div class="text-4xl mb-3">🎨</div>
+                <h3 class="font-bold text-lg mb-2">Templates</h3>
+                <p class="text-sm opacity-90">Professional designs</p>
+            </a>
+            
+            <a href="/dashboard/replies" class="bg-gradient-to-br from-orange-500 to-yellow-500 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
+                <div class="text-4xl mb-3">🤖</div>
+                <h3 class="font-bold text-lg mb-2">Reply AI</h3>
+                <p class="text-sm opacity-90">Smart auto-responses</p>
+            </a>
+            
+            <a href="/dashboard/validation" class="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
+                <div class="text-4xl mb-3">✉️</div>
+                <h3 class="font-bold text-lg mb-2">Email Validation</h3>
+                <p class="text-sm opacity-90">Clean your email list</p>
+            </a>
+            
+            <a href="/dashboard/warmup" class="bg-gradient-to-br from-red-500 to-pink-600 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
+                <div class="text-4xl mb-3">🔥</div>
+                <h3 class="font-bold text-lg mb-2">IP Warmup</h3>
+                <p class="text-sm opacity-90">Build sender reputation</p>
+            </a>
+            
+            <a href="/dashboard/integrations" class="bg-gradient-to-br from-teal-500 to-green-600 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
+                <div class="text-4xl mb-3">🛒</div>
+                <h3 class="font-bold text-lg mb-2">E-commerce</h3>
+                <p class="text-sm opacity-90">Shopify, WooCommerce</p>
+            </a>
+            
+            <a href="/dashboard/segments" class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
+                <div class="text-4xl mb-3">🎯</div>
+                <h3 class="font-bold text-lg mb-2">Segments</h3>
+                <p class="text-sm opacity-90">Advanced targeting</p>
+            </a>
         </div>
     </div>
     
@@ -75,15 +124,15 @@
                     </div>
                     <h3 class="font-semibold text-lg">Send Email</h3>
                 </div>
-                <p class="text-sm text-gray-600">Send a single email with templates</p>
+                <p class="text-sm text-gray-600">Send a single email</p>
             </a>
             
-            <a href="/dashboard/campaigns/create" class="border-2 border-blue-200 rounded-lg p-6 hover:border-blue-400 hover:bg-blue-50 transition">
+            <a href="/dashboard/bulk-send" class="border-2 border-blue-200 rounded-lg p-6 hover:border-blue-400 hover:bg-blue-50 transition">
                 <div class="flex items-center mb-3">
                     <div class="bg-blue-100 p-3 rounded-lg mr-4">
                         <i class="fas fa-bullhorn text-blue-600 text-2xl"></i>
                     </div>
-                    <h3 class="font-semibold text-lg">Create Campaign</h3>
+                    <h3 class="font-semibold text-lg">Bulk Campaign</h3>
                 </div>
                 <p class="text-sm text-gray-600">Send to multiple contacts</p>
             </a>
@@ -95,70 +144,7 @@
                     </div>
                     <h3 class="font-semibold text-lg">Manage Contacts</h3>
                 </div>
-                <p class="text-sm text-gray-600">Import and organize contacts</p>
-            </a>
-        </div>
-    </div>
-    
-    <!-- New Features - The 8 Critical Features! -->
-    <div class="mb-8">
-        <h2 class="text-2xl font-bold mb-4">🚀 Advanced Features</h2>
-        
-        <div class="grid md:grid-cols-4 gap-6">
-            <!-- Workflows -->
-            <a href="/dashboard/workflows" class="bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
-                <div class="text-4xl mb-3">🔄</div>
-                <h3 class="font-bold text-lg mb-2">Workflows</h3>
-                <p class="text-sm opacity-90">Automate email sequences</p>
-            </a>
-            
-            <!-- Forms -->
-            <a href="/dashboard/forms" class="bg-gradient-to-br from-green-500 to-teal-500 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
-                <div class="text-4xl mb-3">📝</div>
-                <h3 class="font-bold text-lg mb-2">Signup Forms</h3>
-                <p class="text-sm opacity-90">Create beautiful forms</p>
-            </a>
-            
-            <!-- Templates -->
-            <a href="/dashboard/templates" class="bg-gradient-to-br from-pink-500 to-red-500 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
-                <div class="text-4xl mb-3">🎨</div>
-                <h3 class="font-bold text-lg mb-2">Templates</h3>
-                <p class="text-sm opacity-90">Professional designs</p>
-            </a>
-            
-            <!-- Reply Intelligence -->
-            <a href="/dashboard/replies" class="bg-gradient-to-br from-orange-500 to-yellow-500 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
-                <div class="text-4xl mb-3">🤖</div>
-                <h3 class="font-bold text-lg mb-2">Reply AI</h3>
-                <p class="text-sm opacity-90">Smart auto-responses</p>
-            </a>
-            
-            <!-- Email Validation -->
-            <a href="/dashboard/validation" class="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
-                <div class="text-4xl mb-3">✉️</div>
-                <h3 class="font-bold text-lg mb-2">Email Validation</h3>
-                <p class="text-sm opacity-90">Clean your email list</p>
-            </a>
-            
-            <!-- IP Warmup -->
-            <a href="/dashboard/warmup" class="bg-gradient-to-br from-red-500 to-pink-600 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
-                <div class="text-4xl mb-3">🔥</div>
-                <h3 class="font-bold text-lg mb-2">IP Warmup</h3>
-                <p class="text-sm opacity-90">Build sender reputation</p>
-            </a>
-            
-            <!-- E-commerce -->
-            <a href="/dashboard/integrations" class="bg-gradient-to-br from-teal-500 to-green-600 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
-                <div class="text-4xl mb-3">🛒</div>
-                <h3 class="font-bold text-lg mb-2">E-commerce</h3>
-                <p class="text-sm opacity-90">Shopify, WooCommerce</p>
-            </a>
-            
-            <!-- Segments -->
-            <a href="/dashboard/segments" class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg p-6 text-white hover:shadow-xl transition transform hover:-translate-y-1">
-                <div class="text-4xl mb-3">🎯</div>
-                <h3 class="font-bold text-lg mb-2">Segments</h3>
-                <p class="text-sm opacity-90">Advanced targeting</p>
+                <p class="text-sm text-gray-600">View and import contacts</p>
             </a>
         </div>
     </div>
@@ -172,14 +158,14 @@
         
         {% if campaigns and campaigns|length > 0 %}
         <div class="space-y-4">
-            {% for campaign in campaigns[:5] %}
+            {% for campaign in campaigns %}
             <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                 <div class="flex-1">
                     <h3 class="font-semibold mb-1">{{ campaign.name }}</h3>
                     <div class="text-sm text-gray-600">
                         <span class="mr-4">📧 {{ campaign.subject }}</span>
-                        <span class="mr-4">Sent: {{ campaign.sent_count or 0 }}</span>
-                        <span class="mr-4">Recipients: {{ campaign.recipients_count or 0 }}</span>
+                        <span class="mr-4">Sent: {{ campaign.sent_count }}</span>
+                        <span class="mr-4">Recipients: {{ campaign.recipients_count }}</span>
                         <span class="{% if campaign.status == 'sent' %}text-green-600{% elif campaign.status == 'sending' %}text-blue-600{% else %}text-gray-600{% endif %}">
                             {{ campaign.status|title }}
                         </span>

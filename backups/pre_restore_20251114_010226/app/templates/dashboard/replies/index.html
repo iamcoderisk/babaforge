@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Reply Intelligence{% endblock %}
+{% block content %}
+<div class="p-8">
+    <h1 class="text-3xl font-bold mb-4">🤖 Reply Intelligence</h1>
+    <p class="text-gray-600 mb-8">AI-powered email reply management</p>
+    
+    <div class="grid md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+            <div class="text-3xl font-bold text-purple-600 mb-2">0</div>
+            <div class="text-sm text-gray-600">Total Replies</div>
+        </div>
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+            <div class="text-3xl font-bold text-green-600 mb-2">0</div>
+            <div class="text-sm text-gray-600">Auto-Responded</div>
+        </div>
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+            <div class="text-3xl font-bold text-blue-600 mb-2">0</div>
+            <div class="text-sm text-gray-600">Needs Response</div>
+        </div>
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+            <div class="text-3xl font-bold text-orange-600 mb-2">0%</div>
+            <div class="text-sm text-gray-600">Response Rate</div>
+        </div>
+    </div>
+    
+    <div class="grid md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg p-6 text-white shadow-lg">
+            <div class="text-4xl mb-3">🎯</div>
+            <h3 class="font-bold text-lg mb-2">Sentiment Analysis</h3>
+            <p class="text-sm opacity-90">Detect positive, neutral, or negative sentiment</p>
+        </div>
+        <div class="bg-gradient-to-br from-green-500 to-teal-500 rounded-lg p-6 text-white shadow-lg">
+            <div class="text-4xl mb-3">🤖</div>
+            <h3 class="font-bold text-lg mb-2">Auto-Response</h3>
+            <p class="text-sm opacity-90">AI generates contextual responses</p>
+        </div>
+        <div class="bg-gradient-to-br from-orange-500 to-red-500 rounded-lg p-6 text-white shadow-lg">
+            <div class="text-4xl mb-3">🔥</div>
+            <h3 class="font-bold text-lg mb-2">Priority Detection</h3>
+            <p class="text-sm opacity-90">Urgent replies flagged automatically</p>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg p-8 text-center shadow-sm">
+        <div class="text-6xl mb-4">💬</div>
+        <h3 class="text-xl font-bold mb-2">No replies yet</h3>
+        <p class="text-gray-600 mb-4">When people reply to your emails, they'll appear here</p>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl mx-auto">
+            <p class="text-sm text-blue-900"><strong>💡 How it works:</strong> AI automatically analyzes sentiment, intent, and generates smart responses!</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

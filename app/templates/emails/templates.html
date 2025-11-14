@@ -1,0 +1,653 @@
+{% extends "base.html" %}
+
+{% block title %}Email Templates - SendBaba{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">📧 Email Templates</h1>
+                <p class="text-gray-600 mt-2">Professional templates ready to use</p>
+            </div>
+            <a href="/dashboard/send-email" 
+               class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold">
+                ✉️ Compose Email
+            </a>
+        </div>
+    </div>
+    
+    <!-- Category Filter -->
+    <div class="mb-6 flex items-center space-x-4">
+        <span class="text-sm font-medium text-gray-700">Filter:</span>
+        <button onclick="filterTemplates('all')" 
+                class="filter-btn active px-4 py-2 rounded-lg text-sm font-medium transition"
+                data-category="all">
+            All Templates
+        </button>
+        <button onclick="filterTemplates('marketing')" 
+                class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition"
+                data-category="marketing">
+            📢 Marketing
+        </button>
+        <button onclick="filterTemplates('transactional')" 
+                class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition"
+                data-category="transactional">
+            💳 Transactional
+        </button>
+        <button onclick="filterTemplates('newsletter')" 
+                class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition"
+                data-category="newsletter">
+            📰 Newsletter
+        </button>
+    </div>
+    
+    <!-- Templates Grid -->
+    <div id="templates-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Templates will be loaded here -->
+    </div>
+    
+</div>
+
+<!-- Template Preview Modal -->
+<div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b">
+            <div>
+                <h2 id="modal-title" class="text-2xl font-bold text-gray-900"></h2>
+                <p id="modal-category" class="text-sm text-gray-600 mt-1"></p>
+            </div>
+            <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">
+                ×
+            </button>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 180px);">
+            <iframe id="preview-iframe" class="w-full border-2 border-gray-200 rounded-lg" style="min-height: 500px;"></iframe>
+        </div>
+        
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-between p-6 border-t bg-gray-50">
+            <button onclick="closePreview()" 
+                    class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium">
+                Cancel
+            </button>
+            <button id="use-template-btn" 
+                    onclick="useTemplate()" 
+                    class="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 font-semibold shadow-lg">
+                ✨ Use This Template
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Template Card Styles */
+.template-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.template-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(102, 126, 234, 0.15);
+}
+
+.template-preview {
+    height: 250px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 64px;
+    position: relative;
+    overflow: hidden;
+}
+
+.template-preview::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+}
+
+.template-info {
+    padding: 20px;
+}
+
+.template-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.template-description {
+    font-size: 14px;
+    color: #7f8c8d;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.template-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.template-category-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #f0f3ff;
+    color: #667eea;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.template-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.template-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-preview {
+    background: #e0e0e0;
+    color: #2c3e50;
+}
+
+.btn-preview:hover {
+    background: #d0d0d0;
+}
+
+.btn-use {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-use:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Filter Buttons */
+.filter-btn {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.filter-btn:hover {
+    background: #e5e7eb;
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+/* Loading Animation */
+.template-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f4f6;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+// Template Data
+const templates = [
+    {
+        id: 'welcome',
+        name: 'Welcome Email',
+        category: 'marketing',
+        icon: '👋',
+        description: 'Warm welcome message for new users with call-to-action button',
+        html: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f4f4f4">
+    <div style="max-width:600px;margin:20px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1)">
+        <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:40px 20px;text-align:center">
+            <h1 style="margin:0;font-size:36px">Welcome Aboard! 🎉</h1>
+        </div>
+        <div style="padding:40px 30px">
+            <h2 style="color:#667eea;margin-top:0">Hello there!</h2>
+            <p style="font-size:16px;line-height:1.8">We're thrilled to have you join our community. Get ready for an amazing journey!</p>
+            <p>Here's what you can do next:</p>
+            <ul style="line-height:2">
+                <li>Complete your profile</li>
+                <li>Explore our features</li>
+                <li>Connect with others</li>
+            </ul>
+            <div style="text-align:center;margin:30px 0">
+                <a href="#" style="display:inline-block;background:#667eea;color:#fff;padding:15px 40px;text-decoration:none;border-radius:8px;font-weight:600">Get Started</a>
+            </div>
+            <p style="color:#7f8c8d;font-size:14px">Need help? Our support team is always here for you.</p>
+        </div>
+        <div style="background:#f8f9fa;padding:20px;text-align:center;font-size:12px;color:#666">
+            <p>&copy; 2025 Your Company. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>`
+    },
+    {
+        id: 'newsletter',
+        name: 'Newsletter',
+        category: 'newsletter',
+        icon: '📰',
+        description: 'Professional newsletter layout with featured article section',
+        html: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="font-family:'Segoe UI',Tahoma,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f4f4f4">
+    <div style="max-width:600px;margin:20px auto;background:#fff">
+        <div style="background:#2c3e50;color:#fff;padding:30px;text-align:center">
+            <h1 style="margin:0;font-size:28px">📰 Weekly Insights</h1>
+            <p style="margin:10px 0 0;opacity:0.9">Your weekly dose of updates</p>
+        </div>
+        <div style="padding:30px;border-bottom:1px solid #eee">
+            <h2 style="color:#2c3e50;margin-top:0">Featured Story</h2>
+            <h3>The Future of Technology</h3>
+            <p style="color:#555">Discover the latest trends shaping our industry and what they mean for you...</p>
+            <a href="#" style="display:inline-block;background:#3498db;color:#fff;padding:12px 30px;text-decoration:none;border-radius:6px;margin-top:15px">Read More →</a>
+        </div>
+        <div style="padding:30px;background:#f8f9fa">
+            <h3>Quick Updates</h3>
+            <ul style="line-height:2;color:#555">
+                <li>Product launch next week</li>
+                <li>New team members joined</li>
+                <li>Upcoming webinar series</li>
+            </ul>
+        </div>
+        <div style="background:#ecf0f1;padding:20px;text-align:center;font-size:12px;color:#666">
+            <p>You're receiving this because you subscribed to our newsletter.</p>
+            <p><a href="#" style="color:#3498db">Unsubscribe</a> | <a href="#" style="color:#3498db">Update Preferences</a></p>
+        </div>
+    </div>
+</body>
+</html>`
+    },
+    {
+        id: 'transaction',
+        name: 'Payment Receipt',
+        category: 'transactional',
+        icon: '💳',
+        description: 'Clean transaction receipt with payment details',
+        html: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f4f4f4">
+    <div style="max-width:600px;margin:20px auto;background:#fff;border-radius:12px;overflow:hidden">
+        <div style="background:#27ae60;color:#fff;padding:30px;text-align:center">
+            <div style="font-size:48px;margin-bottom:10px">✅</div>
+            <h1 style="margin:0;font-size:24px">Payment Successful</h1>
+        </div>
+        <div style="padding:30px">
+            <p style="font-size:16px">Hi there,</p>
+            <p>Thank you for your payment. Here are your transaction details:</p>
+            <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0">
+                <table style="width:100%;border-collapse:collapse">
+                    <tr style="border-bottom:1px solid #dee2e6">
+                        <td style="padding:12px 0;color:#666">Transaction ID</td>
+                        <td style="padding:12px 0;text-align:right;font-weight:600">TXN-123456789</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #dee2e6">
+                        <td style="padding:12px 0;color:#666">Date</td>
+                        <td style="padding:12px 0;text-align:right;font-weight:600">Nov 14, 2025</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #dee2e6">
+                        <td style="padding:12px 0;color:#666">Amount</td>
+                        <td style="padding:12px 0;text-align:right;font-weight:600">$99.00</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:12px 0;color:#666">Payment Method</td>
+                        <td style="padding:12px 0;text-align:right;font-weight:600">•••• 4242</td>
+                    </tr>
+                </table>
+            </div>
+            <p style="color:#7f8c8d;font-size:14px">If you have any questions, please contact our support team.</p>
+        </div>
+        <div style="background:#f8f9fa;padding:20px;text-align:center;font-size:12px;color:#666">
+            <p>&copy; 2025 Your Company</p>
+        </div>
+    </div>
+</body>
+</html>`
+    },
+    {
+        id: 'notification',
+        name: 'Alert Notification',
+        category: 'transactional',
+        icon: '🔔',
+        description: 'Important notification alert with action button',
+        html: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f4f4f4">
+    <div style="max-width:600px;margin:20px auto;background:#fff;border-radius:12px;overflow:hidden">
+        <div style="background:#e74c3c;color:#fff;padding:30px;text-align:center">
+            <div style="font-size:48px;margin-bottom:10px">⚠️</div>
+            <h1 style="margin:0;font-size:24px">Important Notification</h1>
+        </div>
+        <div style="padding:30px">
+            <div style="background:#fff3cd;border-left:4px solid #ffc107;padding:20px;margin-bottom:20px">
+                <strong style="color:#856404">Action Required</strong>
+                <p style="color:#856404;margin:10px 0 0">Your account requires immediate attention.</p>
+            </div>
+            <p>We've detected unusual activity on your account. To ensure your security, please verify your identity.</p>
+            <div style="text-align:center;margin:30px 0">
+                <a href="#" style="display:inline-block;background:#e74c3c;color:#fff;padding:15px 40px;text-decoration:none;border-radius:8px;font-weight:600">Verify Now</a>
+            </div>
+            <p style="color:#7f8c8d;font-size:13px">This action expires in 24 hours.</p>
+        </div>
+        <div style="background:#f8f9fa;padding:20px;text-align:center;font-size:12px;color:#666">
+            <p>This is an automated message. Please do not reply.</p>
+        </div>
+    </div>
+</body>
+</html>`
+    },
+    {
+        id: 'invitation',
+        name: 'Event Invitation',
+        category: 'marketing',
+        icon: '🎉',
+        description: 'Elegant event invitation with RSVP button',
+        html: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="font-family:'Segoe UI',sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f4f4f4">
+    <div style="max-width:600px;margin:20px auto;background:#fff;border-radius:12px;overflow:hidden">
+        <div style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);color:#fff;padding:50px 20px;text-align:center">
+            <div style="font-size:64px;margin-bottom:15px">🎉</div>
+            <h1 style="margin:0;font-size:32px">You're Invited!</h1>
+        </div>
+        <div style="padding:40px 30px">
+            <p style="font-size:18px">We're excited to invite you to our exclusive event:</p>
+            <div style="background:#f8f9fa;padding:30px;margin:30px 0;border-radius:12px;text-align:center">
+                <h2 style="margin:0 0 20px;color:#2c3e50">Annual Tech Summit 2025</h2>
+                <div style="margin:15px 0">
+                    <strong style="color:#666;font-size:12px;text-transform:uppercase;display:block;margin-bottom:5px">Date</strong>
+                    <span style="font-size:18px">March 15, 2025</span>
+                </div>
+                <div style="margin:15px 0">
+                    <strong style="color:#666;font-size:12px;text-transform:uppercase;display:block;margin-bottom:5px">Time</strong>
+                    <span style="font-size:18px">10:00 AM - 5:00 PM</span>
+                </div>
+                <div style="margin:15px 0">
+                    <strong style="color:#666;font-size:12px;text-transform:uppercase;display:block;margin-bottom:5px">Location</strong>
+                    <span style="font-size:18px">Convention Center, Lagos</span>
+                </div>
+            </div>
+            <div style="text-align:center">
+                <a href="#" style="display:inline-block;background:#f5576c;color:#fff;padding:18px 50px;text-decoration:none;border-radius:8px;font-weight:700;font-size:16px">RSVP Now</a>
+            </div>
+        </div>
+        <div style="padding:20px;text-align:center;font-size:12px;color:#666;background:#f8f9fa">
+            <p>We hope to see you there!</p>
+        </div>
+    </div>
+</body>
+</html>`
+    },
+    {
+        id: 'product-launch',
+        name: 'Product Launch',
+        category: 'marketing',
+        icon: '🚀',
+        description: 'Exciting product launch announcement',
+        html: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f4f4f4">
+    <div style="max-width:600px;margin:20px auto;background:#fff;border-radius:12px;overflow:hidden">
+        <div style="background:#000;color:#fff;padding:40px 20px;text-align:center">
+            <div style="font-size:64px;margin-bottom:15px">🚀</div>
+            <h1 style="margin:0;font-size:36px">Launching Soon</h1>
+            <p style="margin:15px 0 0;font-size:18px;opacity:0.9">Something amazing is coming...</p>
+        </div>
+        <div style="padding:40px 30px">
+            <h2 style="color:#2c3e50">Introducing Our Latest Innovation</h2>
+            <p style="font-size:16px;line-height:1.8">We've been working hard to bring you something truly special. Get ready for a game-changing experience that will transform the way you work.</p>
+            <div style="background:#f0f8ff;border-left:4px solid #007bff;padding:20px;margin:20px 0">
+                <strong>Early Bird Special</strong>
+                <p style="margin:10px 0 0">Be among the first 100 customers and get 50% off!</p>
+            </div>
+            <div style="text-align:center;margin:30px 0">
+                <a href="#" style="display:inline-block;background:#000;color:#fff;padding:15px 40px;text-decoration:none;border-radius:8px;font-weight:600">Pre-Order Now</a>
+            </div>
+        </div>
+        <div style="background:#f8f9fa;padding:20px;text-align:center;font-size:12px;color:#666">
+            <p>&copy; 2025 Your Company. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>`
+    },
+    {
+        id: 'password-reset',
+        name: 'Password Reset',
+        category: 'transactional',
+        icon: '🔐',
+        description: 'Secure password reset email',
+        html: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f4f4f4">
+    <div style="max-width:600px;margin:20px auto;background:#fff;border-radius:12px;overflow:hidden">
+        <div style="background:#5f27cd;color:#fff;padding:30px;text-align:center">
+            <div style="font-size:48px;margin-bottom:10px">🔐</div>
+            <h1 style="margin:0;font-size:24px">Reset Your Password</h1>
+        </div>
+        <div style="padding:30px">
+            <p>Hi there,</p>
+            <p>We received a request to reset your password. Click the button below to create a new password:</p>
+            <div style="text-align:center;margin:30px 0">
+                <a href="#" style="display:inline-block;background:#5f27cd;color:#fff;padding:15px 40px;text-decoration:none;border-radius:8px;font-weight:600">Reset Password</a>
+            </div>
+            <p style="color:#7f8c8d;font-size:14px">This link will expire in 1 hour for security reasons.</p>
+            <div style="background:#fff3cd;border-left:4px solid #ffc107;padding:15px;margin:20px 0">
+                <p style="margin:0;color:#856404;font-size:14px"><strong>Didn't request this?</strong> You can safely ignore this email.</p>
+            </div>
+        </div>
+        <div style="background:#f8f9fa;padding:20px;text-align:center;font-size:12px;color:#666">
+            <p>For security, never share this email with anyone.</p>
+        </div>
+    </div>
+</body>
+</html>`
+    },
+    {
+        id: 'blank',
+        name: 'Blank Template',
+        category: 'newsletter',
+        icon: '📄',
+        description: 'Start from scratch with a clean template',
+        html: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f4f4f4">
+    <div style="max-width:600px;margin:20px auto;background:#fff;padding:40px;border-radius:8px">
+        <h1>Your Content Here</h1>
+        <p>Start creating your email...</p>
+    </div>
+</body>
+</html>`
+    }
+];
+
+let currentTemplate = null;
+
+// Load templates on page load
+document.addEventListener('DOMContentLoaded', () => {
+    renderTemplates('all');
+});
+
+function renderTemplates(category) {
+    const grid = document.getElementById('templates-grid');
+    const filtered = category === 'all' ? templates : templates.filter(t => t.category === category);
+    
+    grid.innerHTML = filtered.map(template => `
+        <div class="template-card" data-category="${template.category}">
+            <div class="template-preview" style="background: linear-gradient(${getGradient(template.category)})">
+                <span>${template.icon}</span>
+            </div>
+            <div class="template-info">
+                <div class="template-name">${template.name}</div>
+                <div class="template-description">${template.description}</div>
+                <div class="template-meta">
+                    <span class="template-category-badge">${template.category}</span>
+                    <div class="template-actions">
+                        <button class="template-btn btn-preview" onclick='previewTemplate(${JSON.stringify(template).replace(/'/g, "&#39;")})'>
+                            👁️ Preview
+                        </button>
+                        <button class="template-btn btn-use" onclick='selectAndUse(${JSON.stringify(template).replace(/'/g, "&#39;")})'>
+                            ✨ Use
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getGradient(category) {
+    const gradients = {
+        'marketing': '135deg, #667eea 0%, #764ba2 100%',
+        'transactional': '135deg, #f093fb 0%, #f5576c 100%',
+        'newsletter': '135deg, #4facfe 0%, #00f2fe 100%'
+    };
+    return gradients[category] || '135deg, #667eea 0%, #764ba2 100%';
+}
+
+function filterTemplates(category) {
+    // Update active button
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    renderTemplates(category);
+}
+
+function previewTemplate(template) {
+    currentTemplate = template;
+    document.getElementById('modal-title').textContent = template.name;
+    document.getElementById('modal-category').textContent = template.category.toUpperCase();
+    
+    const iframe = document.getElementById('preview-iframe');
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(template.html);
+    iframeDoc.close();
+    
+    document.getElementById('preview-modal').classList.remove('hidden');
+}
+
+function closePreview() {
+    document.getElementById('preview-modal').classList.add('hidden');
+    currentTemplate = null;
+}
+
+function selectAndUse(template) {
+    console.log('Selecting template:', template.name);
+    
+    // Save to localStorage
+    try {
+        localStorage.setItem('selectedTemplate', JSON.stringify(template));
+        console.log('Template saved to localStorage');
+    } catch (e) {
+        console.error('Error saving to localStorage:', e);
+        alert('Error saving template. Please try again.');
+        return;
+    }
+    
+    // Redirect to send email page - try multiple possible URLs
+    const possibleUrls = [
+        '/dashboard/send-email',
+        '/emails/send',
+        '/send-email',
+        '{{ url_for("emails.send_email") }}'
+    ];
+    
+    // Use the first URL and let it redirect if needed
+    console.log('Redirecting to:', possibleUrls[0]);
+    window.location.href = possibleUrls[0];
+}
+
+function useTemplate() {
+    if (currentTemplate) {
+        selectAndUse(currentTemplate);
+    }
+}
+
+// Close modal on escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closePreview();
+    }
+});
+</script>
+
+{% endblock %}

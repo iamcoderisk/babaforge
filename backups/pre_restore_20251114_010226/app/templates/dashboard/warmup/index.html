@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Warmup - SendBaba</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+<div class="flex h-screen">
+    <aside class="w-64 bg-white shadow-lg">
+        <div class="p-6"><a href="/" class="text-2xl font-bold text-purple-600"><i class="fas fa-paper-plane"></i> SendBaba</a></div>
+        <nav class="px-4">
+            <a href="/dashboard/" class="flex items-center px-4 py-3 text-gray-700 hover:bg-purple-50 rounded-lg mb-1"><i class="fas fa-th-large w-5"></i><span class="ml-3">Dashboard</span></a>
+            <a href="/dashboard/warmup" class="flex items-center px-4 py-3 bg-purple-50 text-purple-600 rounded-lg mb-1"><i class="fas fa-fire w-5"></i><span class="ml-3">IP Warmup</span></a>
+            <a href="/logout" class="flex items-center px-4 py-3 text-gray-700 hover:bg-purple-50 rounded-lg mb-1"><i class="fas fa-sign-out-alt w-5"></i><span class="ml-3">Logout</span></a>
+        </nav>
+    </aside>
+    <main class="flex-1 overflow-y-auto p-8">
+        <h1 class="text-3xl font-bold mb-4">🔥 IP Warmup</h1>
+        <p class="text-gray-600 mb-8">Gradually increase sending volume to build reputation</p>
+        
+        <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-lg p-8 text-white mb-8 shadow-lg">
+            <h2 class="text-2xl font-bold mb-4">📅 Standard Warmup Schedule</h2>
+            <div class="grid grid-cols-7 gap-4 text-center">
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="font-bold">Day 1</div>
+                    <div class="text-sm">50</div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="font-bold">Day 3</div>
+                    <div class="text-sm">200</div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="font-bold">Day 5</div>
+                    <div class="text-sm">800</div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="font-bold">Day 7</div>
+                    <div class="text-sm">3.2K</div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="font-bold">Day 10</div>
+                    <div class="text-sm">25K</div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="font-bold">Day 12</div>
+                    <div class="text-sm">100K</div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="font-bold">Day 14</div>
+                    <div class="text-sm">500K+</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-8 text-center shadow-sm">
+            <div class="text-6xl mb-4">🔥</div>
+            <h3 class="text-xl font-bold mb-2">No IP Warmup Active</h3>
+            <p class="text-gray-600 mb-6">Start warming up your IP to improve deliverability</p>
+            <button class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 font-bold">Start IP Warmup</button>
+        </div>
+    </main>
+</div>
+</body>
+</html>

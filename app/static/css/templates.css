@@ -1,0 +1,247 @@
+/* SendBaba Template System Styles */
+
+/* Template Gallery */
+.template-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.template-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+}
+
+.template-preview-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.template-card:hover .template-preview-overlay {
+    opacity: 1;
+}
+
+/* Filter Buttons */
+.filter-btn {
+    transition: all 0.2s;
+}
+
+.filter-btn:hover {
+    transform: scale(1.05);
+}
+
+.filter-btn.active {
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+/* Modal Animations */
+.modal-enter {
+    animation: modalEnter 0.3s ease-out;
+}
+
+@keyframes modalEnter {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Template Editor */
+.template-editor {
+    display: grid;
+    grid-template-columns: 300px 1fr 400px;
+    height: calc(100vh - 200px);
+    gap: 1rem;
+}
+
+.editor-sidebar {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.editor-canvas {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.editor-properties {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+/* Draggable Elements */
+.draggable-element {
+    padding: 12px;
+    margin: 8px 0;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: move;
+    transition: all 0.2s;
+}
+
+.draggable-element:hover {
+    border-color: #8b5cf6;
+    box-shadow: 0 4px 8px rgba(139, 92, 246, 0.2);
+    transform: translateX(4px);
+}
+
+.draggable-element i {
+    margin-right: 8px;
+    color: #8b5cf6;
+}
+
+/* Drop Zone */
+.drop-zone {
+    min-height: 100px;
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s;
+}
+
+.drop-zone.drag-over {
+    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.05);
+}
+
+.drop-zone-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    color: #9ca3af;
+}
+
+/* Variable Pills */
+.variable-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #e0e7ff;
+    color: #4f46e5;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    margin: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.variable-pill:hover {
+    background: #c7d2fe;
+    transform: scale(1.05);
+}
+
+/* Loading States */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(139, 92, 246, 0.3);
+    border-radius: 50%;
+    border-top-color: #8b5cf6;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Success/Error States */
+.alert {
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert-success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+}
+
+.alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .template-editor {
+        grid-template-columns: 1fr;
+    }
+    
+    .editor-sidebar,
+    .editor-properties {
+        display: none;
+    }
+}
+
+/* Preview Frame */
+.preview-frame {
+    width: 100%;
+    min-height: 600px;
+    border: none;
+    border-radius: 8px;
+    background: white;
+}
+
+/* Template Thumbnail Animations */
+.template-thumbnail {
+    position: relative;
+    overflow: hidden;
+}
+
+.template-thumbnail::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    transform: rotate(45deg);
+    transition: all 0.6s;
+    opacity: 0;
+}
+
+.template-card:hover .template-thumbnail::before {
+    opacity: 1;
+    left: 100%;
+}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Workflows{% endblock %}
+{% block content %}
+<div class="p-8">
+    <h1 class="text-3xl font-bold mb-4">🔄 Workflows</h1>
+    <p class="text-gray-600 mb-8">Create automated email sequences</p>
+    
+    <div class="grid md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white border-2 border-purple-200 rounded-lg p-6">
+            <div class="text-4xl mb-3">👋</div>
+            <h3 class="font-bold text-lg mb-2">Welcome Series</h3>
+            <p class="text-sm text-gray-600 mb-4">3-email onboarding sequence</p>
+            <button class="w-full bg-purple-600 text-white py-2 rounded-lg">Use Template</button>
+        </div>
+        <div class="bg-white border-2 border-green-200 rounded-lg p-6">
+            <div class="text-4xl mb-3">🛒</div>
+            <h3 class="font-bold text-lg mb-2">Abandoned Cart</h3>
+            <p class="text-sm text-gray-600 mb-4">Recover lost sales</p>
+            <button class="w-full bg-green-600 text-white py-2 rounded-lg">Use Template</button>
+        </div>
+        <div class="bg-white border-2 border-blue-200 rounded-lg p-6">
+            <div class="text-4xl mb-3">🎂</div>
+            <h3 class="font-bold text-lg mb-2">Birthday Campaign</h3>
+            <p class="text-sm text-gray-600 mb-4">Send birthday wishes</p>
+            <button class="w-full bg-blue-600 text-white py-2 rounded-lg">Use Template</button>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg p-8 text-center">
+        <div class="text-6xl mb-4">🔄</div>
+        <h3 class="text-xl font-bold mb-2">No workflows yet</h3>
+        <p class="text-gray-600">Create your first automated workflow</p>
+    </div>
+</div>
+{% endblock %}

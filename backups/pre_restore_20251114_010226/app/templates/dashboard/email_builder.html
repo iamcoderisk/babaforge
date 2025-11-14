@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Email Builder - SendBaba{% endblock %}
+
+{% block content %}
+<div class="h-screen flex flex-col">
+    <!-- Builder Header -->
+    <div class="bg-white border-b px-6 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-4">
+            <a href="{{ url_for('dashboard.bulk_send') }}" class="text-gray-600 hover:text-gray-900">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <input type="text" id="templateName" value="Untitled Template" 
+                   class="text-lg font-semibold border-none focus:outline-none focus:ring-2 focus:ring-purple-500 rounded px-2">
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="previewEmail()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                <i class="fas fa-eye mr-2"></i>Preview
+            </button>
+            <button onclick="testEmail()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                <i class="fas fa-paper-plane mr-2"></i>Test
+            </button>
+            <button onclick="saveTemplate()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                <i class="fas fa-save mr-2"></i>Save
+            </button>
+        </div>
+    </div>
+    
+    <!-- Builder Canvas -->
+    <div id="gjs" class="flex-1"></div>
+</div>
+
+<!-- GrapeJS CSS -->
+<link rel="stylesheet" href="https://unpkg.com/grapesjs/dist/css/grapes.min.css">
+<link rel="stylesheet" href="https://unpkg.com/grapesjs-preset-newsletter/dist/grapesjs-preset-newsletter.css">
+
+<!-- GrapeJS JS -->
+<script src="https://unpkg.com/grapesjs"></script>
+<script src="https://unpkg.com/grapesjs-preset-newsletter"></script>
+
+<script>
+const editor = grapesjs.init({
+    container: '#gjs',
+    height: '100%',
+    width: 'auto',
+    plugins: ['gjs-preset-newsletter'],
+    pluginsOpts: {
+        'gjs-preset-newsletter': {
+            modalTitleImport: 'Import template',
+            modalTitleExport: 'Export template',
+            codeViewerTheme: 'material',
+            importPlaceholder: '<table>...</table>',
+            cellStyle: {
+                'font-size': '14px',
+                'font-weight': '300',
+                'vertical-align': 'top',
+                color: 'rgb(111, 119, 125)',
+                margin: 0,
+                padding: 0,
+            }
+        }
+    },
+    storageManager: {
+        type: 'remote',
+        stepsBeforeSave: 3,
+        autosave: true,
+        autoload: true,
+        urlStore: '/api/templates/save',
+        urlLoad: '/api/templates/load',
+        contentTypeJson: true,
+    },
+    assetManager: {
+        upload: '/api/upload/image',
+        uploadName: 'files',
+    },
+    styleManager: {
+        sectors: [{
+            name: 'General',
+            open: true,
+            buildProps: ['float', 'display', 'position', 'top', 'right', 'left', 'bottom']
+        }, {
+            name: 'Dimension',
+            open: false,
+            buildProps: ['width', 'height', 'max-width', 'min-height', 'margin', 'padding']
+        }, {
+            name: 'Typography',
+            open: false,
+            buildProps: ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'color', 'line-height', 'text-align', 'text-shadow']
+        }, {
+            name: 'Decorations',
+            open: false,
+            buildProps: ['border-radius-c', 'background-color', 'border', 'box-shadow', 'background']
+        }]
+    },
+});
+
+// Add custom blocks
+editor.BlockManager.add('text-block', {
+    label: 'Text',
+    category: 'Basic',
+    content: '<div style="padding: 10px;">Insert your text here</div>',
+    attributes: { class: 'fa fa-text-width' }
+});
+
+editor.BlockManager.add('image-block', {
+    label: 'Image',
+    category: 'Basic',
+    content: '<img src="https://via.placeholder.com/350x250/78c5d6/fff"/>',
+    attributes: { class: 'fa fa-image' }
+});
+
+editor.BlockManager.add('button-block', {
+    label: 'Button',
+    category: 'Basic',
+    content: '<a href="#" style="display: inline-block; padding: 12px 24px; background-color: #8B5CF6; color: white; text-decoration: none; border-radius: 5px;">Click Me</a>',
+    attributes: { class: 'fa fa-square' }
+});
+
+function saveTemplate() {
+    const html = editor.getHtml();
+    const css = editor.getCss();
+    const js = editor.getJs();
+    const json = editor.getProjectData();
+    const name = document.getElementById('templateName').value;
+    
+    fetch('/api/templates', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: name,
+            html_content: `<style>${css}</style>${html}<script>${js}</script>`,
+            json_structure: json
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Template saved successfully!');
+        } else {
+            alert('Error saving template: ' + data.error);
+        }
+    })
+    .catch(err => {
+        alert('Network error: ' + err.message);
+    });
+}
+
+function previewEmail() {
+    const html = editor.getHtml();
+    const css = editor.getCss();
+    const fullHtml = `<style>${css}</style>${html}`;
+    
+    const win = window.open('', 'Preview', 'width=600,height=800');
+    win.document.write(fullHtml);
+    win.document.close();
+}
+
+function testEmail() {
+    const email = prompt('Enter email address to send test:');
+    if (!email) return;
+    
+    const html = editor.getHtml();
+    const css = editor.getCss();
+    const fullHtml = `<style>${css}</style>${html}`;
+    
+    fetch('/api/send-test-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            to: email,
+            subject: 'Test Email from SendBaba',
+            html_body: fullHtml
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Test email sent successfully!');
+        } else {
+            alert('Error: ' + data.error);
+        }
+    });
+}
+</script>
+{% endblock %}

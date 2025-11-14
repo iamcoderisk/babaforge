@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Send Email - SendBaba{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/email-builder.css') }}">
+<style>
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 32px;
+}
+
+.page-header p {
+    margin: 0;
+    opacity: 0.9;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1400px; margin: 0 auto; padding: 20px;">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>📧 Send Email</h1>
+        <p>Create beautiful emails using our template system or custom HTML</p>
+    </div>
+    
+    <!-- Alert Container -->
+    <div id="alert-container"></div>
+    
+    <!-- Main Email Form -->
+    <form id="send-email-form" action="{{ url_for('emails.send_email') }}" method="POST">
+        
+        <!-- Email Details Section -->
+        <div style="background: white; border-radius: 12px; padding: 30px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+            <h2 style="margin-top: 0; color: #2c3e50;">✉️ Email Details</h2>
+            
+            <div class="form-group">
+                <label for="from_email">From Email *</label>
+                <input type="email" 
+                       id="from_email" 
+                       name="from_email" 
+                       class="form-control" 
+                       placeholder="sender@yourdomain.com"
+                       required>
+                <small style="color: #7f8c8d;">Use a verified domain for best deliverability</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="to_email">To Email *</label>
+                <input type="email" 
+                       id="to_email" 
+                       name="to_email" 
+                       class="form-control" 
+                       placeholder="recipient@example.com"
+                       required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email-subject">Subject *</label>
+                <input type="text" 
+                       id="email-subject" 
+                       name="subject" 
+                       class="form-control" 
+                       placeholder="Enter email subject"
+                       required>
+            </div>
+        </div>
+        
+        <!-- Template Selection -->
+        <div style="background: white; border-radius: 12px; padding: 30px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #2c3e50;">🎨 Email Template</h2>
+                <button type="button" class="btn btn-secondary" onclick="openTemplateModal()">
+                    📋 Browse Templates
+                </button>
+            </div>
+            
+            <!-- Editor Tabs -->
+            <div class="editor-tabs">
+                <button type="button" class="tab-button active" data-tab="visual">Visual Editor</button>
+                <button type="button" class="tab-button" data-tab="html">HTML Code</button>
+                <button type="button" class="tab-button" data-tab="preview">Preview</button>
+            </div>
+            
+            <!-- Visual Editor Tab -->
+            <div id="visual-tab" class="tab-content">
+                <div class="form-group">
+                    <label>Variables (Click to insert)</label>
+                    <div class="variable-tags">
+                        <span class="variable-tag" data-variable="name">{{name}}</span>
+                        <span class="variable-tag" data-variable="email">{{email}}</span>
+                        <span class="variable-tag" data-variable="company">{{company}}</span>
+                        <span class="variable-tag" data-variable="action_url">{{action_url}}</span>
+                        <span class="variable-tag" data-variable="unsubscribe_url">{{unsubscribe_url}}</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="text_body">Plain Text Body</label>
+                    <textarea id="text_body" 
+                              name="text_body" 
+                              class="form-control" 
+                              rows="6"
+                              placeholder="Plain text version of your email (fallback for email clients that don't support HTML)"></textarea>
+                </div>
+            </div>
+            
+            <!-- HTML Code Tab -->
+            <div id="html-tab" class="tab-content hidden">
+                <div class="form-group">
+                    <label for="html-editor">HTML Code</label>
+                    <textarea id="html-editor" 
+                              name="html_body" 
+                              class="form-control" 
+                              rows="15"
+                              style="font-family: 'Courier New', monospace; font-size: 13px;"
+                              placeholder="<html>&#10;  <body>&#10;    <h1>Your email content here</h1>&#10;  </body>&#10;</html>"></textarea>
+                </div>
+            </div>
+            
+            <!-- Preview Tab -->
+            <div id="preview-tab" class="tab-content hidden">
+                <div class="email-preview">
+                    <iframe id="preview-iframe" class="preview-iframe"></iframe>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-bar" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+            <button type="button" id="send-email-btn" class="btn btn-success">
+                🚀 Send Email
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="window.emailBuilder.updatePreview()">
+                👁️ Preview
+            </button>
+            <button type="reset" class="btn btn-secondary">
+                🔄 Reset
+            </button>
+        </div>
+        
+    </form>
+</div>
+
+<!-- Template Selection Modal -->
+<div id="template-modal" class="modal-overlay">
+    <div class="modal" style="width: 90%; max-width: 1200px;">
+        <div class="modal-header">
+            <h2 class="modal-title">Choose Email Template</h2>
+            <button type="button" class="modal-close" onclick="closeTemplateModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div id="template-gallery" class="template-gallery">
+                <!-- Templates loaded by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/email-builder.js') }}"></script>
+{% endblock %}
