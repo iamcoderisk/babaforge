@@ -510,3 +510,148 @@ def api_v1_contacts():
             db.session.rollback()
             logger.error(f"API v1 add contact error: {e}")
             return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============= CONTACT API ENDPOINTS =============
+
+@api_bp.route('/contacts/parse', methods=['POST'])
+@login_required
+def parse_contacts_file():
+    """Parse CSV/Excel file"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'No file uploaded'}), 400
+        
+        file = request.files['file']
+        
+        import pandas as pd
+        import io
+        
+        # Read file based on extension
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(io.BytesIO(file.read()))
+        elif file.filename.endswith(('.xlsx', '.xls')):
+            df = pd.read_excel(io.BytesIO(file.read()))
+        else:
+            return jsonify({'success': False, 'error': 'Unsupported file format'}), 400
+        
+        # Convert to records
+        headers = df.columns.tolist()
+        rows = df.to_dict('records')
+        
+        # Clean NaN values
+        for row in rows:
+            for key in row:
+                if pd.isna(row[key]):
+                    row[key] = ''
+        
+        return jsonify({
+            'success': True,
+            'headers': headers,
+            'rows': rows,
+            'total': len(rows)
+        })
+        
+    except Exception as e:
+        logger.error(f"Parse file error: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@api_bp.route('/contacts/import', methods=['POST'])
+@login_required
+def import_contacts():
+    """Import contacts with mapping"""
+    try:
+        data = request.json
+        rows = data.get('data', [])
+        mapping = data.get('mapping', {})
+        options = data.get('options', {})
+        
+        imported = 0
+        skipped = 0
+        
+        for row in rows:
+            email = str(row.get(mapping['email'], '')).strip()
+            
+            if not email or '@' not in email:
+                skipped += 1
+                continue
+            
+            # Check duplicates
+            if options.get('skip_duplicates'):
+                exists = db.session.execute(
+                    text("SELECT COUNT(*) FROM contacts WHERE organization_id = :org_id AND email = :email"),
+                    {'org_id': current_user.organization_id, 'email': email}
+                ).scalar()
+                
+                if exists > 0:
+                    skipped += 1
+                    continue
+            
+            # Import contact
+            first_name = str(row.get(mapping.get('first_name'), '')).strip() if mapping.get('first_name') else ''
+            last_name = str(row.get(mapping.get('last_name'), '')).strip() if mapping.get('last_name') else ''
+            company = str(row.get(mapping.get('company'), '')).strip() if mapping.get('company') else ''
+            
+            db.session.execute(
+                text("""
+                    INSERT INTO contacts (organization_id, email, first_name, last_name, company, created_at)
+                    VALUES (:org_id, :email, :first_name, :last_name, :company, NOW())
+                """),
+                {
+                    'org_id': current_user.organization_id,
+                    'email': email,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'company': company
+                }
+            )
+            imported += 1
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'imported': imported,
+            'skipped': skipped
+        })
+        
+    except Exception as e:
+        logger.error(f"Import contacts error: {e}", exc_info=True)
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@api_bp.route('/contacts/<contact_id>/delete', methods=['POST'])
+@login_required
+def delete_contact(contact_id):
+    """Delete single contact"""
+    try:
+        db.session.execute(
+            text("DELETE FROM contacts WHERE id = :id AND organization_id = :org_id"),
+            {'id': contact_id, 'org_id': current_user.organization_id}
+        )
+        db.session.commit()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Delete contact error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@api_bp.route('/contacts/bulk-delete', methods=['POST'])
+@login_required
+def bulk_delete_contacts():
+    """Delete multiple contacts"""
+    try:
+        data = request.json
+        ids = data.get('ids', [])
+        
+        for contact_id in ids:
+            db.session.execute(
+                text("DELETE FROM contacts WHERE id = :id AND organization_id = :org_id"),
+                {'id': contact_id, 'org_id': current_user.organization_id}
+            )
+        
+        db.session.commit()
+        
+        return jsonify({'success': True, 'deleted': len(ids)})
+    except Exception as e:
+        logger.error(f"Bulk delete error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500

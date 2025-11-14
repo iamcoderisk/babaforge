@@ -121,7 +121,7 @@ def send_email():
 @dashboard_bp.route('/bulk-send')
 @login_required
 def bulk_send():
-    """Bulk send campaign page"""
+    """Bulk send page"""
     try:
         # Get domains
         domains_result = db.session.execute(
@@ -132,12 +132,10 @@ def bulk_send():
         
         # Get contacts
         contacts_result = db.session.execute(
-            text("SELECT id, email, first_name, last_name, company FROM contacts WHERE organization_id = :org_id ORDER BY created_at DESC"),
+            text("SELECT id, email, name FROM contacts WHERE organization_id = :org_id ORDER BY created_at DESC"),
             {'org_id': current_user.organization_id}
         )
         contacts = [dict(row._mapping) for row in contacts_result]
-        
-        logger.info(f"Bulk send page: {len(domains)} domains, {len(contacts)} contacts")
         
         return render_template('dashboard/bulk_send.html', domains=domains, contacts=contacts)
     except Exception as e:

@@ -22,7 +22,7 @@ try:
     logger.info("✅ Redis connected")
 except Exception as e:
     redis_client = None
-    logger.warning(f"⚠️  Redis not available: {e}")
+    logger.warning(f"⚠️ Redis not available: {e}")
 
 def create_app():
     app = Flask(__name__)
@@ -124,7 +124,10 @@ def create_app():
         except Exception as e:
             logger.error(f"❌ Forms: {e}")
         
-        try:            logger.info("✅ Templates")
+        try:
+            from app.controllers.template_controller import template_bp
+            app.register_blueprint(template_bp)
+            logger.info("✅ Templates")
         except Exception as e:
             logger.error(f"❌ Templates: {e}")
         
@@ -155,6 +158,20 @@ def create_app():
             logger.info("✅ Reply AI")
         except Exception as e:
             logger.error(f"❌ Reply AI: {e}")
+        
+        try:
+            from app.controllers.web_controller import web_bp
+            app.register_blueprint(web_bp)
+            logger.info("✅ Web")
+        except Exception as e:
+            logger.error(f"❌ Web: {e}")
+        
+        try:
+            from app.controllers.tracking_controller import tracking_bp
+            app.register_blueprint(tracking_bp)
+            logger.info("✅ Tracking")
+        except Exception as e:
+            logger.error(f"❌ Tracking: {e}")
     
     @login_manager.user_loader
     def load_user(user_id):
@@ -166,11 +183,5 @@ def create_app():
                 return User.query.get(int(user_id))
             except:
                 return None
-    
-
-    # Register template blueprints
-    from app.controllers.template_controller import template_bp, template_api_bp
-    app.register_blueprint(template_bp)
-    app.register_blueprint(template_api_bp)
     
     return app

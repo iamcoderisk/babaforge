@@ -1,115 +1,122 @@
 {% extends "base.html" %}
 
-{% block title %}Import Contacts{% endblock %}
+{% block title %}Import Contacts - SendBaba{% endblock %}
 
 {% block content %}
-<div class="p-6 max-w-4xl mx-auto">
-    <h1 class="text-3xl font-bold text-gray-900 mb-6">Import Contacts</h1>
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="mb-8">
+        <a href="/dashboard/contacts" class="text-purple-600 hover:text-purple-700 mb-4 inline-block">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Contacts
+        </a>
+        <h1 class="text-3xl font-bold mb-2">Import Contacts</h1>
+        <p class="text-gray-600">Upload CSV or Excel file to import multiple contacts at once</p>
+    </div>
 
-    <div class="bg-white rounded-lg shadow p-6">
-        <form method="POST" enctype="multipart/form-data" id="importForm">
-            <!-- Step 1: List Details -->
-            <div class="mb-8">
-                <h3 class="text-lg font-semibold mb-4">Step 1: List Details</h3>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">List Name *</label>
-                        <input type="text" name="list_name" required 
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
-                            placeholder="e.g., Newsletter Subscribers">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
-                        <textarea name="description" rows="3" 
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
-                            placeholder="Describe this contact list..."></textarea>
-                    </div>
-                </div>
+    <!-- Notification Area -->
+    <div id="notificationArea"></div>
+
+    <form id="importForm" class="space-y-8">
+        <!-- Step 1: Upload File -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-bold mb-4">Step 1: Upload File</h2>
+            
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center" id="dropZone">
+                <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" class="hidden" onchange="handleFileSelect(event)">
+                <label for="fileInput" class="cursor-pointer">
+                    <div class="text-6xl mb-4">📤</div>
+                    <p class="text-lg font-medium mb-2">Drop your file here or click to browse</p>
+                    <p class="text-sm text-gray-500">Supports CSV, Excel (XLSX, XLS) - Max 50MB</p>
+                </label>
+            </div>
+            
+            <div id="fileInfo" class="hidden mt-4 p-4 bg-blue-50 rounded-lg">
+                <p class="font-medium text-blue-900" id="fileName"></p>
+                <p class="text-sm text-blue-700" id="fileSize"></p>
+            </div>
+        </div>
+
+        <!-- Step 2: Map Fields -->
+        <div id="mappingSection" class="hidden bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-bold mb-4">Step 2: Map Fields</h2>
+            
+            <div class="mb-4 p-4 bg-blue-50 rounded">
+                <p class="text-sm text-blue-800">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <strong id="totalRows">0</strong> rows detected. Map your columns to SendBaba fields.
+                </p>
             </div>
 
-            <!-- Step 2: Upload File -->
-            <div class="mb-8">
-                <h3 class="text-lg font-semibold mb-4">Step 2: Upload File</h3>
-                
-                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <i class="fas fa-cloud-upload-alt text-6xl text-gray-300 mb-4"></i>
-                    <input type="file" name="file" id="fileInput" required accept=".csv,.xlsx,.xls"
-                        class="hidden" onchange="handleFileSelect(event)">
-                    <label for="fileInput" class="cursor-pointer">
-                        <span class="text-red-500 hover:text-red-600 font-semibold">Choose File</span>
-                        <span class="text-gray-600"> or drag and drop</span>
+            <div id="previewTable" class="mb-6 overflow-x-auto">
+                <table class="min-w-full border">
+                    <thead class="bg-gray-50">
+                        <tr id="headerRow"></tr>
+                    </thead>
+                    <tbody id="previewBody"></tbody>
+                </table>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-medium mb-2">Email Column *</label>
+                    <select name="email_column" id="emailColumn" required class="w-full px-4 py-2 border rounded">
+                        <option value="">-- Select Column --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-medium mb-2">First Name Column</label>
+                    <select name="first_name_column" id="firstNameColumn" class="w-full px-4 py-2 border rounded">
+                        <option value="">-- Select Column --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-medium mb-2">Last Name Column</label>
+                    <select name="last_name_column" id="lastNameColumn" class="w-full px-4 py-2 border rounded">
+                        <option value="">-- Select Column --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-medium mb-2">Company Column</label>
+                    <select name="company_column" id="companyColumn" class="w-full px-4 py-2 border rounded">
+                        <option value="">-- Select Column --</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Import -->
+        <div id="importSection" class="hidden bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-bold mb-4">Step 3: Import</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" name="skip_duplicates" checked>
+                        <span>Skip duplicate emails</span>
                     </label>
-                    <p class="text-sm text-gray-500 mt-2">CSV or Excel (XLSX, XLS) - Max 10MB</p>
-                    <div id="fileName" class="mt-4 text-sm font-medium text-gray-900"></div>
+                </div>
+
+                <div>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" name="validate_emails" checked>
+                        <span>Validate email format</span>
+                    </label>
                 </div>
             </div>
 
-            <!-- Step 3: Field Mapping -->
-            <div id="fieldMapping" class="mb-8 hidden">
-                <h3 class="text-lg font-semibold mb-4">Step 3: Map Fields</h3>
-                
-                <div class="bg-blue-50 p-4 rounded-lg mb-4">
-                    <p class="text-sm text-blue-800">
-                        <i class="fas fa-info-circle mr-2"></i>
-                        Map your file columns to SendBaba fields
-                    </p>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Column *</label>
-                        <input type="text" name="email_field" value="email" 
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">First Name Column</label>
-                        <input type="text" name="first_name_field" value="first_name" 
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Last Name Column</label>
-                        <input type="text" name="last_name_field" value="last_name" 
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Company Column</label>
-                        <input type="text" name="company_field" value="company" 
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Column</label>
-                        <input type="text" name="phone_field" value="phone" 
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Submit -->
-            <div class="flex justify-between pt-4">
-                <a href="{{ url_for('contact.index') }}" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+            <div class="flex gap-4 mt-6">
+                <button type="button" onclick="resetForm()" class="px-6 py-3 border rounded-lg hover:bg-gray-50">
                     Cancel
-                </a>
-                <button type="submit" class="bg-red-500 text-white px-8 py-3 rounded-lg hover:bg-red-600 font-semibold">
-                    <i class="fas fa-upload mr-2"></i>Import Contacts
+                </button>
+                <button type="submit" id="importBtn" class="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 font-medium">
+                    Import <span id="importCount">0</span> Contacts
                 </button>
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
 </div>
 
-<script>
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (file) {
-        document.getElementById('fileName').textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
-        document.getElementById('fieldMapping').classList.remove('hidden');
-    }
-}
-</script>
+<script src="/static/js/contact-import.js"></script>
 {% endblock %}

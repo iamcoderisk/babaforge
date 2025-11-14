@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Contacts - SendBaba{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">👥 Contacts</h1>
+            <p class="text-gray-600">Manage your email contacts</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="/dashboard/contacts/import" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+                <i class="fas fa-upload mr-2"></i>Import Contacts
+            </a>
+            <a href="/dashboard/bulk-send" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                <i class="fas fa-paper-plane mr-2"></i>Send Campaign
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+            <div class="text-3xl font-bold text-purple-600 mb-2">{{ contacts|length }}</div>
+            <div class="text-gray-600">Total Contacts</div>
+        </div>
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+            <div class="text-3xl font-bold text-green-600 mb-2">{{ contacts|length }}</div>
+            <div class="text-gray-600">Active</div>
+        </div>
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+            <div class="text-3xl font-bold text-gray-600 mb-2">0</div>
+            <div class="text-gray-600">Unsubscribed</div>
+        </div>
+    </div>
+
+    {% if contacts and contacts|length > 0 %}
+    <!-- Search and Filter -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div class="flex gap-4">
+            <div class="flex-1">
+                <input type="text" id="searchInput" placeholder="Search contacts..." 
+                       class="w-full px-4 py-2 border rounded-lg" onkeyup="searchContacts()">
+            </div>
+            <button onclick="selectAllContacts()" class="px-4 py-2 border rounded-lg hover:bg-gray-50">
+                Select All
+            </button>
+            <button onclick="bulkDelete()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                <i class="fas fa-trash mr-2"></i>Delete Selected
+            </button>
+        </div>
+    </div>
+
+    <!-- Contacts Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="min-w-full" id="contactsTable">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left">
+                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Company</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Added</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for contact in contacts %}
+                <tr class="hover:bg-gray-50 contact-row">
+                    <td class="px-6 py-4">
+                        <input type="checkbox" class="contact-checkbox" value="{{ contact.id }}">
+                    </td>
+                    <td class="px-6 py-4 font-medium">
+                        {{ contact.first_name }} {{ contact.last_name }}
+                    </td>
+                    <td class="px-6 py-4">{{ contact.email }}</td>
+                    <td class="px-6 py-4">{{ contact.company or '-' }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">
+                        {{ contact.created_at.strftime('%b %d, %Y') if contact.created_at else '-' }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <button onclick="deleteContact('{{ contact.id }}')" class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow p-12 text-center">
+        <div class="text-6xl mb-4">👥</div>
+        <h3 class="text-xl font-semibold mb-2">No contacts yet</h3>
+        <p class="text-gray-600 mb-6">Import your first contacts to get started</p>
+        <a href="/dashboard/contacts/import" class="inline-block bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700">
+            <i class="fas fa-upload mr-2"></i>Import Contacts
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function searchContacts() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const rows = document.querySelectorAll('.contact-row');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+}
+
+function toggleSelectAll() {
+    const checked = document.getElementById('selectAllCheckbox').checked;
+    document.querySelectorAll('.contact-checkbox').forEach(cb => cb.checked = checked);
+}
+
+function selectAllContacts() {
+    document.getElementById('selectAllCheckbox').checked = true;
+    toggleSelectAll();
+}
+
+function bulkDelete() {
+    const selected = Array.from(document.querySelectorAll('.contact-checkbox:checked')).map(cb => cb.value);
+    
+    if (selected.length === 0) {
+        showNotification('warning', 'Please select contacts to delete');
+        return;
+    }
+    
+    if (confirm(`Delete ${selected.length} contact(s)?`)) {
+        fetch('/api/contacts/bulk-delete', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ids: selected})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('success', `Deleted ${selected.length} contact(s)`);
+                setTimeout(() => location.reload(), 1000);
+            }
+        });
+    }
+}
+
+function deleteContact(id) {
+    if (confirm('Delete this contact?')) {
+        fetch(`/api/contacts/${id}/delete`, {
+            method: 'POST'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('success', 'Contact deleted');
+                setTimeout(() => location.reload(), 1000);
+            }
+        });
+    }
+}
+
+function showNotification(type, message) {
+    const colors = {
+        success: 'bg-green-50 border-green-500 text-green-800',
+        error: 'bg-red-50 border-red-500 text-red-800',
+        warning: 'bg-yellow-50 border-yellow-500 text-yellow-800',
+        info: 'bg-blue-50 border-blue-500 text-blue-800'
+    };
+    
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 ${colors[type]} border-l-4 p-4 rounded-lg shadow-lg z-50 animate-slide-left`;
+    notification.innerHTML = `
+        <div class="flex items-center justify-between">
+            <p class="font-medium">${message}</p>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-xl">&times;</button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 5000);
+}
+</script>
+
+<style>
+@keyframes slide-left {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+.animate-slide-left {
+    animation: slide-left 0.3s ease-out;
+}
+</style>
+{% endblock %}
