@@ -1,0 +1,766 @@
+openapi: 3.0.0
+info:
+  title: SendBaba API
+  version: 1.0.0
+  description: |
+    SendBaba REST API for sending transactional and marketing emails.
+    
+    ## Authentication
+    All API requests require authentication using an API key in the Authorization header:
+```
+    Authorization: Bearer YOUR_API_KEY
+```
+    
+    ## Rate Limits
+    - 100 requests per minute
+    - 1,000 requests per hour
+    - 10,000 requests per day
+    
+    Rate limit information is returned in response headers:
+    - `X-RateLimit-Limit-Minute`
+    - `X-RateLimit-Remaining-Minute`
+    - `X-RateLimit-Reset-Minute`
+    
+  contact:
+    email: support@sendbaba.com
+    url: https://sendbaba.com/support
+  termsOfService: https://sendbaba.com/terms
+
+servers:
+  - url: https://sendbaba.com/api/v1
+    description: Production server
+  - url: https://playmaster.sendbaba.com/api/v1
+    description: Staging server
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Emails
+    description: Send and manage emails
+  - name: Contacts
+    description: Manage contacts and lists
+  - name: Campaigns
+    description: Create and manage campaigns
+  - name: Utility
+    description: Utility endpoints
+
+paths:
+  /ping:
+    get:
+      tags:
+        - Utility
+      summary: Health check
+      description: Check if API is alive (no authentication required)
+      security: []
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: pong
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+                    example: v1
+
+  /me:
+    get:
+      tags:
+        - Utility
+      summary: Get API key information
+      description: Returns information about the current API key
+      responses:
+        '200':
+          description: API key information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      organization_id:
+                        type: string
+                      api_key:
+                        $ref: '#/components/schemas/APIKey'
+                      scopes:
+                        type: array
+                        items:
+                          type: string
+                      rate_limits:
+                        $ref: '#/components/schemas/RateLimits'
+
+  /emails/send:
+    post:
+      tags:
+        - Emails
+      summary: Send an email
+      description: Queue an email for delivery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendEmailRequest'
+            examples:
+              simple:
+                summary: Simple email
+                value:
+                  to: "recipient@example.com"
+                  subject: "Welcome to SendBaba"
+                  html: "<h1>Hello!</h1><p>Welcome to our platform.</p>"
+              with_options:
+                summary: Email with all options
+                value:
+                  from: "noreply@yourdomain.com"
+                  to: "recipient@example.com"
+                  subject: "Your Order Confirmation"
+                  html: "<h1>Order Confirmed</h1>"
+                  text: "Order Confirmed"
+                  reply_to: "support@yourdomain.com"
+                  priority: 8
+                  tags: ["order", "confirmation"]
+      responses:
+        '202':
+          description: Email queued successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+
+  /emails/{email_id}:
+    get:
+      tags:
+        - Emails
+      summary: Get email details
+      description: Retrieve information about a specific email
+      parameters:
+        - name: email_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Email ID
+      responses:
+        '200':
+          description: Email details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Email'
+        '404':
+          description: Email not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /emails:
+    get:
+      tags:
+        - Emails
+      summary: List emails
+      description: Get a paginated list of emails
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [queued, sent, failed, bounced]
+          description: Filter by status
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+          description: Number of results per page
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Offset for pagination
+      responses:
+        '200':
+          description: List of emails
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Email'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /contacts:
+    post:
+      tags:
+        - Contacts
+      summary: Create a contact
+      description: Add a new contact to your organization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContactRequest'
+      responses:
+        '201':
+          description: Contact created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Contact'
+        '409':
+          description: Contact already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    get:
+      tags:
+        - Contacts
+      summary: List contacts
+      description: Get a paginated list of contacts
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, unsubscribed, bounced, complained]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of contacts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Contact'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /contacts/{contact_id}:
+    get:
+      tags:
+        - Contacts
+      summary: Get contact
+      description: Retrieve a specific contact
+      parameters:
+        - name: contact_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Contact details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Contact'
+    
+    put:
+      tags:
+        - Contacts
+      summary: Update contact
+      description: Update an existing contact
+      parameters:
+        - name: contact_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateContactRequest'
+      responses:
+        '200':
+          description: Contact updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Contact'
+    
+    delete:
+      tags:
+        - Contacts
+      summary: Delete contact
+      description: Remove a contact from your organization
+      parameters:
+        - name: contact_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Contact deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /campaigns:
+    post:
+      tags:
+        - Campaigns
+      summary: Create campaign
+      description: Create a new email campaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCampaignRequest'
+      responses:
+        '201':
+          description: Campaign created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Campaign'
+    
+    get:
+      tags:
+        - Campaigns
+      summary: List campaigns
+      description: Get all campaigns
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of campaigns
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Campaign'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /campaigns/{campaign_id}:
+    get:
+      tags:
+        - Campaigns
+      summary: Get campaign
+      description: Retrieve campaign details
+      parameters:
+        - name: campaign_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Campaign details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Campaign'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: 'API key in format: sb_live_xxxxx'
+
+  schemas:
+    SendEmailRequest:
+      type: object
+      required:
+        - to
+        - subject
+      properties:
+        from:
+          type: string
+          format: email
+          example: "noreply@yourdomain.com"
+          description: Sender email address
+        to:
+          type: string
+          format: email
+          example: "recipient@example.com"
+          description: Recipient email address
+        subject:
+          type: string
+          example: "Welcome to our platform"
+          description: Email subject
+        html:
+          type: string
+          example: "<h1>Hello!</h1><p>Welcome message</p>"
+          description: HTML body of the email
+        text:
+          type: string
+          example: "Hello! Welcome message"
+          description: Plain text body
+        reply_to:
+          type: string
+          format: email
+          example: "reply@yourdomain.com"
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 5
+          description: Priority (1=lowest, 10=highest)
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["welcome", "onboarding"]
+
+    EmailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Email queued successfully"
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "550e8400-e29b-41d4-a716-446655440000"
+            to:
+              type: string
+              example: "recipient@example.com"
+            subject:
+              type: string
+              example: "Welcome"
+            status:
+              type: string
+              example: "queued"
+            created_at:
+              type: string
+              format: date-time
+
+    Email:
+      type: object
+      properties:
+        id:
+          type: string
+        from_email:
+          type: string
+        to_email:
+          type: string
+        subject:
+          type: string
+        status:
+          type: string
+          enum: [queued, sent, failed, bounced]
+        created_at:
+          type: string
+          format: date-time
+        sent_at:
+          type: string
+          format: date-time
+
+    CreateContactRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        first_name:
+          type: string
+          example: "John"
+        last_name:
+          type: string
+          example: "Doe"
+        phone:
+          type: string
+          example: "+234 123 456 7890"
+        company:
+          type: string
+          example: "Acme Inc"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["customer", "premium"]
+        custom_fields:
+          type: object
+          additionalProperties: true
+          example:
+            plan: "premium"
+            joined_date: "2024-01-15"
+
+    UpdateContactRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone:
+          type: string
+        company:
+          type: string
+        status:
+          type: string
+          enum: [active, unsubscribed, bounced, complained]
+        tags:
+          type: array
+          items:
+            type: string
+        custom_fields:
+          type: object
+          additionalProperties: true
+
+    Contact:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone:
+          type: string
+        company:
+          type: string
+        status:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        custom_fields:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateCampaignRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: "Welcome Series - Week 1"
+        subject:
+          type: string
+          example: "Welcome to SendBaba!"
+        from_email:
+          type: string
+          format: email
+          example: "marketing@yourdomain.com"
+
+    Campaign:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        subject:
+          type: string
+        status:
+          type: string
+        total_sent:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    APIKey:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        key_prefix:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        last_used_at:
+          type: string
+          format: date-time
+        usage_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    RateLimits:
+      type: object
+      properties:
+        per_minute:
+          type: integer
+        per_hour:
+          type: integer
+        per_day:
+          type: integer
+
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+        has_more:
+          type: boolean
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+    RateLimitError:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "rate_limit_exceeded"
+        message:
+          type: string
+        rate_limits:
+          type: object
+          properties:
+            minute:
+              type: object
+            hour:
+              type: object
+            day:
+              type: object

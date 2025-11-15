@@ -1,0 +1,307 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}API Keys - SendBaba{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-3">API Keys & Credentials</h1>
+            <p class="text-muted">Manage your API keys and SMTP credentials for integrations</p>
+        </div>
+    </div>
+
+    <!-- API Keys Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">REST API Keys</h5>
+                    <button class="btn btn-primary btn-sm" onclick="createAPIKey()">
+                        <i class="fas fa-plus"></i> Create API Key
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if api_keys %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Key Prefix</th>
+                                    <th>Scopes</th>
+                                    <th>Usage</th>
+                                    <th>Last Used</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key in api_keys %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ key.name }}</strong>
+                                        {% if not key.is_active %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><code>{{ key.key_prefix }}...</code></td>
+                                    <td>
+                                        {% for scope in key.scopes[:3] %}
+                                        <span class="badge bg-info">{{ scope }}</span>
+                                        {% endfor %}
+                                        {% if key.scopes|length > 3 %}
+                                        <span class="badge bg-secondary">+{{ key.scopes|length - 3 }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ key.usage_count }}</td>
+                                    <td>
+                                        {% if key.last_used_at %}
+                                        {{ key.last_used_at.strftime('%Y-%m-%d %H:%M') }}
+                                        {% else %}
+                                        Never
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ key.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteAPIKey('{{ key.id }}', '{{ key.name }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-key fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No API keys yet. Create one to get started.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SMTP Credentials Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">SMTP Credentials</h5>
+                    <button class="btn btn-primary btn-sm" onclick="createSMTPCredential()">
+                        <i class="fas fa-plus"></i> Create SMTP Credential
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if smtp_credentials %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Username</th>
+                                    <th>SMTP Host</th>
+                                    <th>Port</th>
+                                    <th>Emails Sent</th>
+                                    <th>Last Used</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cred in smtp_credentials %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ cred.name }}</strong>
+                                        {% if not cred.is_active %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><code>{{ cred.username }}</code></td>
+                                    <td><code>smtp.sendbaba.com</code></td>
+                                    <td><code>587</code></td>
+                                    <td>{{ cred.emails_sent }}</td>
+                                    <td>
+                                        {% if cred.last_used_at %}
+                                        {{ cred.last_used_at.strftime('%Y-%m-%d %H:%M') }}
+                                        {% else %}
+                                        Never
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteSMTPCredential('{{ cred.id }}', '{{ cred.name }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-server fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No SMTP credentials yet. Create one for Laravel/WordPress integration.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Documentation Link -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-book"></i>
+                <strong>API Documentation:</strong>
+                View complete API documentation at
+                <a href="/api/docs" target="_blank" class="alert-link">
+                    /api/docs
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create API Key Modal -->
+<div class="modal fade" id="createAPIKeyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create API Key</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="form-control" id="apiKeyName" placeholder="Production Server">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Scopes</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="emails.send" id="scope1" checked>
+                        <label class="form-check-label" for="scope1">emails.send</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="emails.read" id="scope2" checked>
+                        <label class="form-check-label" for="scope2">emails.read</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="contacts.write" id="scope3">
+                        <label class="form-check-label" for="scope3">contacts.write</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="contacts.read" id="scope4">
+                        <label class="form-check-label" for="scope4">contacts.read</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitCreateAPIKey()">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Key Created Modal -->
+<div class="modal fade" id="apiKeyCreatedModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">API Key Created!</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Important:</strong> Copy this key now. You won't be able to see it again!
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Your API Key:</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="newAPIKey" readonly>
+                        <button class="btn btn-outline-secondary" onclick="copyAPIKey()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function createAPIKey() {
+    new bootstrap.Modal(document.getElementById('createAPIKeyModal')).show();
+}
+
+function submitCreateAPIKey() {
+    const name = document.getElementById('apiKeyName').value;
+    const scopes = [];
+    
+    document.querySelectorAll('input[type=checkbox]:checked').forEach(cb => {
+        scopes.push(cb.value);
+    });
+    
+    fetch('/dashboard/api-keys/create', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({name, scopes})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('createAPIKeyModal')).hide();
+            document.getElementById('newAPIKey').value = data.data.key;
+            new bootstrap.Modal(document.getElementById('apiKeyCreatedModal')).show();
+            setTimeout(() => location.reload(), 3000);
+        }
+    });
+}
+
+function copyAPIKey() {
+    const input = document.getElementById('newAPIKey');
+    input.select();
+    document.execCommand('copy');
+    alert('API key copied to clipboard!');
+}
+
+function deleteAPIKey(id, name) {
+    if (confirm(`Delete API key "${name}"?`)) {
+        fetch(`/dashboard/api-keys/${id}/delete`, {method: 'POST'})
+        .then(() => location.reload());
+    }
+}
+
+function createSMTPCredential() {
+    const name = prompt('Enter a name for these SMTP credentials:');
+    if (name) {
+        fetch('/dashboard/api-keys/smtp/create', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert(`SMTP Credentials Created!\n\nUsername: ${data.data.username}\nPassword: ${data.data.password}\n\nSave these credentials now!`);
+                location.reload();
+            }
+        });
+    }
+}
+
+function deleteSMTPCredential(id, name) {
+    if (confirm(`Delete SMTP credential "${name}"?`)) {
+        // Implement delete endpoint
+        alert('Delete functionality coming soon');
+    }
+}
+</script>
+{% endblock %}

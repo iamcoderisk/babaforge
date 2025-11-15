@@ -1,0 +1,28 @@
+{
+  "name": "sendbaba",
+  "version": "1.0.0",
+  "description": "Official JavaScript SDK for SendBaba API",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "email",
+    "marketing",
+    "sendbaba",
+    "transactional",
+    "smtp"
+  ],
+  "author": "SendBaba <support@sendbaba.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sendbaba/sendbaba-js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  }
+}

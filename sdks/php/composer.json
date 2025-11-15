@@ -1,0 +1,25 @@
+{
+    "name": "sendbaba/sendbaba-php",
+    "description": "Official PHP SDK for SendBaba API",
+    "type": "library",
+    "keywords": ["email", "marketing", "sendbaba", "transactional"],
+    "homepage": "https://sendbaba.com",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "SendBaba",
+            "email": "support@sendbaba.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "SendBaba\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}

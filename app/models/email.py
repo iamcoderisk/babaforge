@@ -4,28 +4,31 @@ from datetime import datetime
 class Email(db.Model):
     __tablename__ = 'emails'
     
+    # Exact columns from your database
     id = db.Column(db.String(36), primary_key=True)
-    organization_id = db.Column(db.String(36), db.ForeignKey('organizations.id'), nullable=False)
-    campaign_id = db.Column(db.String(36), nullable=True)
-    
-    from_email = db.Column(db.String(255), nullable=False)
-    to_email = db.Column(db.String(255), nullable=False)
+    organization_id = db.Column(db.String(36), nullable=False)
+    domain_id = db.Column(db.String(36))
+    sender = db.Column(db.String(255), nullable=False)
+    recipient = db.Column(db.String(255), nullable=False)
     subject = db.Column(db.String(500))
-    
     html_body = db.Column(db.Text)
     text_body = db.Column(db.Text)
-    
-    status = db.Column(db.String(20), default='queued')  # queued, sent, failed, bounced
-    
+    status = db.Column(db.String(20), default='queued')
+    message_id = db.Column(db.String(255))
+    error_message = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     sent_at = db.Column(db.DateTime)
+    workflow_execution_id = db.Column(db.String(36))
+    opened_at = db.Column(db.DateTime)
+    campaign_id = db.Column(db.String(36))
+    from_email = db.Column(db.String(255))
+    to_email = db.Column(db.String(255))
     
     def to_dict(self):
         return {
             'id': self.id,
-            'from_email': self.from_email,
-            'to_email': self.to_email,
+            'from_email': self.from_email or self.sender,
+            'to_email': self.to_email or self.recipient,
             'subject': self.subject,
             'status': self.status,
             'created_at': self.created_at.isoformat() if self.created_at else None,

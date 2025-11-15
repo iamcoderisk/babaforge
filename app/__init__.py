@@ -22,7 +22,7 @@ try:
     logger.info("✅ Redis connected")
 except Exception as e:
     redis_client = None
-    logger.warning(f"⚠️ Redis not available: {e}")
+    logger.warning(f"⚠️  Redis not available: {e}")
 
 def create_app():
     app = Flask(__name__)
@@ -125,8 +125,9 @@ def create_app():
             logger.error(f"❌ Forms: {e}")
         
         try:
-            from app.controllers.template_controller import template_bp
+            from app.controllers.template_controller import template_bp, template_api_bp
             app.register_blueprint(template_bp)
+            app.register_blueprint(template_api_bp)
             logger.info("✅ Templates")
         except Exception as e:
             logger.error(f"❌ Templates: {e}")
@@ -159,19 +160,30 @@ def create_app():
         except Exception as e:
             logger.error(f"❌ Reply AI: {e}")
         
+        # Register NEW API v1 Blueprint
         try:
-            from app.controllers.web_controller import web_bp
-            app.register_blueprint(web_bp)
-            logger.info("✅ Web")
+            from app.api.v1.api_v1 import api_v1_bp
+            app.register_blueprint(api_v1_bp)
+            logger.info("✅ API v1")
         except Exception as e:
-            logger.error(f"❌ Web: {e}")
+            logger.error(f"❌ API v1: {e}")
         
+        # Register API Keys Management Blueprint
         try:
-            from app.controllers.tracking_controller import tracking_bp
-            app.register_blueprint(tracking_bp)
-            logger.info("✅ Tracking")
+            from app.controllers.api_keys_controller import api_keys_bp
+            app.register_blueprint(api_keys_bp)
+            logger.info("✅ API Keys Management")
         except Exception as e:
-            logger.error(f"❌ Tracking: {e}")
+            logger.error(f"❌ API Keys Management: {e}")
+        
+        # Register Docs Blueprint
+        try:
+            from app.controllers.docs_controller import docs_bp, swaggerui_blueprint
+            app.register_blueprint(docs_bp)
+            app.register_blueprint(swaggerui_blueprint)
+            logger.info("✅ API Documentation")
+        except Exception as e:
+            logger.error(f"❌ API Documentation: {e}")
     
     @login_manager.user_loader
     def load_user(user_id):
