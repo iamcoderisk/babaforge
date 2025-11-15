@@ -6,101 +6,116 @@
     <title>Features - SendBaba</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-orange': '#F7601F',
+                        'brand-light': '#F87036',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="bg-white">
-    <!-- Navigation (Same as homepage) -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <a href="/" class="text-2xl font-bold">
-                        <i class="fas fa-paper-plane text-purple-600 mr-2"></i>
-                        <span class="text-purple-600">SendBaba</span>
-                    </a>
-                    <div class="hidden md:flex ml-10 space-x-8">
-                        <a href="/features" class="text-red-600 font-semibold">Features</a>
-                        <a href="/pricing" class="text-gray-700 hover:text-red-600 font-medium">Pricing</a>
-                        <a href="/docs" class="text-gray-700 hover:text-red-600 font-medium">Docs</a>
-                        <a href="/api" class="text-gray-700 hover:text-red-600 font-medium">API</a>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="/login" class="text-gray-700 hover:text-red-600 font-medium">Log in</a>
-                    <a href="/signup" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 font-semibold">Sign up</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+<body class="bg-white" id="top">
+    {% include 'components/navbar.html' %}
 
     <!-- Hero -->
-    <section class="bg-gradient-to-br from-purple-600 to-red-600 text-white py-20 px-4">
+    <section class="pt-32 pb-20 px-4 bg-gradient-to-br from-brand-orange to-brand-light text-white">
         <div class="max-w-7xl mx-auto text-center">
-            <h1 class="text-5xl font-bold mb-4">Powerful Features for Modern Email Marketing</h1>
-            <p class="text-xl">Everything you need to create, send, and track professional email campaigns</p>
+            <div class="inline-block bg-white/20 rounded-full px-6 py-2 mb-6">
+                <span class="text-white font-semibold flex items-center gap-2 justify-center">
+                    <img src="https://cdn-icons-png.flaticon.com/128/2910/2910791.png" class="w-5 h-5 brightness-0 invert" alt="Features">
+                    All Features
+                </span>
+            </div>
+            <h1 class="text-5xl md:text-6xl font-bold mb-6">Powerful Features for<br/>Modern Email Marketing</h1>
+            <p class="text-xl text-white/90 max-w-3xl mx-auto">
+                Everything you need to create, send, and track professional email campaigns
+            </p>
         </div>
     </section>
 
-    <!-- Features Grid -->
+    <!-- Main Features Grid -->
     <section class="py-20 px-4">
         <div class="max-w-7xl mx-auto">
-            <!-- Email Templates -->
-            <div class="mb-20">
-                <div class="bg-purple-100 text-purple-800 text-sm font-bold px-4 py-2 rounded-full inline-block mb-6">EMAIL TEMPLATES</div>
+            <!-- AI Features -->
+            <div class="mb-20" id="ai">
+                <div class="inline-block bg-brand-orange/10 rounded-full px-6 py-2 mb-6">
+                    <span class="text-brand-orange font-semibold">🤖 AI POWERED</span>
+                </div>
                 <div class="grid md:grid-cols-2 gap-12 items-center">
                     <div>
-                        <h2 class="text-4xl font-bold mb-6">Professional Email Templates</h2>
-                        <p class="text-gray-600 text-lg mb-6">Choose from 5 beautifully designed, mobile-responsive email templates. Or create your own custom designs with our HTML editor.</p>
+                        <h2 class="text-4xl font-bold text-gray-900 mb-6">AI Reply Intelligence</h2>
+                        <p class="text-gray-600 text-lg mb-6">World's first AI-powered reply management. Automatically detect sentiment, priority, and generate smart responses.</p>
                         <ul class="space-y-4">
                             <li class="flex items-start">
-                                <i class="fas fa-check-circle text-green-600 text-xl mr-3 mt-1"></i>
+                                <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-6 h-6 mr-3 mt-1" alt="Check">
                                 <div>
-                                    <strong>5 Pre-built Templates:</strong> Welcome, Newsletter, Promotional, Event, and Receipt templates
+                                    <strong class="text-gray-900">Sentiment Analysis:</strong>
+                                    <span class="text-gray-600"> Detect positive, neutral, or negative sentiment</span>
                                 </div>
                             </li>
                             <li class="flex items-start">
-                                <i class="fas fa-check-circle text-green-600 text-xl mr-3 mt-1"></i>
+                                <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-6 h-6 mr-3 mt-1" alt="Check">
                                 <div>
-                                    <strong>Variable Personalization:</strong> Use {first_name}, {company} and any custom field
+                                    <strong class="text-gray-900">Auto-Response:</strong>
+                                    <span class="text-gray-600"> AI generates contextual responses automatically</span>
                                 </div>
                             </li>
                             <li class="flex items-start">
-                                <i class="fas fa-check-circle text-green-600 text-xl mr-3 mt-1"></i>
+                                <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-6 h-6 mr-3 mt-1" alt="Check">
                                 <div>
-                                    <strong>Mobile Responsive:</strong> Perfect display on all devices
+                                    <strong class="text-gray-900">Priority Detection:</strong>
+                                    <span class="text-gray-600"> Urgent replies flagged automatically</span>
                                 </div>
                             </li>
                         </ul>
                     </div>
-                    <div class="bg-purple-100 rounded-2xl p-12 text-center">
-                        <div class="text-6xl mb-4">📧</div>
-                        <h3 class="text-2xl font-bold">Beautiful Email Templates</h3>
+                    <div class="hero-image">
+                        <img src="https://cdn.pixabay.com/photo/2023/01/23/07/53/artificial-intelligence-7737927_1280.jpg" 
+                             class="w-full rounded-2xl shadow-2xl" alt="AI">
                     </div>
                 </div>
             </div>
 
-            <!-- Drag & Drop Builder -->
-            <div class="mb-20">
-                <div class="bg-blue-100 text-blue-800 text-sm font-bold px-4 py-2 rounded-full inline-block mb-6">EMAIL BUILDER</div>
+            <!-- Email Builder -->
+            <div class="mb-20" id="builder">
+                <div class="inline-block bg-brand-orange/10 rounded-full px-6 py-2 mb-6">
+                    <span class="text-brand-orange font-semibold">🎨 EMAIL BUILDER</span>
+                </div>
                 <div class="grid md:grid-cols-2 gap-12 items-center">
-                    <div class="bg-blue-100 rounded-2xl p-12 text-center order-2 md:order-1">
-                        <div class="text-6xl mb-4">🎨</div>
-                        <h3 class="text-2xl font-bold">Drag & Drop Builder</h3>
+                    <div class="order-2 md:order-1 hero-image">
+                        <img src="https://cdn.pixabay.com/photo/2020/07/08/04/12/work-5382501_1280.jpg" 
+                             class="w-full rounded-2xl shadow-2xl" alt="Builder">
                     </div>
                     <div class="order-1 md:order-2">
-                        <h2 class="text-4xl font-bold mb-6">Drag & Drop Email Builder</h2>
+                        <h2 class="text-4xl font-bold text-gray-900 mb-6">Drag & Drop Email Builder</h2>
                         <p class="text-gray-600 text-lg mb-6">Create stunning emails with our intuitive GrapeJS-powered builder. No coding required.</p>
                         <ul class="space-y-4">
                             <li class="flex items-start">
-                                <i class="fas fa-check-circle text-green-600 text-xl mr-3 mt-1"></i>
-                                <div><strong>Visual Editor:</strong> Build emails by dragging and dropping components</div>
+                                <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-6 h-6 mr-3 mt-1" alt="Check">
+                                <div>
+                                    <strong class="text-gray-900">Visual Editor:</strong>
+                                    <span class="text-gray-600"> Build emails by dragging and dropping components</span>
+                                </div>
                             </li>
                             <li class="flex items-start">
-                                <i class="fas fa-check-circle text-green-600 text-xl mr-3 mt-1"></i>
-                                <div><strong>Live Preview:</strong> See changes in real-time</div>
+                                <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-6 h-6 mr-3 mt-1" alt="Check">
+                                <div>
+                                    <strong class="text-gray-900">Live Preview:</strong>
+                                    <span class="text-gray-600"> See changes in real-time</span>
+                                </div>
                             </li>
                             <li class="flex items-start">
-                                <i class="fas fa-check-circle text-green-600 text-xl mr-3 mt-1"></i>
-                                <div><strong>Custom Components:</strong> Add images, buttons, text, and more</div>
+                                <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-6 h-6 mr-3 mt-1" alt="Check">
+                                <div>
+                                    <strong class="text-gray-900">Mobile Responsive:</strong>
+                                    <span class="text-gray-600"> Perfect on all devices</span>
+                                </div>
                             </li>
                         </ul>
                     </div>
@@ -108,99 +123,86 @@
             </div>
 
             <!-- Automation -->
-            <div class="mb-20">
-                <div class="bg-green-100 text-green-800 text-sm font-bold px-4 py-2 rounded-full inline-block mb-6">AUTOMATION</div>
+            <div class="mb-20" id="automation">
+                <div class="inline-block bg-brand-orange/10 rounded-full px-6 py-2 mb-6">
+                    <span class="text-brand-orange font-semibold">⚡ AUTOMATION</span>
+                </div>
                 <div class="grid md:grid-cols-2 gap-12 items-center">
                     <div>
-                        <h2 class="text-4xl font-bold mb-6">Email Automation Workflows</h2>
+                        <h2 class="text-4xl font-bold text-gray-900 mb-6">Email Automation Workflows</h2>
                         <p class="text-gray-600 text-lg mb-6">Set up powerful workflows with our visual builder. Automate welcome series, abandoned carts, drip campaigns, and more.</p>
                         <ul class="space-y-4">
                             <li class="flex items-start">
-                                <i class="fas fa-check-circle text-green-600 text-xl mr-3 mt-1"></i>
-                                <div><strong>Visual Builder:</strong> Create complex workflows with drag-and-drop</div>
+                                <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-6 h-6 mr-3 mt-1" alt="Check">
+                                <div>
+                                    <strong class="text-gray-900">Visual Builder:</strong>
+                                    <span class="text-gray-600"> Create complex workflows with drag-and-drop</span>
+                                </div>
                             </li>
                             <li class="flex items-start">
-                                <i class="fas fa-check-circle text-green-600 text-xl mr-3 mt-1"></i>
-                                <div><strong>Trigger-based:</strong> Start workflows on signup, purchase, or custom events</div>
+                                <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-6 h-6 mr-3 mt-1" alt="Check">
+                                <div>
+                                    <strong class="text-gray-900">Trigger-based:</strong>
+                                    <span class="text-gray-600"> Start workflows on signup, purchase, or custom events</span>
+                                </div>
                             </li>
                             <li class="flex items-start">
-                                <i class="fas fa-check-circle text-green-600 text-xl mr-3 mt-1"></i>
-                                <div><strong>Time Delays:</strong> Schedule emails with precise timing</div>
+                                <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-6 h-6 mr-3 mt-1" alt="Check">
+                                <div>
+                                    <strong class="text-gray-900">Time Delays:</strong>
+                                    <span class="text-gray-600"> Schedule emails with precise timing</span>
+                                </div>
                             </li>
                         </ul>
                     </div>
-                    <div class="bg-green-100 rounded-2xl p-12 text-center">
-                        <div class="text-6xl mb-4">🔄</div>
-                        <h3 class="text-2xl font-bold">Workflow Automation</h3>
+                    <div class="hero-image">
+                        <img src="https://cdn.pixabay.com/photo/2017/01/14/10/56/people-1979261_1280.jpg" 
+                             class="w-full rounded-2xl shadow-2xl" alt="Automation">
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <!-- AI Reply Intelligence -->
-            <div class="mb-20 bg-gradient-to-br from-red-50 to-purple-50 rounded-3xl p-12">
-                <div class="bg-red-600 text-white text-sm font-bold px-4 py-2 rounded-full inline-block mb-6">🤖 AI POWERED</div>
-                <div class="grid md:grid-cols-2 gap-12 items-center">
-                    <div class="bg-white rounded-2xl p-12 text-center shadow-lg order-2 md:order-1">
-                        <div class="text-6xl mb-4">🤖</div>
-                        <h3 class="text-2xl font-bold text-red-600">AI Reply Intelligence</h3>
-                        <p class="text-gray-600 mt-4">World's First AI Reply Management</p>
-                    </div>
-                    <div class="order-1 md:order-2">
-                        <h2 class="text-4xl font-bold mb-6">AI Reply Intelligence</h2>
-                        <p class="text-gray-600 text-lg mb-6">World's first AI-powered reply management. Automatically detect sentiment, priority, and generate smart responses.</p>
-                        <ul class="space-y-4">
-                            <li class="flex items-start">
-                                <i class="fas fa-robot text-red-600 text-xl mr-3 mt-1"></i>
-                                <div><strong>Sentiment Analysis:</strong> Detect positive, neutral, or negative sentiment</div>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fas fa-robot text-red-600 text-xl mr-3 mt-1"></i>
-                                <div><strong>Auto-Response:</strong> AI generates contextual responses automatically</div>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fas fa-robot text-red-600 text-xl mr-3 mt-1"></i>
-                                <div><strong>Priority Detection:</strong> Urgent replies flagged automatically</div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- More Features Grid -->
-            <div class="grid md:grid-cols-3 gap-8 mt-20">
-                <div class="bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-red-600 hover:shadow-xl transition">
-                    <div class="text-4xl mb-4">📊</div>
-                    <h3 class="text-xl font-bold mb-3">Advanced Analytics</h3>
+    <!-- Additional Features Grid -->
+    <section class="py-20 px-4 bg-gray-50">
+        <div class="max-w-7xl mx-auto">
+            <h2 class="text-4xl font-bold text-gray-900 mb-12 text-center">More Powerful Features</h2>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="feature-card bg-white rounded-2xl p-8 border border-gray-100" id="analytics">
+                    <img src="https://cdn-icons-png.flaticon.com/128/2920/2920277.png" class="w-14 h-14 mb-6" alt="Analytics">
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Advanced Analytics</h3>
                     <p class="text-gray-600">Track opens, clicks, conversions in real-time with beautiful dashboards.</p>
                 </div>
 
-                <div class="bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-red-600 hover:shadow-xl transition">
-                    <div class="text-4xl mb-4">📝</div>
-                    <h3 class="text-xl font-bold mb-3">Signup Forms</h3>
+                <div class="feature-card bg-white rounded-2xl p-8 border border-gray-100">
+                    <img src="https://cdn-icons-png.flaticon.com/128/1087/1087815.png" class="w-14 h-14 mb-6" alt="Forms">
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Signup Forms</h3>
                     <p class="text-gray-600">Create beautiful forms, popups, and slide-ins that convert visitors.</p>
                 </div>
 
-                <div class="bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-red-600 hover:shadow-xl transition">
-                    <div class="text-4xl mb-4">🎯</div>
-                    <h3 class="text-xl font-bold mb-3">Smart Segmentation</h3>
+                <div class="feature-card bg-white rounded-2xl p-8 border border-gray-100">
+                    <img src="https://cdn-icons-png.flaticon.com/128/3588/3588592.png" class="w-14 h-14 mb-6" alt="Segments">
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Smart Segmentation</h3>
                     <p class="text-gray-600">Target audiences with behavioral segments and dynamic lists.</p>
                 </div>
 
-                <div class="bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-red-600 hover:shadow-xl transition">
-                    <div class="text-4xl mb-4">✅</div>
-                    <h3 class="text-xl font-bold mb-3">Email Validation</h3>
+                <div class="feature-card bg-white rounded-2xl p-8 border border-gray-100" id="validation">
+                    <img src="https://cdn-icons-png.flaticon.com/128/7595/7595571.png" class="w-14 h-14 mb-6" alt="Validation">
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Email Validation</h3>
                     <p class="text-gray-600">Advanced validation: syntax, domain, SMTP, disposable detection.</p>
                 </div>
 
-                <div class="bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-red-600 hover:shadow-xl transition">
-                    <div class="text-4xl mb-4">🔥</div>
-                    <h3 class="text-xl font-bold mb-3">IP Warmup</h3>
+                <div class="feature-card bg-white rounded-2xl p-8 border border-gray-100" id="warmup">
+                    <img src="https://cdn-icons-png.flaticon.com/128/785/785116.png" class="w-14 h-14 mb-6" alt="Warmup">
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">IP Warmup</h3>
                     <p class="text-gray-600">Automated 14-day warmup schedule to improve deliverability.</p>
                 </div>
 
-                <div class="bg-white border-2 border-gray-200 rounded-xl p-8 hover:border-red-600 hover:shadow-xl transition">
-                    <div class="text-4xl mb-4">🛒</div>
-                    <h3 class="text-xl font-bold mb-3">E-commerce Ready</h3>
+                <div class="feature-card bg-white rounded-2xl p-8 border border-gray-100">
+                    <img src="https://cdn-icons-png.flaticon.com/128/2331/2331966.png" class="w-14 h-14 mb-6" alt="Ecommerce">
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">E-commerce Ready</h3>
                     <p class="text-gray-600">Native Shopify & WooCommerce integrations included.</p>
                 </div>
             </div>
@@ -208,48 +210,25 @@
     </section>
 
     <!-- CTA -->
-    <section class="bg-gradient-to-r from-red-600 to-purple-600 text-white py-20 px-4">
-        <div class="max-w-4xl mx-auto text-center">
-            <h2 class="text-4xl font-bold mb-6">Ready to Experience These Features?</h2>
-            <p class="text-xl mb-8">Start your free 14-day trial today. No credit card required.</p>
-            <a href="/signup" class="bg-white text-red-600 px-8 py-4 rounded-lg text-lg font-bold hover:bg-gray-100 inline-block shadow-xl">Start Your Free Trial</a>
+    <section class="py-20 px-4">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-gradient-to-br from-brand-orange to-brand-light rounded-3xl p-12 text-center text-white relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+                <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
+                
+                <div class="relative z-10">
+                    <h2 class="text-4xl font-bold mb-6">Ready to Experience These Features?</h2>
+                    <p class="text-xl mb-8 opacity-90">Start your free 14-day trial today. No credit card required.</p>
+                    <a href="/auth/register" class="bg-white text-brand-orange px-8 py-4 rounded-xl font-bold text-lg hover:shadow-2xl transform hover:-translate-y-1 transition inline-block">
+                        Start Your Free Trial
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-300 py-12">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="grid md:grid-cols-4 gap-8 mb-8">
-                <div>
-                    <h3 class="font-bold text-white mb-4">PRODUCT</h3>
-                    <ul class="space-y-2">
-                        <li><a href="/features" class="hover:text-white">Features</a></li>
-                        <li><a href="/pricing" class="hover:text-white">Pricing</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="font-bold text-white mb-4">SUPPORT</h3>
-                    <ul class="space-y-2">
-                        <li><a href="/docs" class="hover:text-white">Documentation</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="font-bold text-white mb-4">COMPANY</h3>
-                    <ul class="space-y-2">
-                        <li><a href="/about" class="hover:text-white">About</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="font-bold text-white mb-4">LEGAL</h3>
-                    <ul class="space-y-2">
-                        <li><a href="/terms" class="hover:text-white">Terms</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="border-t border-gray-800 pt-8 text-center">
-                <p>&copy; 2025 SendBaba. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    {% include 'components/footer.html' %}
+
+    <script src="{{ url_for('static', filename='js/landing.js') }}"></script>
 </body>
 </html>

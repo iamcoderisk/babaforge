@@ -3,75 +3,494 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pricing - SendBaba</title>
+    <title>Pricing - SendBaba | Better Value Than Mailchimp & SendGrid</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-orange': '#F7601F',
+                        'brand-light': '#F87036',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .pricing-card {
+            transition: all 0.3s ease;
+        }
+        .pricing-card:hover {
+            transform: translateY(-8px);
+        }
+        .feature-item {
+            display: flex;
+            align-items: start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e0;
+            transition: .4s;
+            border-radius: 30px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background: linear-gradient(135deg, #F7601F, #F87036);
+        }
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
-    <nav class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
-            <a href="/" class="text-2xl font-bold text-purple-600"><i class="fas fa-paper-plane mr-2"></i>SendBaba</a>
-            <div class="hidden md:flex space-x-8">
-                <a href="/features" class="text-gray-700 hover:text-red-600">Features</a>
-                <a href="/pricing" class="text-red-600 font-semibold">Pricing</a>
-                <a href="/docs" class="text-gray-700 hover:text-red-600">Docs</a>
-            </div>
-            <div class="flex space-x-4">
-                <a href="/login" class="text-gray-700">Log in</a>
-                <a href="/signup" class="bg-red-600 text-white px-6 py-2 rounded-lg">Sign up</a>
-            </div>
-        </div>
-    </nav>
+<body class="bg-gray-50" id="top">
+    {% include 'components/navbar.html' %}
 
-    <div class="py-20 px-4">
-        <div class="max-w-7xl mx-auto text-center mb-12">
-            <h1 class="text-5xl font-bold mb-4">Simple, Transparent Pricing</h1>
-            <p class="text-xl text-gray-600">Choose the plan that's right for you</p>
-        </div>
-
-        <div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-8 px-4">
-            <div class="bg-white rounded-xl shadow-lg p-8">
-                <h3 class="text-2xl font-bold mb-4">Starter</h3>
-                <div class="mb-6"><span class="text-5xl font-bold">$29</span><span class="text-gray-600">/mo</span></div>
-                <ul class="space-y-3 mb-8">
-                    <li><i class="fas fa-check text-green-600 mr-2"></i>10,000 emails/month</li>
-                    <li><i class="fas fa-check text-green-600 mr-2"></i>5,000 contacts</li>
-                    <li><i class="fas fa-check text-green-600 mr-2"></i>Email support</li>
-                </ul>
-                <a href="/signup?plan=starter" class="block text-center border-2 border-red-600 text-red-600 py-3 rounded-lg font-bold hover:bg-red-50">Get Started</a>
+    <!-- Hero -->
+    <section class="pt-32 pb-20 px-4 bg-gradient-to-br from-brand-orange to-brand-light text-white">
+        <div class="max-w-7xl mx-auto text-center">
+            <div class="inline-block bg-white/20 rounded-full px-6 py-2 mb-6">
+                <span class="text-white font-semibold flex items-center gap-2 justify-center">
+                    <img src="https://cdn-icons-png.flaticon.com/128/2331/2331966.png" class="w-5 h-5 brightness-0 invert" alt="Pricing">
+                    Simple, Transparent Pricing
+                </span>
             </div>
+            <h1 class="text-5xl md:text-6xl font-bold mb-6">
+                Better Value Than<br/>
+                <span class="text-white/90">Mailchimp, SendGrid & Brevo</span>
+            </h1>
+            <p class="text-xl text-white/90 max-w-3xl mx-auto mb-8">
+                Industry-leading features at prices that actually make sense. No hidden fees, no surprises.
+            </p>
 
-            <div class="bg-gradient-to-br from-red-600 to-purple-600 rounded-xl shadow-xl p-8 text-white transform scale-105">
-                <div class="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full inline-block mb-4">POPULAR</div>
-                <h3 class="text-2xl font-bold mb-4">Business</h3>
-                <div class="mb-6"><span class="text-5xl font-bold">$99</span><span>/mo</span></div>
-                <ul class="space-y-3 mb-8">
-                    <li><i class="fas fa-check mr-2"></i>100,000 emails/month</li>
-                    <li><i class="fas fa-check mr-2"></i>50,000 contacts</li>
-                    <li><i class="fas fa-check mr-2"></i>24/7 support</li>
-                    <li><i class="fas fa-check mr-2"></i>AI features</li>
-                </ul>
-                <a href="/signup?plan=business" class="block text-center bg-white text-red-600 py-3 rounded-lg font-bold hover:bg-gray-100">Start Free Trial</a>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-lg p-8">
-                <h3 class="text-2xl font-bold mb-4">Enterprise</h3>
-                <div class="mb-6"><span class="text-5xl font-bold">Custom</span></div>
-                <ul class="space-y-3 mb-8">
-                    <li><i class="fas fa-check text-green-600 mr-2"></i>Unlimited emails</li>
-                    <li><i class="fas fa-check text-green-600 mr-2"></i>Unlimited contacts</li>
-                    <li><i class="fas fa-check text-green-600 mr-2"></i>Dedicated support</li>
-                    <li><i class="fas fa-check text-green-600 mr-2"></i>Self-hosted</li>
-                </ul>
-                <a href="/contact" class="block text-center border-2 border-red-600 text-red-600 py-3 rounded-lg font-bold hover:bg-red-50">Contact Sales</a>
+            <!-- Billing Toggle -->
+            <div class="flex items-center justify-center gap-4 mb-8">
+                <span class="text-white font-semibold" id="monthlyLabel">Monthly</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="billingToggle" onchange="toggleBilling()">
+                    <span class="slider"></span>
+                </label>
+                <span class="text-white font-semibold" id="yearlyLabel">
+                    Yearly <span class="bg-white/20 px-3 py-1 rounded-full text-sm ml-2">Save 20%</span>
+                </span>
             </div>
         </div>
-    </div>
+    </section>
 
-    <footer class="bg-gray-900 text-gray-300 py-12 mt-20">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p>&copy; 2025 SendBaba. All rights reserved.</p>
+    <!-- Pricing Cards -->
+    <section class="py-20 px-4 -mt-10">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-4 gap-8">
+                <!-- Free Plan -->
+                <div class="pricing-card bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                    <div class="mb-6">
+                        <img src="https://cdn-icons-png.flaticon.com/128/2936/2936886.png" class="w-12 h-12 mb-4" alt="Free">
+                        <h3 class="text-2xl font-bold text-gray-900">Free</h3>
+                        <p class="text-gray-600 text-sm mt-2">Perfect for getting started</p>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <div class="flex items-baseline">
+                            <span class="text-5xl font-bold text-gray-900">$0</span>
+                            <span class="text-gray-600 ml-2">/month</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Forever free</p>
+                    </div>
+
+                    <a href="/auth/register?plan=free" class="block w-full text-center border-2 border-gray-300 text-gray-700 py-3 rounded-xl font-bold hover:border-brand-orange hover:text-brand-orange transition mb-8">
+                        Get Started Free
+                    </a>
+
+                    <div class="space-y-4">
+                        <p class="text-sm font-semibold text-gray-900 mb-4">What's included:</p>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700"><strong>1,000</strong> emails/month</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700"><strong>500</strong> contacts</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700">Email templates</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700">Basic analytics</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700">Email support</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Starter Plan -->
+                <div class="pricing-card bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                    <div class="mb-6">
+                        <img src="https://cdn-icons-png.flaticon.com/128/3588/3588592.png" class="w-12 h-12 mb-4" alt="Starter">
+                        <h3 class="text-2xl font-bold text-gray-900">Starter</h3>
+                        <p class="text-gray-600 text-sm mt-2">For small businesses & startups</p>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <div class="flex items-baseline">
+                            <span class="text-5xl font-bold text-gray-900 monthly-price">$19</span>
+                            <span class="text-5xl font-bold text-gray-900 yearly-price hidden">$15</span>
+                            <span class="text-gray-600 ml-2">/month</span>
+                        </div>
+                        <p class="text-sm text-brand-orange mt-2 yearly-savings hidden">Save $48/year</p>
+                        <p class="text-sm text-gray-500 mt-1">vs Mailchimp $20/mo</p>
+                    </div>
+
+                    <a href="/auth/register?plan=starter" class="block w-full text-center bg-gradient-to-r from-brand-orange to-brand-light text-white py-3 rounded-xl font-bold hover:shadow-lg transition mb-8">
+                        Start Free Trial
+                    </a>
+
+                    <div class="space-y-4">
+                        <p class="text-sm font-semibold text-gray-900 mb-4">Everything in Free, plus:</p>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700"><strong>10,000</strong> emails/month</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700"><strong>2,500</strong> contacts</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700">Drag & drop builder</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700">Advanced analytics</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700">A/B testing</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700">Email validation</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700">Priority support</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Business Plan - POPULAR -->
+                <div class="pricing-card bg-gradient-to-br from-brand-orange to-brand-light rounded-2xl shadow-2xl p-8 text-white transform scale-105 border-4 border-white relative">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <span class="bg-yellow-400 text-gray-900 px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                            ⭐ MOST POPULAR
+                        </span>
+                    </div>
+                    
+                    <div class="mb-6 mt-4">
+                        <img src="https://cdn-icons-png.flaticon.com/128/2913/2913133.png" class="w-12 h-12 mb-4 brightness-0 invert" alt="Business">
+                        <h3 class="text-2xl font-bold">Business</h3>
+                        <p class="text-white/90 text-sm mt-2">For growing companies</p>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <div class="flex items-baseline">
+                            <span class="text-5xl font-bold monthly-price">$49</span>
+                            <span class="text-5xl font-bold yearly-price hidden">$39</span>
+                            <span class="text-white/90 ml-2">/month</span>
+                        </div>
+                        <p class="text-sm text-yellow-300 mt-2 yearly-savings hidden">Save $120/year</p>
+                        <p class="text-sm text-white/80 mt-1">vs Mailchimp $95/mo • SendGrid $90/mo</p>
+                    </div>
+
+                    <a href="/auth/register?plan=business" class="block w-full text-center bg-white text-brand-orange py-3 rounded-xl font-bold hover:bg-gray-50 transition mb-8 shadow-lg">
+                        Start Free Trial
+                    </a>
+
+                    <div class="space-y-4">
+                        <p class="text-sm font-semibold mb-4">Everything in Starter, plus:</p>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0 brightness-0 invert" alt="Check">
+                            <span><strong>100,000</strong> emails/month</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0 brightness-0 invert" alt="Check">
+                            <span><strong>25,000</strong> contacts</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0 brightness-0 invert" alt="Check">
+                            <span>AI reply intelligence</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0 brightness-0 invert" alt="Check">
+                            <span>Automation workflows</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0 brightness-0 invert" alt="Check">
+                            <span>Advanced segmentation</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0 brightness-0 invert" alt="Check">
+                            <span>IP warmup</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0 brightness-0 invert" alt="Check">
+                            <span>Dedicated IP (optional)</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0 brightness-0 invert" alt="Check">
+                            <span>24/7 priority support</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enterprise Plan -->
+                <div class="pricing-card bg-white rounded-2xl shadow-xl p-8 border-2 border-gray-200">
+                    <div class="mb-6">
+                        <img src="https://cdn-icons-png.flaticon.com/128/3588/3588304.png" class="w-12 h-12 mb-4" alt="Enterprise">
+                        <h3 class="text-2xl font-bold text-gray-900">Enterprise</h3>
+                        <p class="text-gray-600 text-sm mt-2">For large organizations</p>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <div class="flex items-baseline">
+                            <span class="text-5xl font-bold text-gray-900">Custom</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Tailored to your needs</p>
+                    </div>
+
+                    <a href="/contact?plan=enterprise" class="block w-full text-center border-2 border-brand-orange text-brand-orange py-3 rounded-xl font-bold hover:bg-brand-orange hover:text-white transition mb-8">
+                        Contact Sales
+                    </a>
+
+                    <div class="space-y-4">
+                        <p class="text-sm font-semibold text-gray-900 mb-4">Everything in Business, plus:</p>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700"><strong>Unlimited</strong> emails</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700"><strong>Unlimited</strong> contacts</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700">Multiple dedicated IPs</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700">Custom integrations</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700">SSO & SAML</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700">99.99% SLA</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700">Dedicated account manager</span>
+                        </div>
+                        <div class="feature-item">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 flex-shrink-0" alt="Check">
+                            <span class="text-gray-700">Self-hosted option</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </footer>
+    </section>
+
+    <!-- Comparison Table -->
+    <section class="py-20 px-4 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">How We Compare</h2>
+                <p class="text-xl text-gray-600">See why businesses are switching to SendBaba</p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Feature</th>
+                            <th class="px-6 py-4 text-center text-sm font-bold text-brand-orange">SendBaba</th>
+                            <th class="px-6 py-4 text-center text-sm font-semibold text-gray-600">Mailchimp</th>
+                            <th class="px-6 py-4 text-center text-sm font-semibold text-gray-600">SendGrid</th>
+                            <th class="px-6 py-4 text-center text-sm font-semibold text-gray-600">Brevo</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">100K emails/mo</td>
+                            <td class="px-6 py-4 text-center text-brand-orange font-bold">$49</td>
+                            <td class="px-6 py-4 text-center text-gray-600">$95</td>
+                            <td class="px-6 py-4 text-center text-gray-600">$90</td>
+                            <td class="px-6 py-4 text-center text-gray-600">$59</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">AI Reply Intelligence</td>
+                            <td class="px-6 py-4 text-center"><img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 mx-auto" alt="Yes"></td>
+                            <td class="px-6 py-4 text-center text-gray-400"><i class="fas fa-times"></i></td>
+                            <td class="px-6 py-4 text-center text-gray-400"><i class="fas fa-times"></i></td>
+                            <td class="px-6 py-4 text-center text-gray-400"><i class="fas fa-times"></i></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">Automation Workflows</td>
+                            <td class="px-6 py-4 text-center"><img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 mx-auto" alt="Yes"></td>
+                            <td class="px-6 py-4 text-center"><img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 mx-auto" alt="Yes"></td>
+                            <td class="px-6 py-4 text-center text-gray-600">Limited</td>
+                            <td class="px-6 py-4 text-center"><img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 mx-auto" alt="Yes"></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">Email Validation</td>
+                            <td class="px-6 py-4 text-center"><img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 mx-auto" alt="Yes"></td>
+                            <td class="px-6 py-4 text-center text-gray-600">$3/100</td>
+                            <td class="px-6 py-4 text-center text-gray-600">Paid</td>
+                            <td class="px-6 py-4 text-center text-gray-600">Limited</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">24/7 Support</td>
+                            <td class="px-6 py-4 text-center"><img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 mx-auto" alt="Yes"></td>
+                            <td class="px-6 py-4 text-center text-gray-600">Premium only</td>
+                            <td class="px-6 py-4 text-center"><img src="https://cdn-icons-png.flaticon.com/128/5610/5610944.png" class="w-5 h-5 mx-auto" alt="Yes"></td>
+                            <td class="px-6 py-4 text-center text-gray-600">Email only</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="py-20 px-4 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+            </div>
+
+            <div class="space-y-6">
+                <details class="bg-white rounded-xl p-6 shadow-md cursor-pointer">
+                    <summary class="font-bold text-lg text-gray-900 flex justify-between items-center">
+                        Can I change plans later?
+                        <i class="fas fa-chevron-down text-brand-orange"></i>
+                    </summary>
+                    <p class="mt-4 text-gray-600">Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate the charges.</p>
+                </details>
+
+                <details class="bg-white rounded-xl p-6 shadow-md cursor-pointer">
+                    <summary class="font-bold text-lg text-gray-900 flex justify-between items-center">
+                        What happens if I exceed my email limit?
+                        <i class="fas fa-chevron-down text-brand-orange"></i>
+                    </summary>
+                    <p class="mt-4 text-gray-600">We'll notify you when you reach 80% of your limit. You can either upgrade your plan or purchase additional email credits at $0.50 per 1,000 emails.</p>
+                </details>
+
+                <details class="bg-white rounded-xl p-6 shadow-md cursor-pointer">
+                    <summary class="font-bold text-lg text-gray-900 flex justify-between items-center">
+                        Do you offer a free trial?
+                        <i class="fas fa-chevron-down text-brand-orange"></i>
+                    </summary>
+                    <p class="mt-4 text-gray-600">Yes! All paid plans come with a 14-day free trial. No credit card required to start.</p>
+                </details>
+
+                <details class="bg-white rounded-xl p-6 shadow-md cursor-pointer">
+                    <summary class="font-bold text-lg text-gray-900 flex justify-between items-center">
+                        Can I cancel anytime?
+                        <i class="fas fa-chevron-down text-brand-orange"></i>
+                    </summary>
+                    <p class="mt-4 text-gray-600">Absolutely. There are no long-term contracts. You can cancel your subscription at any time from your dashboard.</p>
+                </details>
+
+                <details class="bg-white rounded-xl p-6 shadow-md cursor-pointer">
+                    <summary class="font-bold text-lg text-gray-900 flex justify-between items-center">
+                        What payment methods do you accept?
+                        <i class="fas fa-chevron-down text-brand-orange"></i>
+                    </summary>
+                    <p class="mt-4 text-gray-600">We accept all major credit cards (Visa, MasterCard, American Express) and PayPal. Enterprise customers can pay via invoice.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-20 px-4">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-gradient-to-br from-brand-orange to-brand-light rounded-3xl p-12 text-center text-white relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+                <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
+                
+                <div class="relative z-10">
+                    <h2 class="text-4xl font-bold mb-6">Ready to Get Started?</h2>
+                    <p class="text-xl mb-8 opacity-90">Join 10,000+ businesses sending emails with SendBaba</p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="/auth/register" class="bg-white text-brand-orange px-8 py-4 rounded-xl font-bold text-lg hover:shadow-2xl transform hover:-translate-y-1 transition inline-flex items-center justify-center">
+                            <span>Start Free Trial</span>
+                            <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                        <a href="/contact" class="border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-brand-orange transition inline-flex items-center justify-center">
+                            <i class="fas fa-phone mr-2"></i>
+                            <span>Talk to Sales</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% include 'components/footer.html' %}
+
+    <script src="{{ url_for('static', filename='js/landing.js') }}"></script>
+    <script>
+        function toggleBilling() {
+            const toggle = document.getElementById('billingToggle');
+            const monthlyPrices = document.querySelectorAll('.monthly-price');
+            const yearlyPrices = document.querySelectorAll('.yearly-price');
+            const yearlySavings = document.querySelectorAll('.yearly-savings');
+            
+            if (toggle.checked) {
+                monthlyPrices.forEach(el => el.classList.add('hidden'));
+                yearlyPrices.forEach(el => el.classList.remove('hidden'));
+                yearlySavings.forEach(el => el.classList.remove('hidden'));
+            } else {
+                monthlyPrices.forEach(el => el.classList.remove('hidden'));
+                yearlyPrices.forEach(el => el.classList.add('hidden'));
+                yearlySavings.forEach(el => el.classList.add('hidden'));
+            }
+        }
+    </script>
 </body>
 </html>
